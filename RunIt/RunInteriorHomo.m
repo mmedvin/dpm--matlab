@@ -9,6 +9,7 @@ Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
 
 R0=1;
+NHR=1.6;
 
 a=1;%1.6;%2.5;
 b=1/2;%0.8;
@@ -51,12 +52,15 @@ p=4;%3;
 	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
     	
     Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-    WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber; %@WaveNumberElliptical;
-    WaveNumberAddParams = k;% struct('k0',k0,'r0',NHR);
-    %     ScattererClsHandle  = @PolarScatterer;
-    %     ScattererAddParams  = struct('r0',R0,'ExpansionType',15);
+	
+	% polar wavenumber isn't designed to work with ellipse scatterer
+	% polar/elliptical wavenumber works with polar scatterer in general, but the problem here become inhomoginious, 
+	% so generally to speak it is wrong place to use it here, mainly because of compariseon to exact here
+    WaveNumberClsHandle = @Tools.WaveNumber.WaveNumberElliptical;%WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
+    WaveNumberAddParams = struct('k',k,'r0',NHR);
+   
     if strcmpi(ScatType,'ellipse')
-        ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%???EllipticScatterer
+        ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;
         ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
     elseif strcmpi(ScatType,'circle')
         ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;

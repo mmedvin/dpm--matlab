@@ -1,4 +1,5 @@
 classdef WaveNumberPolarR < Tools.Common.FunctionWithDerivatives
+	% implementation of Polar WaveNumber class k=k(r)
     properties
         k0;
         k;kr;krr;k3r;k4r;k5r;
@@ -36,9 +37,9 @@ classdef WaveNumberPolarR < Tools.Common.FunctionWithDerivatives
             k5r=obj.k5r;
         end
         
-        function obj=WaveNumberPolarR(Scatterer,k0) %(k0,r,r0)
+        function obj=WaveNumberPolarR(Scatterer,Params) %(k0,r,r0)
             r  = Scatterer.r;
-            r0 = Scatterer.r0;
+            r0 = Params.r0;
             
            if nargin==2
                 p = (r - r0).*r;
@@ -58,7 +59,7 @@ classdef WaveNumberPolarR < Tools.Common.FunctionWithDerivatives
                 g4r = c.*360.*(pr.^4 + 4.*p.*(pr.^2) + p.^2).*(p.^2);
                 g5r = c.*720.*(pr.^5 + 10.*p.*(pr.^3) + 10.*pr.*(p.^2)).*p;
                 
-                obj.k0=k0;
+                obj.k0=Params.k;
                 obj.k   = obj.k0.*exp(-g);
                 obj.kr  =-obj.k.*gr;
                 obj.krr = obj.k.*(gr.^2 - grr);
