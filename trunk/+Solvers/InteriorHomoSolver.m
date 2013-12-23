@@ -22,8 +22,8 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
                 
                 [X,Y] = GridK.mesh();
                 
-                ScattK = struct('r',abs(X+1i.*Y),'r0',WaveNumberAddParams.r0);%ScattererClsHandle(GridK,obj.ScattererAddParams);
-                WNPlr= Tools.WaveNumber.WaveNumberPolarR(ScattK,WaveNumberAddParams.k0);
+                ScattK = struct('r',abs(X+1i.*Y));%ScattererClsHandle(GridK,obj.ScattererAddParams);
+                WNPlr= Tools.WaveNumber.WaveNumberPolarR(ScattK,WaveNumberAddParams);
                 obj.k = sparse(WNPlr.k);
             else
                 obj.k = obj.WaveNumber.k.*ones(obj.Grid.Size+2);

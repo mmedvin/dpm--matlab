@@ -36,7 +36,7 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
         end
         
         function TS = get.TheScatterer(obj)
-            TS = struct('R',obj.r0,'Th',obj.th);
+            TS = struct('r',obj.r0,'th',obj.th);
         end
                 
 %         function S4S = get.ScattererForSource(obj)
@@ -52,11 +52,11 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
 %             S4S = PolarScatterer(GridF,AddP);
 %         end      
         
-        function obj = PolarScatterer(Grid,AddParams)
+        function obj = PolarScatterer(Grid,Params)
             obj = obj@Tools.Scatterer.SingleScatterer(Grid);
-            obj.r0 = AddParams.r0;
+            obj.r0 = Params.r0;
             
-            obj.ExpansionType = AddParams.ExpansionType;            
+            obj.ExpansionType = Params.ExpansionType;            
             
             obj.MyGrid();
             obj.SplitGrid();%(obj.Eta,obj.Eta0);
