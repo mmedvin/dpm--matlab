@@ -1,7 +1,6 @@
 function RunInterior
-    % Semyon Method, Non Homo HLM, Cart coord, variable wavenumber
-    
-%global R A x y x1 xn y1 yn dx dy cols rows NHR  ebinf etinf IntEta k0 k FocDist Eta%n 
+	%inhomogenious helmholtz equation with elliptical scatterer and variable wavenumber
+	% designed for elliptical scatterer and wavenumbers only
 
 x1=-1.2;xn=1.2;
 y1=-0.7;yn=0.7;
@@ -39,7 +38,7 @@ p=3;%3;
     
     Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
     WaveNumberClsHandle = @Tools.WaveNumber.WaveNumberElliptical;
-    WaveNumberAddParams = struct('k0',k0,'r0',NHR);
+    WaveNumberAddParams = struct('k',k0,'r0',NHR);
     ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Internal
     ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
     Source              = @Tools.Source.HelmholtzSource;

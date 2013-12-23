@@ -22,7 +22,7 @@ r0=0.3; r1=2.2;
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
 HankOrPlane = 'PlaneWave';% 'PlaneWave' or 'Hankel'
-ScatType = 'ellipse'; %'ellipse' or 'circle' or 'submarine'
+ScatType = 'circle'; %'ellipse' or 'circle' or 'submarine'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 HankelIndex = 3;
@@ -87,7 +87,7 @@ rat=4/5;
         end
       
         WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
-        WaveNumberAddParams = k;
+        WaveNumberAddParams.k = k;
                 
         for n=1:5 %run different grids
             tic
