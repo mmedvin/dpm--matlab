@@ -73,23 +73,16 @@ classdef WaveNumberElliptical < Tools.WaveNumber.WaveNumberPolarR
             knnff   = obj.knnff;
         end
         
-        function obj = WaveNumberElliptical(Scatterer,AddParams)%,k0,r0) %(FocalDist,eta,phi,k0,r0)
-            % consider reordering of arguments, so it's can be called as
-            % constant k....
-            
-            k0 = AddParams.k0;
-            r0 = AddParams.r0;
-            
-            
-           % obj.FocalDist = Scatterer.FocalDistance;
+        function obj = WaveNumberElliptical(Scatterer,Params)%,k0,r0) %(FocalDist,eta,phi,k0,r0)
+            % consider reordering of arguments, so it's can be called as constant k....
             
             [r,rn,rf,rnn,rff,r3n,r3f,r4n,r4f,rnf,rnff,rnnf,rnnff] = ... 
                 Tools.WaveNumber.WaveNumberElliptical.chngcoord(Scatterer.FocalDistance,Scatterer.Eta,Scatterer.Phi);
             
             PolarScatterer.r  = r;
-            PolarScatterer.r0 = r0;
+            %PolarScatterer.r0 = r0;
             
-            obj=obj@Tools.WaveNumber.WaveNumberPolarR(PolarScatterer,k0);%r,r0);
+            obj=obj@Tools.WaveNumber.WaveNumberPolarR(PolarScatterer,Params);%r,r0);
             
             obj.kn = obj.kr.*rn ;
             obj.kf = obj.kr.*rf ;
