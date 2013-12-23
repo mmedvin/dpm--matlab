@@ -39,8 +39,8 @@ classdef ExactElpsVarKr < Tools.Exact.SuperExact
             obj.Eta         = Scatterer.Eta;
             obj.Phi         = Scatterer.Phi;
             
-            obj.u  = obj.Exact(obj.FocalDistance,obj.Eta,obj.Phi,obj.WaveNumber.k);
-            obj.dudeta = obj.dndExact(obj.FocalDistance,obj.Eta,obj.Phi,obj.WaveNumber.k,obj.WaveNumber.kn);                       
+            obj.u  = obj.Exact(obj.FocalDistance,obj.Eta,obj.Phi,obj.Coeffs.k);
+            obj.dudeta = obj.dndExact(obj.FocalDistance,obj.Eta,obj.Phi,obj.Coeffs.k,obj.Coeffs.kn);                       
         end
         
         function [u,dudeta,d2udeta2,dudphi,d2udphi2] = Derivatives(obj)
@@ -49,18 +49,18 @@ classdef ExactElpsVarKr < Tools.Exact.SuperExact
             dudeta      = obj.dudeta;
             
             d2udeta2    = 1i*obj.FocalDistance*obj.u.*cos(obj.Phi) ...
-                        .*(obj.WaveNumber.knn.*cosh(obj.Eta)   ...
-                        + 2.*obj.WaveNumber.kn.*sinh(obj.Eta)  ...
-                        + obj.WaveNumber.k.*cosh(obj.Eta))     ...
+                        .*(obj.Coeffs.knn.*cosh(obj.Eta)   ...
+                        + 2.*obj.Coeffs.kn.*sinh(obj.Eta)  ...
+                        + obj.Coeffs.k.*cosh(obj.Eta))     ...
                         + 1i*obj.FocalDistance*obj.dudeta.*cos(obj.Phi)...
-                        .*(obj.WaveNumber.kn.*cosh(obj.Eta) + obj.WaveNumber.k.*sinh(obj.Eta));
+                        .*(obj.Coeffs.kn.*cosh(obj.Eta) + obj.Coeffs.k.*sinh(obj.Eta));
                     
-            dudphi      = 1i*obj.FocalDistance*obj.u .* cosh(obj.Eta).*(obj.WaveNumber.kf.*cos(obj.Phi) - obj.WaveNumber.k.*sin(obj.Phi));
+            dudphi      = 1i*obj.FocalDistance*obj.u .* cosh(obj.Eta).*(obj.Coeffs.kf.*cos(obj.Phi) - obj.Coeffs.k.*sin(obj.Phi));
             
-            d2udphi2    = 1i*obj.FocalDistance * obj.u .* cosh(obj.Eta).*(obj.WaveNumber.kff .* cos(obj.Phi) ...
-                        - 2*obj.WaveNumber.kf.*sin(obj.Phi)-obj.WaveNumber.k.*cos(obj.Phi)) ...
-                        + 1i*obj.FocalDistance * dudphi .* cosh(obj.Eta).*(obj.WaveNumber.kf .* cos(obj.Phi) ...
-                        - obj.WaveNumber.k .* sin(obj.Phi));
+            d2udphi2    = 1i*obj.FocalDistance * obj.u .* cosh(obj.Eta).*(obj.Coeffs.kff .* cos(obj.Phi) ...
+                        - 2*obj.Coeffs.kf.*sin(obj.Phi)-obj.Coeffs.k.*cos(obj.Phi)) ...
+                        + 1i*obj.FocalDistance * dudphi .* cosh(obj.Eta).*(obj.Coeffs.kf .* cos(obj.Phi) ...
+                        - obj.Coeffs.k .* sin(obj.Phi));
         end
         
         function [s,sn,snn,sf,sff] = calc_s(obj)
@@ -70,7 +70,7 @@ classdef ExactElpsVarKr < Tools.Exact.SuperExact
             
             Metrics =Tools.Metrics.EllipticalMetrics(obj.FocalDistance,obj.Eta,obj.Phi);          
             [h,hn,hnn,~,~,hf,hff] = Metrics.metrics();
-            [k,kn,kf,knn,kff, k3n,k3f,k4n,k4f,knf,knff,knnf,knnff] = obj.WaveNumber.Derivatives();
+            [k,kn,kf,knn,kff, k3n,k3f,k4n,k4f,knf,knff,knnf,knnff] = obj.Coeffs.Derivatives();
             
             
             FD = obj.FocalDistance;

@@ -1,4 +1,4 @@
-classdef WaveNumberElliptical < Tools.WaveNumber.WaveNumberPolarR
+classdef WaveNumberElliptical < Tools.Coeffs.WaveNumberPolarR
     properties
          
         kn;kf;knn;kff;  k3n;k3f;k4n;k4f;knf;knff;knnf;knnff;
@@ -9,9 +9,9 @@ classdef WaveNumberElliptical < Tools.WaveNumber.WaveNumberPolarR
     methods(Static = true)
         function [k,kn] = kkn(FocalDistance,eta,phi,k0,r0)
             
-            [r,rn] = Tools.WaveNumber.WaveNumberElliptical.chngcoord(FocalDistance,eta,phi);
+            [r,rn] = Tools.Coeffs.WaveNumberElliptical.chngcoord(FocalDistance,eta,phi);
             
-            [k,kr] = Tools.WaveNumber.WaveNumberPolarR.kkr(r,r0,k0);
+            [k,kr] = Tools.Coeffs.WaveNumberPolarR.kkr(r,r0,k0);
             kn = kr.*rn ;
         end
         
@@ -77,12 +77,12 @@ classdef WaveNumberElliptical < Tools.WaveNumber.WaveNumberPolarR
             % consider reordering of arguments, so it's can be called as constant k....
             
             [r,rn,rf,rnn,rff,r3n,r3f,r4n,r4f,rnf,rnff,rnnf,rnnff] = ... 
-                Tools.WaveNumber.WaveNumberElliptical.chngcoord(Scatterer.FocalDistance,Scatterer.Eta,Scatterer.Phi);
+                Tools.Coeffs.WaveNumberElliptical.chngcoord(Scatterer.FocalDistance,Scatterer.Eta,Scatterer.Phi);
             
             PolarScatterer.r  = r;
             %PolarScatterer.r0 = r0;
             
-            obj=obj@Tools.WaveNumber.WaveNumberPolarR(PolarScatterer,Params);%r,r0);
+            obj=obj@Tools.Coeffs.WaveNumberPolarR(PolarScatterer,Params);%r,r0);
             
             obj.kn = obj.kr.*rn ;
             obj.kf = obj.kr.*rf ;

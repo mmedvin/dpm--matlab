@@ -18,6 +18,7 @@ end
 etinf=[];     
 a=1.8;    B=a/2;
 r0=0.3; r1=2.2;
+NHR=1.6;
 
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
@@ -86,14 +87,14 @@ rat=4/5;
             Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         end
       
-        WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
-        WaveNumberAddParams.k = k;
+        WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
+        WaveNumberAddParams = struct('k',k,'r0',NHR);
                 
         for n=1:5 %run different grids
             tic
             %build grid
             
-            p=4;%1;
+            p=3;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
            
             Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);

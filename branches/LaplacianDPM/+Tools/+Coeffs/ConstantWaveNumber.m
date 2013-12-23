@@ -1,4 +1,4 @@
-classdef ConstantWaveNumber < Tools.Common.FunctionWithDerivatives
+classdef ConstantWaveNumber < Tools.Coeffs.AbstractCoeffs
     properties
         k;        
     end
