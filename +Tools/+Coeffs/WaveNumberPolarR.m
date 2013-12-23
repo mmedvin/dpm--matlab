@@ -1,4 +1,4 @@
-classdef WaveNumberPolarR < Tools.Common.FunctionWithDerivatives
+classdef WaveNumberPolarR < Tools.Coeffs.AbstractCoeffs
 	% implementation of Polar WaveNumber class k=k(r)
     properties
         k0;

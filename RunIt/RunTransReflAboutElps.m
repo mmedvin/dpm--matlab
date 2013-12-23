@@ -54,7 +54,7 @@ kex = [1];
            
 %             BasisIndices        = -M:M;
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
+            WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
                       
             IntScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Interior
             ExtScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Exterior
@@ -65,7 +65,7 @@ kex = [1];
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 
-            WaveNumberClsHandle = @Tools.WaveNumber.WaveNumberElliptical;
+            WaveNumberClsHandle = @Tools.Coeffs.WaveNumberElliptical;
             
 
             %IntWaveNumberAddParams = k+dk;           
@@ -260,7 +260,7 @@ function uinc = Uinc(Params,phi,IncAng,k0)
     if Params.Vark
         IntWaveNumberAddParams = struct('k0',k0,'r0',1.6);
         Scat = struct('FocalDistance',Params.FocalDistance,'Eta',Params.eta,'Phi',phi);
-        WN = Tools.WaveNumber.WaveNumberElliptical(Scat, IntWaveNumberAddParams );
+        WN = Tools.Coeffs.WaveNumberElliptical(Scat, IntWaveNumberAddParams );
         k=WN.k;
     else
         k=k0;

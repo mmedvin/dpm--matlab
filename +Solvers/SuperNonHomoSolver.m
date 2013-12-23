@@ -26,10 +26,10 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
         end
          
          function obj = SuperNonHomoSolver( ...
-             Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,SourceHandle)
+             Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,SourceHandle)
              
              obj = obj@Solvers.SuperHomoSolver( ...
-                 Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+                 Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams);
              obj.SourceHandle = SourceHandle;
                                      
             % obj.Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.WaveNumberClsHandle,obj.WaveNumberAddParams);
@@ -80,9 +80,9 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
              
            %  HS = obj.Source(obj.FocalDist,obj.Eta0,obj.phi,obj.k0,obj.r0); %?????
            
-           Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.WaveNumberClsHandle,obj.WaveNumberAddParams);
+           Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsClsHandle,obj.CoeffsAddParams);
            
-             obj.Wf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.WaveNumber);             
+             obj.Wf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);             
          end
                   
         
@@ -115,7 +115,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
                         obj.Grid.yn + obj.Grid.dy/2 , ...
                         obj.Grid.Ny * 2 + 1         ) ;
             ScattererForSource = obj.ScattererClsHandle(GridF,obj.ScattererAddParams);
-           HS = obj.SourceHandle(ScattererForSource,obj.WaveNumberClsHandle,obj.WaveNumberAddParams);
+           HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams);
             
             
             

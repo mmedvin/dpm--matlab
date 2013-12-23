@@ -27,7 +27,7 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
             %             WNPlr=Tools.WaveNumber.WaveNumberPolarR(ScattK,WaveNumberAddParams.k0);
             %             obj.k = sparse(WNPlr.k);
             
-            if  numel(obj.WaveNumber.k)>1
+            if  numel(obj.Coeffs.k)>1
             GridK =Tools.Grid.CartesianGrid( ...
                 obj.Grid.x1 - obj.Grid.dx , ...
                 obj.Grid.xn + obj.Grid.dx , ...
@@ -39,7 +39,7 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
             [X,Y] = GridK.mesh();
             
             ScattK = struct('r',abs(X+1i.*Y));
-            WNPlr=Tools.WaveNumber.WaveNumberPolarR(ScattK,WaveNumberAddParams);
+            WNPlr=Tools.Coeffs.WaveNumberPolarR(ScattK,WaveNumberAddParams);
             obj.k = sparse(WNPlr.k);
             else
                 obj.k = obj.WaveNumber.k.*ones(obj.Grid.Size+2);

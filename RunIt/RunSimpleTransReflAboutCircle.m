@@ -44,7 +44,7 @@ function RunSimpleTransReflAboutCircle
              Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
             
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
+            WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
             ExtWaveNumberAddParams = k;                       
             ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
             ScattererAddParams  = struct('r0',R0,'ExpansionType',15);

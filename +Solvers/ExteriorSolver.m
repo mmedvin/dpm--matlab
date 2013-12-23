@@ -11,11 +11,11 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
     
     methods
         function obj = ExteriorSolver( ...
-                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams)                      
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams)                      
             obj = obj@Solvers.SuperHomoSolver( ...
-                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams);
             
-            obj.k=obj.WaveNumber.k;
+            obj.k=obj.Coeffs.k;
             
             obj.CreateDirectOperatorA1();
             obj.CreateSolverA2();
