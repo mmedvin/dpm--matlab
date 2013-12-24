@@ -9,6 +9,7 @@ function RunSimpleTransReflAboutCircle
     y1=-0.8;yn=0.8;
    
     R0 =0.7;
+    NHR = 1.6;
     
     IncAng = 40;
     IncAng = IncAng*pi/180;    
@@ -45,7 +46,7 @@ function RunSimpleTransReflAboutCircle
             
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
             WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
-            ExtWaveNumberAddParams = k;                       
+            ExtWaveNumberAddParams = struct('k',k,'r0',NHR);                      
             ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
             ScattererAddParams  = struct('r0',R0,'ExpansionType',15);
             
@@ -53,7 +54,7 @@ function RunSimpleTransReflAboutCircle
                 (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-            IntWaveNumberAddParams = k+dk;           
+            IntWaveNumberAddParams = struct('k',k+dk,'r0',NHR);             
             
             IntPrb = Solvers.InteriorHomoSolver ...
                 (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,ScattererClsHandle,ScattererAddParams);

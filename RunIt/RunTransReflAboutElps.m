@@ -30,9 +30,9 @@ kin = [15];
 kex = [1];
 
     for ki = 1 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
-    ExtWaveNumberAddParams = kex(ki);
-    IntWaveNumberAddParams = struct('k0',kin(ki),'r0',1.6);
-    k=ExtWaveNumberAddParams;
+    ExtWaveNumberAddParams = struct('k',kex(ki),'r0',1.6);
+    IntWaveNumberAddParams = struct('k',kin(ki),'r0',1.6);
+    k=ExtWaveNumberAddParams.k;
     
         
         UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0, 'Vark',true); % ,false);%
@@ -258,7 +258,7 @@ function uinc = Uinc(Params,phi,IncAng,k0)
     end
  
     if Params.Vark
-        IntWaveNumberAddParams = struct('k0',k0,'r0',1.6);
+        IntWaveNumberAddParams = struct('k',k0,'r0',1.6);
         Scat = struct('FocalDistance',Params.FocalDistance,'Eta',Params.eta,'Phi',phi);
         WN = Tools.Coeffs.WaveNumberElliptical(Scat, IntWaveNumberAddParams );
         k=WN.k;
