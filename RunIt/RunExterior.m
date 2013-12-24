@@ -1,6 +1,6 @@
 function RunExterior
 
-LastKnownVersionOfTools = '2.0.0.0';
+LastKnownVersionOfTools = '2.1.0.0';
 try
     ver = Tools.Version();
     if ~strcmp(ver,LastKnownVersionOfTools)
@@ -22,7 +22,7 @@ r0=0.3; r1=2.2;
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
 HankOrPlane = 'PlaneWave';% 'PlaneWave' or 'Hankel'
-ScatType = 'circle'; %'ellipse' or 'circle' or 'submarine'
+ScatType = 'ellipse'; %'ellipse' or 'circle' or 'submarine'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 HankelIndex = 3;
