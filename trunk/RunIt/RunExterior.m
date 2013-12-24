@@ -18,6 +18,7 @@ end
 etinf=[];     
 a=1.8;    B=a/2;
 r0=0.3; r1=2.2;
+NHR=1.6;
 
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
@@ -87,7 +88,7 @@ rat=4/5;
         end
       
         WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
-        WaveNumberAddParams.k = k;
+        WaveNumberAddParams = struct('k',k,'r0',NHR);
                 
         for n=1:5 %run different grids
             tic
