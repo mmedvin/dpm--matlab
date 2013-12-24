@@ -32,7 +32,7 @@ elseif strcmpi(ScatType,'submarine')
 end
 
 
-for k = 1%[1,5,10,15,20,25]
+for k = 5%[1,5,10,15,20,25]
     
     f   =@(th) Exact(th,k,ExParams);%(R0,th,k);
     dfdn=@(th) drExact(th,k,ExParams);%((R0,th,k);
@@ -43,7 +43,7 @@ for k = 1%[1,5,10,15,20,25]
             Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
         end
 
-for n=1:3 %run different grids
+for n=1:4 %run different grids
 tic
 	%build grid
 % 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;

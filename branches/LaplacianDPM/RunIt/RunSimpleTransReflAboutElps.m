@@ -19,7 +19,7 @@ function RunSimpleTransReflAboutElps
 %	y1=-1.2;  yn=1.2;
    
   %  R0 =0.7;
-
+NHR = 1.6;
    for b = 0.35 % [0.18, 0.35, 0.6,0.9] %[0.9,0.6,0.35,0.18,0.15]
 
 IntErr=[];ExtErr=[];
@@ -41,12 +41,12 @@ fprintf('Trans/Refl problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d 
 
 
 for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
-    ExtWaveNumberAddParams = k;
-    IntWaveNumberAddParams = 2*k;%+dk;
-   
+    ExtWaveNumberAddParams = struct('k',k,'r0',NHR);
+    IntWaveNumberAddParams =  struct('k',2*k,'r0',NHR);
+   kmax = max(ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k );
         UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);              
-        f1      = @(phi) Uinc(UincParams,phi,IncAng,max(ExtWaveNumberAddParams ,IntWaveNumberAddParams ));
-        dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,max(ExtWaveNumberAddParams ,IntWaveNumberAddParams ));
+        f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
+        dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);
             
 	Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         
@@ -156,7 +156,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 IntErr(n) =norm(tmp(:),inf);
                 
                 fprintf('b=%-7.2f,kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',b, ...
-				ExtWaveNumberAddParams ,IntWaveNumberAddParams ,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
+				ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k ,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));
@@ -165,7 +165,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
             Intu0=spalloc(Nx*2-1,Ny*2-1,nnz(Intu));
             Intu0(1:2:end,1:2:end)=Intu;
 
-            if want2plot || n==nmax
+            if want2plot %|| n==nmax
                 
                 
                 

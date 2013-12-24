@@ -94,7 +94,7 @@ rat=4/5;
             tic
             %build grid
             
-            p=3;%1;
+            p=4;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
            
             Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
