@@ -165,7 +165,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
             Intu0=spalloc(Nx*2-1,Ny*2-1,nnz(Intu));
             Intu0(1:2:end,1:2:end)=Intu;
 
-            if want2plot || n==nmax
+            if want2plot %|| n==nmax
                 
                 
                 
