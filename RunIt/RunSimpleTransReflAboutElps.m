@@ -19,7 +19,7 @@ function RunSimpleTransReflAboutElps
 %	y1=-1.2;  yn=1.2;
    
   %  R0 =0.7;
-
+NHR = 1.6;
    for b = 0.35 % [0.18, 0.35, 0.6,0.9] %[0.9,0.6,0.35,0.18,0.15]
 
 IntErr=[];ExtErr=[];
@@ -41,9 +41,9 @@ fprintf('Trans/Refl problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d 
 
 
 for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
-    ExtWaveNumberAddParams.k = k;
-    IntWaveNumberAddParams.k = 2*k;%+dk;
-    kmax = max(ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k );
+    ExtWaveNumberAddParams = struct('k',k,'r0',NHR);
+    IntWaveNumberAddParams =  struct('k',2*k,'r0',NHR);
+   kmax = max(ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k );
         UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);              
         f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);

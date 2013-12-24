@@ -111,9 +111,6 @@ p=4;%3;
     % % % % % % % % % % % % % % % %
     
     
-    
-    
-    
     exact = zeros(Nx,Ny);   
     %exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.R(IntPrb.Scatterer.Np),IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k);
     if strcmpi(ScatType,'ellipse')
