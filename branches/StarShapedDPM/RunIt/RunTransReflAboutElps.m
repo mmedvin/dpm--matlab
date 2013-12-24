@@ -1,6 +1,6 @@
 function RunTransReflAboutElps
     
-    want2plot = 0;
+    want2plot =1;
 
     IntErr=[];ExtErr=[];
     
@@ -21,7 +21,7 @@ function RunTransReflAboutElps
     IncAng = 40;
     IncAng = IncAng*pi/180;    
     
-    dk = 30;
+%     dk = 30;
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
 %     fprintf('Solving %s defraction problem, comparing using grid convergance, data is PlaneWave, scatterer is circle\n',Problem);
@@ -30,12 +30,12 @@ kin = [15];
 kex = [1];
 
     for ki = 1 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
-    ExtWaveNumberAddParams = kex(ki);
-    IntWaveNumberAddParams = struct('k0',kin(ki),'r0',1.6);
-    k=ExtWaveNumberAddParams;
+    ExtWaveNumberAddParams.k = kex(ki);
+    IntWaveNumberAddParams = struct('k',kin(ki),'r0',1.6);
+    k=ExtWaveNumberAddParams.k;
     
         
-        UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0, 'Vark',true); % ,false);%
+        UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0,'r0',IntWaveNumberAddParams.r0, 'Vark',true); % ,false);%
         f1      = @(phi) Uinc(UincParams,phi,IncAng,kin(ki));
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kin(ki));
             
@@ -43,12 +43,12 @@ kex = [1];
         Basis =Tools.Basis.FourierBasis.BasisHelper(f1,@sin);%dfdn);
         %[cn0ex,cn1ex,M] = FourierCoeff(f1,dfdn);
     
-        nmax=2;
-        for n=0:nmax %run different grids
+        nmax=1;
+        for n=1:nmax %run different grids
             tic
             %build grid
             
-            p=4;%6;%3;%1;
+            p=5;%6;%3;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
             Nx=2^(n+p)+1;	Ny=2^(n+p)+1;
            
@@ -78,7 +78,7 @@ kex = [1];
                 ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %
                 
                 
-                UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',ExtPrb.Scatterer.eta, 'Vark',false);
+                UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',ExtPrb.Scatterer.eta,'r0',IntWaveNumberAddParams.r0, 'Vark',false);
                 
                 rhs = zeros(numel(ExtPrb.GridGamma) + numel(IntPrb.GridGamma),1);
                 % rhs(numel(IntPrb.GridGamma)+1:end,1)= -Uinc(UincParams,ExtPrb.Scatterer.th,IncAng,k);
@@ -100,7 +100,7 @@ kex = [1];
                 
                 %UincParams  =
                 %struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',PlrGrid.R);???
-                UincParams  = struct('ScattererType','circle','r',PlrGrid.R, 'Vark',false);
+                UincParams  = struct('ScattererType','circle','r',PlrGrid.R,'r0',IntWaveNumberAddParams.r0, 'Vark',false);
                 Uinc = Uinc(UincParams,PlrGrid.Theta,IncAng,k);
                 
                 
@@ -154,7 +154,7 @@ kex = [1];
                 tmp = Intu(1:2:end,1:2:end)-Intu1(1:2:end,1:2:end);
                 IntErr(n) =norm(tmp(:),inf);
                 
-                fprintf('kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',k,k+dk,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
+                fprintf('kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',kex(ki),kin(ki),Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));
@@ -163,7 +163,7 @@ kex = [1];
             Intu0=spalloc(Nx*2-1,Ny*2-1,nnz(Intu));
             Intu0(1:2:end,1:2:end)=Intu;
 
-            if want2plot %|| n==nmax
+            if want2plot || n==nmax
                 figure
                 XExt = PlrGrid.R .* cos(PlrGrid.Theta);
                 YExt = PlrGrid.R .* sin(PlrGrid.Theta);
@@ -195,8 +195,8 @@ kex = [1];
                 set(h,'Color','none');
                 set(h,'Visible','off');
                 colorbar
-                saveas(figure(1),'totfldElps_a1.6b0.8r00.6r12ang70VarKkin45kout15abs.jpg','jpg')
-                close all
+%                 saveas(figure(1),'totfldElps_a1.6b0.8r00.6r12ang70VarKkin45kout15abs.jpg','jpg')
+%                 close all
                 figure
                 pcolor([XInt,XExt],[YInt,YExt],full(real([tIntu,tExtu])))
                 
@@ -210,8 +210,8 @@ kex = [1];
                 set(h,'Color','none');
                 set(h,'Visible','off');
                 colorbar
-                saveas(figure(1),'totfldElps_a1.6b0.8r00.6r12ang70VarKkin45kout15real.jpg','jpg')
-                close all
+%                 saveas(figure(1),'totfldElps_a1.6b0.8r00.6r12ang70VarKkin45kout15real.jpg','jpg')
+%                 close all
                 
                 figure
                 pcolor([XInt,XExt],[YInt,YExt],full(imag([tIntu,tExtu])))
@@ -226,15 +226,15 @@ kex = [1];
                 set(h,'Color','none');
                 set(h,'Visible','off');
                 colorbar
-                saveas(figure(1),'totfldElps_a1.6b0.8r00.6r12ang70VarKkin45kout15imag.jpg','jpg')
-                close all
+%                 saveas(figure(1),'totfldElps_a1.6b0.8r00.6r12ang70VarKkin45kout15imag.jpg','jpg')
+%                 close all
                 
-                tmp=abs([tIntu,tExtu]);
-               fprintf('min=%d \t max=%d', full(min(tmp(:))), full(max(tmp(:))));
-                
-               saveas(figure(1),'totfldVarKkin50kout15abs.jpg','jpg')
-               saveas(figure(2),'totfldVarKkin50kout15real.jpg','jpg')
-               saveas(figure(3),'totfldVarKkin50kout15imag.jpg','jpg')
+%                 tmp=abs([tIntu,tExtu]);
+%                fprintf('min=%d \t max=%d', full(min(tmp(:))), full(max(tmp(:))));
+%                 
+%                saveas(figure(1),'totfldVarKkin50kout15abs.jpg','jpg')
+%                saveas(figure(2),'totfldVarKkin50kout15real.jpg','jpg')
+%                saveas(figure(3),'totfldVarKkin50kout15imag.jpg','jpg')
             end
             
             
@@ -258,10 +258,12 @@ function uinc = Uinc(Params,phi,IncAng,k0)
     end
  
     if Params.Vark
-        IntWaveNumberAddParams = struct('k0',k0,'r0',1.6);
-        Scat = struct('FocalDistance',Params.FocalDistance,'Eta',Params.eta,'Phi',phi);
-        WN = Tools.WaveNumber.WaveNumberElliptical(Scat, IntWaveNumberAddParams );
-        k=WN.k;
+%         IntWaveNumberAddParams = struct('k',k0,'r0',1.6);
+%         Scat = struct('FocalDistance',Params.FocalDistance,'Eta',Params.eta,'Phi',phi);
+%         WN = Tools.WaveNumber.WaveNumberElliptical(Scat, IntWaveNumberAddParams );
+%         k=WN.k;
+        r0=1.6;
+        k=Tools.WaveNumber.WaveNumberElliptical.kkn(Params.FocalDistance,Params.eta,phi, k0,r0);
     else
         k=k0;
     end

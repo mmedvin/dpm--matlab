@@ -70,8 +70,8 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
         function res = Expansion(obj,Xi0,Xi1,F,WaveNumber)
             
             
-            [xi0,xi0t,xi0tt,xi0tttt,xi0tttttt] = Xi0.Derivatives();
-            [xi1,~,xi1tt,xi1tttt,~] = Xi1.Derivatives();
+            [xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+            [xi1,~   ,xi1tt,~,xi1tttt          ] = Xi1.Derivatives();
             
             if obj.ExpansionType==15 % need find better type
                 

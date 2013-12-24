@@ -97,7 +97,7 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
            % [F,Fn,Ff,Fnn,Fff] = Source.Derivatives();
             [F,Fn,Ff,Fnn,Fff] = Source.Derivatives();
             
-            [xi0,xi0f,xi0ff,xi0ffff] = Xi0.Derivatives();
+            [xi0,xi0f,xi0ff,~,xi0ffff] = Xi0.Derivatives();
             [xi1,~,xi1ff] = Xi1.Derivatives();
             
             [k,kn,kf,knn,kff] = WaveNumber.Derivatives();

@@ -41,12 +41,12 @@ fprintf('Trans/Refl problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d 
 
 
 for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
-    ExtWaveNumberAddParams = k;
-    IntWaveNumberAddParams = 2*k;%+dk;
-   
+    ExtWaveNumberAddParams.k = k;
+    IntWaveNumberAddParams.k = 2*k;%+dk;
+    kmax = max(ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k );
         UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);              
-        f1      = @(phi) Uinc(UincParams,phi,IncAng,max(ExtWaveNumberAddParams ,IntWaveNumberAddParams ));
-        dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,max(ExtWaveNumberAddParams ,IntWaveNumberAddParams ));
+        f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
+        dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);
             
 	Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         
@@ -156,7 +156,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 IntErr(n) =norm(tmp(:),inf);
                 
                 fprintf('b=%-7.2f,kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',b, ...
-				ExtWaveNumberAddParams ,IntWaveNumberAddParams ,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
+				ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k ,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));
@@ -202,7 +202,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 % XInt(IntPrb.Scatterer.Mm)=NaN;
                 %YInt(IntPrb.Scatterer.Mm)=NaN;
                 
-                filename = sprintf('TFElpsAR%dRing%d%dkin%dkex%dgrd%d',fix(10*a/b),fix(10*r0),fix(10*r1),IntWaveNumberAddParams,ExtWaveNumberAddParams,Nr);
+                filename = sprintf('TFElpsAR%dRing%d%dkin%dkex%dgrd%d',fix(10*a/b),fix(10*r0),fix(10*r1),IntWaveNumberAddParams.k,ExtWaveNumberAddParams.k,Nr);
                 ExScat = ExtPrb.Scatterer;
                 IntScat = IntPrb.Scatterer;
                 save(filename,'filename','a','b','XInt','XExt','YInt','YExt','tIntu','tExtu','Extu','Intu','Nm','Np','PlrGrid','CrtsGrid','ExScat','IntScat');

@@ -4,8 +4,8 @@ classdef ConstantWaveNumber < Tools.Common.FunctionWithDerivatives
     end
     
     methods(Static = true)
-        function [k,kr] = kkr(r,r0,k0)
-            k=obj.k;
+        function [k,kr] = kkr(~,~,k0)
+            k=k0;
             kr=0;
         end
     end
