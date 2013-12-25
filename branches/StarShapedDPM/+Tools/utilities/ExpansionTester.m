@@ -60,7 +60,7 @@ for n=1:6 %run different grids
     t           = Scatterer.BasisArg;
         
     WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber; %@WaveNumberElliptical;
-    WaveNumberAddParams = k;
+    WaveNumberAddParams.k = k;
 
     Coeffs = WaveNumberClsHandle(Scatterer.TheScatterer,WaveNumberAddParams);
        

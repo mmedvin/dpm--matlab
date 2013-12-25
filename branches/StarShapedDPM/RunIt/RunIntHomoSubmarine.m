@@ -14,8 +14,8 @@ catch err
     end
 end
 
-x1=-3;xn=3;
-y1=-3;yn=3;%=-0.7;yn=0.7;%
+x1=-2.5;xn=2.5;
+y1=-2.5;yn=2.5;%=-0.7;yn=0.7;%
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
 
@@ -43,6 +43,8 @@ elseif strcmpi(ScatType,'submarine')
     ExParams  = struct('ScattererType','submarine','ellipse',ellipse,'tower',tower);
 end
 
+fprintf('Interior Homogeneous Submarine solver: ScatType=%s, Basis Type=%s , FD=%d, ,Eta0=%d, a=%d, b=%d,c=%d,p=%d, AR=%d , x=+/-%d,y+/-=%d\n', ...
+ScatType , BType , FocalDist , Eta0 , ellipse.a,ellipse.b,tower.c,tower.p,AR,xn,yn);
 
 for k = 1%[1,5,10,15,20,25]
     
@@ -93,8 +95,8 @@ p=4;%3;
     ebinf(n)=0;
 
     if strcmpi(ScatType,'ellipse')
-        ExParams  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.eta,'FocalDistance',FocalDist);
-        xiex = Exact(IntPrb.Scatterer.phi,k,ExParams);%(FocalDist,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,k0,NHR);
+        ExParams2  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.eta,'FocalDistance',FocalDist);
+        xiex = Exact(IntPrb.Scatterer.phi,k,ExParams2);%(FocalDist,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,k0,NHR);
     elseif strcmpi(ScatType,'circle')
         ExParams2 =ExParams;
         ExParams2.r = IntPrb.Scatterer.r;
@@ -126,8 +128,8 @@ p=4;%3;
     exact = zeros(Nx,Ny);   
     %exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.R(IntPrb.Scatterer.Np),IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k);
     if strcmpi(ScatType,'ellipse')
-        ExParams  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),'FocalDistance',FocalDist);
-        exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),k,ExParams);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
+        ExParams3  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),'FocalDistance',FocalDist);
+        exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
         %TBD;
     elseif strcmpi(ScatType,'circle')
         ExParams3 =ExParams;

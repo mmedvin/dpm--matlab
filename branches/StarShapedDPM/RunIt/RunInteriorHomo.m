@@ -84,8 +84,8 @@ p=4;%3;
     ebinf(n)=0;
 
     if strcmpi(ScatType,'ellipse')
-        ExParams  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.eta,'FocalDistance',FocalDist);
-        xiex = Exact(IntPrb.Scatterer.phi,k,ExParams);%(FocalDist,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,k0,NHR);
+        ExParams2  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.eta,'FocalDistance',FocalDist);
+        xiex = Exact(IntPrb.Scatterer.phi,k,ExParams2);%(FocalDist,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,k0,NHR);
     elseif strcmpi(ScatType,'circle')
         ExParams2 =ExParams;
         ExParams2.r = IntPrb.Scatterer.r;
@@ -117,8 +117,8 @@ p=4;%3;
     exact = zeros(Nx,Ny);   
     %exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.R(IntPrb.Scatterer.Np),IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k);
     if strcmpi(ScatType,'ellipse')
-        ExParams  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),'FocalDistance',FocalDist);
-        exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),k,ExParams);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
+        ExParams3  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),'FocalDistance',FocalDist);
+        exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
         %TBD;
     elseif strcmpi(ScatType,'circle')
         ExParams3 =ExParams;
