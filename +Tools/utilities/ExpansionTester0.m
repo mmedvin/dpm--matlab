@@ -19,7 +19,7 @@ if kolobok
 	x1=-3;xn=3;
 	y1=-3;yn=3;%=-0.7;yn=0.7;%	
 elseif ellipse
- 	AR=1.2;
+ 	AR=2;
 	c=0;
 
 	x1=-2;xn=2;
@@ -59,18 +59,18 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     
     
            
-    TestParams.dn = 1./[1,2,4,8,16,32,64,128,256,512];
+    TestParams.dn = 1./[1,2,4,8,16,32,64,128];%,256,512,1024];
 
-    for n = 1:2:10
+    for n =-5:2:5
         TestParams.Angle = pi/n;
     
-    Scatterer   = Tools.Scatterer.TesterScatterer(Grid,ScattererAddParams,TestParams); %Tools.Scatterer.SubmarineScatterer(Grid,ScattererAddParams);
+    Scatterer   = Tools.Scatterer.TesterSubmarineScatterer(Grid,ScattererAddParams,TestParams); %Tools.Scatterer.SubmarineScatterer(Grid,ScattererAddParams);
     Submarine   = Scatterer.Submarine;
     t           = Scatterer.BasisArg;
     
         
     WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber; %@WaveNumberElliptical;
-    WaveNumberAddParams = k;
+    WaveNumberAddParams.k = k;
 
     Coeffs = WaveNumberClsHandle(Scatterer.TheScatterer,WaveNumberAddParams);
        

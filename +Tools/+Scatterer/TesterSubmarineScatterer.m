@@ -1,4 +1,4 @@
-classdef TesterScatterer < Tools.Scatterer.SingleScatterer
+classdef TesterSubmarineScatterer < Tools.Scatterer.SingleScatterer
     
     properties (Access = public)
          TestParams;
@@ -62,7 +62,7 @@ classdef TesterScatterer < Tools.Scatterer.SingleScatterer
 %             S4S = EllipticScatterer(GridF,AddP);
 %         end
         
-        function obj = TesterScatterer(Grid,AddParams,TestParams)
+        function obj = TesterSubmarineScatterer(Grid,AddParams,TestParams)
             obj = obj@Tools.Scatterer.SingleScatterer(Grid);
             obj.ellipse = AddParams.ellipse;
             obj.tower = AddParams.tower;
@@ -91,22 +91,22 @@ classdef TesterScatterer < Tools.Scatterer.SingleScatterer
             %[k,kn,kf,knn,kff] = WaveNumber.Derivatives();
             k = WaveNumber.Derivatives();
 
-            [dtds,dttds,d3tds,d4tds] = obj.DtDs(r0,dr,d2r,d3r,d4r);
+            [h,ht,htt,h3t] = obj.Metrics(r0,dr,d2r,d3r,d4r);			
             [curv,ds_curv,dsds_curv] = obj.curvature(obj.nrml_th);
             
-            xi0s    = xi0t./dtds;
-            xi0ss   = (xi0tt./dtds - dttds.*xi0t./dtds.^2)./dtds;
-            %     xi03s   = ((xi0ttt./dtds - 2*dttds.*xi0tt./dtds.^2 - d3tds.*xi0t./dtds.^2 + 2*dttds.^2.*xi0t./dtds.^3)./dtds ...
-            %              - dttds.*(xi0tt./dtds - dttds.*xi0t./dtds.^2)./dtds.^2 )./dtds;
-            %%% bad/old xi03s   = (2*xi0t.*dttds.^2./dtds.^3 - (2*xi0tt.*dttds + xi0t.*d3tds)./dtds.^2 + xi0ttt./dtds)./dtds;
-            xi0sss  = xi0ttt./(dtds.^3) - (d3tds.*xi0t + 3*dttds.*xi0tt)./(dtds.^4) + 3*(dttds.^2).*xi0t./(dtds.^5) ;
+            xi0s    = xi0t./h;
+            xi0ss   = (xi0tt./h - ht.*xi0t./h.^2)./h;
+			%xi03s   = ((xi0ttt./h - 2*ht.*xi0tt./h.^2 - htt.*xi0t./h.^2 + 2*ht.^2.*xi0t./h.^3)./h ...
+            %             - ht.*(xi0tt./h - ht.*xi0t./h.^2)./h.^2 )./h;
+            %% bad/old xi03s   = (2*xi0t.*ht.^2./h.^3 - (2*xi0tt.*ht + xi0t.*htt)./h.^2 + xi0ttt./h)./h;
+            xi0sss  = xi0ttt./(h.^3) - (htt.*xi0t + 3*ht.*xi0tt)./(h.^4) + 3*(ht.^2).*xi0t./(h.^5) ;
             
-            xi0ssss = (xi0tttt./(dtds.^3) - 6*dttds.*xi0ttt./(dtds.^4) ...
-                    - (d4tds.*xi0t + 4*d3tds.*xi0tt)./(dtds.^4) + (10*d3tds.*dttds.*xi0t + 15*(dttds.^2).*xi0tt)./(dtds.^5) ...
-                    - 15*(dttds.^3).*xi0t./(dtds.^6))./dtds;
+            xi0ssss = (xi0tttt./(h.^3) - 6*ht.*xi0ttt./(h.^4) ...
+                    - (h3t.*xi0t + 4*htt.*xi0tt)./(h.^4) + (10*htt.*ht.*xi0t + 15*(ht.^2).*xi0tt)./(h.^5) ...
+                    - 15*(ht.^3).*xi0t./(h.^6))./h;
             
-            xi1s = xi1t./dtds;
-            xi1ss= (xi1tt./dtds - dttds.*xi1t./dtds.^2)./dtds;
+            xi1s = xi1t./h;
+            xi1ss= (xi1tt./h - ht.*xi1t./h.^2)./h;
             
             u_nn    = xi1.*curv - xi0ss - xi0.*k.^2;
             u_nnn   = u_nn.*curv +(curv.^2-k.^2).*xi1 - ds_curv.*xi0s - xi1ss - 2*curv.*xi0ss;
@@ -247,21 +247,30 @@ classdef TesterScatterer < Tools.Scatterer.SingleScatterer
         function [curv,ds_curv,dsds_curv] = curvature(obj,theta)
             
             [r0,dr,d2r,d3r,d4r] = obj.Submarine.Derivatives(theta); %obj.MyShape(theta);
-            dtds    = sqrt(r0.^2+dr.^2);
+            h = sqrt(r0.^2+dr.^2);
             
-            curv = - (r0.^2 + 2*dr.^2 -r0.*d2r)./(dtds.^3);
-            ds_curv   =  (d3r.*r0.*(dr.^2 + r0.^2) + dr.*(3*d2r.*dr.^2 + (-3 *d2r.^2 + 4*dr.^2).*r0 - 3*d2r.*r0.^2 + r0.^3))./dtds.^6;
+            curv = - (r0.^2 + 2*dr.^2 -r0.*d2r)./(h.^3);
+            ds_curv   =  (d3r.*r0.*(dr.^2 + r0.^2) + dr.*(3*d2r.*dr.^2 + (-3 *d2r.^2 + 4*dr.^2).*r0 - 3*d2r.*r0.^2 + r0.^3))./h.^6;
             
-            dsds_curv = -(...
-                         (2*dr.*(d3r + dr) - d4r.*r0 + d2r.*(3*d2r + 2*r0))./(dtds.^5) ...
-                        -(4*dr.*(d2r + r0).*(-d3r.*r0 + dr.*(3*d2r + 2*r0)))./(dtds.^7) ...
-                        -(3*curv.*d2r.*(d2r + r0))./(dtds.^4) ...
-                        -(3*dr.*(d2r + r0).*ds_curv)./(dtds.^3) ...
-                        -3*(curv).* dr.*((d3r + dr)./(dtds.^4) - (3*dr.*(d2r + r0).^2)./(dtds.^6)) ...
-                      );
+			%new version
+%             dsds_curv = -(...
+%                          (2*dr.*(d3r + dr) - d4r.*r0 + d2r.*(3*d2r + 2*r0))./(h.^5) ...
+%                         -(4*dr.*(d2r + r0).*(-d3r.*r0 + dr.*(3*d2r + 2*r0)))./(h.^7) ...
+%                         -(3*curv.*d2r.*(d2r + r0))./(h.^4) ...
+%                         -(3*dr.*(d2r + r0).*ds_curv)./(h.^3) ...
+%                         -3*(curv).* dr.*((d3r + dr)./(h.^4) - (3*dr.*(d2r + r0).^2)./(h.^6)) ...
+%                       );
 
+%old version
+                        dsds_curv = -((2*dr.*(d3r + dr) - d4r.*r0 + d2r.*(3*d2r + 2*r0))./(h.^5) ...
+                                  - (4*dr.*(d2r + r0).*(-d3r.*r0 + dr.*(3*d2r + 2*r0)))./(h.^7) ...
+                                  - (-3*curv.*d2r.*(d2r + r0))./(h.^4) ...
+                                  - (-3*dr.*(d2r + r0).*ds_curv)./(h.^3) ...
+                                  - 3*(-curv).*dr.*((d3r + dr)./(h.^4) - (3*dr.*(d2r + r0).^2)./(h.^6)));
             
-            
+							  %newest version
+            %    -((3 DScurv h^2 ht + 2 htt + 3 curv (-2 ht^2 + h htt) - (
+			 % 4 ht (d2r dr - d3r r0))/h^2 + (d2r^2 - 6 ht^2 - d4r r0)/h)/h^4)
             
 % %             x0 = r_.*cos(theta);
 % %             y0 = r_.*sin(theta);
@@ -275,11 +284,11 @@ classdef TesterScatterer < Tools.Scatterer.SingleScatterer
                         
         end
         
-        function [dtds,dttds,d3tds,d4tds] = DtDs(obj,r0,dr,d2r,d3r,d4r)
-            dtds    = sqrt(r0.^2+dr.^2); %sqrt(dx0.^2 + dy0.^2);
-            dttds   = (dr.*d2r + r0.*dr)./dtds;
-            d3tds   = (dr.^2 + d2r.*r0 + d2r.^2 + dr.*d3r - dttds.^2)./dtds;
-            d4tds   = (3*dr.*d2r + d3r.*r0 + 3*d2r.*d3r + dr.*d4r - 3*dttds.*d3tds)./dtds ;
+        function [h,ht,htt,h3t] = Metrics(obj,r0,dr,d2r,d3r,d4r)
+            h    = sqrt(r0.^2+dr.^2); %sqrt(dx0.^2 + dy0.^2);
+            ht   = (dr.*d2r + r0.*dr)./h;
+            htt   = (dr.^2 + d2r.*r0 + d2r.^2 + dr.*d3r - ht.^2)./h;
+            h3t   = (3*dr.*d2r + d3r.*r0 + 3*d2r.*d3r + dr.*d4r - 3*ht.*htt)./h ;
         end
         
         
