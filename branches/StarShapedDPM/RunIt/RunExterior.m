@@ -17,12 +17,12 @@ end
 
 etinf=[];     
 a=1.8;    B=a/2;
-r0=0.3; r1=2.2;
+r0=0.3; r1=3;
 
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
 HankOrPlane = 'PlaneWave';% 'PlaneWave' or 'Hankel'
-ScatType = 'ellipse'; %'ellipse' or 'circle' or 'submarine'
+ScatType = 'submarine'; %'ellipse' or 'circle' or 'submarine'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 HankelIndex = 3;
@@ -30,8 +30,8 @@ HankelType = 2;
 
 
 for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.5] [0.69,0.66,0.63]% 0.69%
-    ellipse = struct('a',a,'b',b);
-    tower = struct('c',4,'p',20);
+    ellipse = struct('a',a,'b',b); % for submarine
+    tower = struct('c',4,'p',20);% for submarine
     
     FocalDist = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDist);
@@ -44,8 +44,7 @@ for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.
         if strcmpi(HankOrPlane,'PlaneWave') && ~(a==1 && b==0.8 && r0 == 0.7*b && r1 == 1.8*a),  error('are you sure?'),end
     end
     
-    fprintf('%s problem, cmpr using %s, data is %s, scatterer is %s, Basis is %s, Hnkl_n=%d \n',Problem,str,HankOrPlane,ScatType,BType,HankelIndex);
-    fprintf('ExtrnlHomo problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d ,r0=%d,r1=%d\n',FocalDist, Eta0 , a,b,a/b,r0,r1);
+    fprintf('%s problem, cmpr using %s, data is %s, scatterer is %s, Basis is %s, (Hnkl_n=%d rarely in use  )\n',Problem,str,HankOrPlane,ScatType,BType,HankelIndex);
     
     if strcmpi(ScatType,'ellipse')
         ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist, 'HankelIndex', HankelIndex,'HankelType',HankelType);
