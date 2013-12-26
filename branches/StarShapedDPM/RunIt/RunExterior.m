@@ -19,7 +19,7 @@ etinf=[];
 
 kolobok=0;
 ellipse = 0;
-circle=1;
+circle=0;
 
 if kolobok
 	AR=1.2;
@@ -92,12 +92,11 @@ rat=4/5;
 
 %for k= 6.*[2^(-4*rat),2^(-3*rat),2^(-2*rat),2^(-rat),1,2^(rat),2^(2*rat),2^(3*rat),2^(4*rat)]
 
-    for k =5%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
+    for k =[0.5,1,5,10]%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
 %for n = 1:6
 %k=K(n);
         for  IncAngD =5;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
     		IncAng = IncAngD*pi/180;   
-
         if strcmpi(HankOrPlane,'PlaneWave')                        
             f1      = @(phi) -Uinc(ExParams,phi,IncAng,k);
             dfdn    = @(phi) -detaUinc(ExParams,phi,IncAng,k);           
@@ -115,7 +114,7 @@ rat=4/5;
         WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
         WaveNumberAddParams.k = k;
                 
-        for n=1:5 %run different grids
+        for n=1:7 %run different grids
             tic
             %build grid
             
