@@ -15,9 +15,33 @@ catch err
     end
 end
 
-etinf=[];     
-a=1.8;    B=a/2;
-r0=0.3; r1=3;
+etinf=[];   
+
+kolobok=0;
+ellipse = 0;
+circle=1;
+
+if kolobok
+	AR=1.2;
+	c=1.2;
+	r1=3;
+elseif ellipse
+ 	AR=2;
+	c=0;
+	r1=2;
+elseif circle 
+    AR=1;
+	c=0;
+	r1=2;
+else %submarine
+	AR=2;
+	c=4;
+	r1=2.5;
+end
+
+a=1.8;    
+B=a/AR;
+r0=0.3; 
 
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
@@ -31,7 +55,7 @@ HankelType = 2;
 
 for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.5] [0.69,0.66,0.63]% 0.69%
     ellipse = struct('a',a,'b',b); % for submarine
-    tower = struct('c',4,'p',20);% for submarine
+    tower = struct('c',c,'p',20);% for submarine
     
     FocalDist = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDist);
@@ -44,8 +68,11 @@ for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.
         if strcmpi(HankOrPlane,'PlaneWave') && ~(a==1 && b==0.8 && r0 == 0.7*b && r1 == 1.8*a),  error('are you sure?'),end
     end
     
-    fprintf('%s problem, cmpr using %s, data is %s, scatterer is %s, Basis is %s, (Hnkl_n=%d rarely in use  )\n',Problem,str,HankOrPlane,ScatType,BType,HankelIndex);
-    
+	fprintf('Exterior %s problem, cmpr using %s, data is %s, scatterer is %s, Basis is %s, (Hnkl_n=%d rarely in use  )\n',Problem,str,HankOrPlane,ScatType,BType,HankelIndex);
+	fprintf(' FD=%d, ,Eta0=%d, a=%d, b=%d,c=%d,p=%d, AR=%d , ring: r0=%d,r1=%d\n' , FocalDist , Eta0 , ellipse.a,ellipse.b,tower.c,tower.p,AR,r0,r1);
+
+	
+	
     if strcmpi(ScatType,'ellipse')
         ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist, 'HankelIndex', HankelIndex,'HankelType',HankelType);
     elseif strcmpi(ScatType,'circle')
