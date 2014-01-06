@@ -232,7 +232,7 @@ classdef TesterSubmarineScatterer < Tools.Scatterer.SingleScatterer
           %  assert(max(obj.dn) <= sqrt(obj.Grid.dx.^2 + obj.Grid.dy.^2));
             
             % sanity check 2: check that no normal is longer than curvature
-            c = obj.curvature(0:0.00001:2*pi);
+          %  c = obj.curvature(0:0.00001:2*pi);
 %             if max(obj.dn) > min(abs(c))
 %              warning('max(obj.dn)=%d <= min(c)=%d', max(obj.dn) ,min(abs(c)))
 %             end

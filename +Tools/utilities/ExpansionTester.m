@@ -7,8 +7,8 @@ k=1;
 ScatType = 'submarine'; 
 
 kolobok=0;
-ellipse = 1;
-circle=0;
+ellipse = 0;
+circle=1;
 
 if kolobok
 	AR=1.2;
@@ -17,7 +17,7 @@ if kolobok
 	x1=-3;xn=3;
 	y1=-3;yn=3;%=-0.7;yn=0.7;%	
 elseif ellipse
- 	AR=1.2;
+ 	AR=2;
 	c=0;
 
 	x1=-2;xn=2;
@@ -47,9 +47,7 @@ tower = struct('c',c,'p',20);
 NoSource = Tools.Source.SuperHelmholtzSource();  %construct empty source           
 ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
 
-for n=1:6 %run different grids
-    tic
-    
+for n=1:5 %run different grids    
     p=5;%3;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
 	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
@@ -68,7 +66,7 @@ for n=1:6 %run different grids
     Xi0 = Tools.Basis.BasisFunctionWD(); 
     Xi1 = Tools.Basis.BasisFunctionWD();  
    
-    [r,rt,rtt,r3t,r4t,r5t] = Submarine.Derivatives(t);
+    [r,rt,rtt,r3t,r4t] = Submarine.Derivatives(t);
     
     x   = r .*cos(t);
     y   = r .*sin(t);       
@@ -81,7 +79,7 @@ for n=1:6 %run different grids
     y3t =  3*xtt+ 3*yt - x + r3t.*sin(t);
     x4t = -4*y3t+ 6*xtt +4*yt - x + r4t.*cos(t);
     y4t =  4*x3t+ 6*ytt - 4*xt - y + r4t.*sin(t);
-    x5t = -5*y4t+ 10*x3t + 10*ytt - 5*xt - y + r5t.*cos(t);
+    %x5t = -5*y4t+ 10*x3t + 10*ytt - 5*xt - y + r5t.*cos(t);
     %     y5t =  5*x4t+ 10*y3t - 10*xtt - 5*yt + x + r5t.*sin(t);
     %     x6t = -6*y5t+ 15*x4t + 20*y3t - 15*xtt - 6*yt + r6t.*cos(t);
     
@@ -129,23 +127,6 @@ for n=1:6 %run different grids
 %     un2s = (urt - uns.*hst)./hs;
 %     un3s = (urtt - 2*un2s.*hst -uns.*hstt)./hs;
     
-  if 0  
-%     un      = ur./hr;
-%     unt     = (urt - un.*hrt)./hr;
-%     untt    = (urtt - 2*unt.*hrtt -un.*hrtt)./hr;
-%     un3t    = (ur3t - 3*untt.*hrt - 3*unt.*hrtt - un.* hr3t)./hr;
-
-%     x_n = xt./hr;
-%     xnt = (xtt - x_n.*hrt)./hr;
-%     xntt = (x3t - 2*xnt.*hrt - x_n.*hrtt)./hr;
-%     xn3t = (x4t - 3*xntt.*hrt - 3*xnt.*hrtt - x_n.*hr3t)./hr;
-% 
-%     un      = 1i*k*u.*x_n;
-%     unt     = 1i*k*(ut.*x_n + u.*xnt);
-%     untt    = 1i*k*(utt.*x_n + 2*ut.*xnt + u.*xntt);
-%     un3t    = 1i*k*(u3t.*x_n + 3*utt.*xnt + 3*ut.*xntt + u.*xn3t);    
-  end
-  
     Xi1.xi0        = un;
     Xi1.xi0t       = unt;
     Xi1.xi0tt      = untt;
@@ -155,7 +136,8 @@ for n=1:6 %run different grids
     
     if 1 %test
         xi = Scatterer.Expansion(Xi0,Xi1,NoSource,Coeffs);
-        MinDn(n) = min(abs(Scatterer.dn(:)));
+        MinDn(n,1) = min(abs(Scatterer.dn(:)));
+		MaxDn(n,1) = max(abs(Scatterer.dn(:)));
     else
         xi = u + Scatterer.dn.*un;% + ((obj.dn.^2)/2).*u_nn + obj.dn.^3./6.*u_nnn + obj.dn.^4./24.*u_nnnn;
     end
@@ -164,25 +146,28 @@ for n=1:6 %run different grids
         
     exact = exp(1i*k*TstX);
     
-    tmp = exact(:) - xi(:);
-    indx = find(isnan(tmp));
-    tmp(indx) = exact(indx);
-    
-    err(n) = norm(tmp,inf);
-    N(n) = Nx;
+	tmp = exact(:) - xi(:);
+    err(n,1) = norm( tmp ,inf);
+	[ix,jx]=find(abs(tmp)==err(n));
+    N(n,1) = Nx;
+	
+	Scat.r = Scatterer.r;
+	Scat.t = Scatterer.th;
+	Scat.nt= Scatterer.nrml_th;
+	Scat.dn= Scatterer.dn;
+	
+	ETvars{n} = Scat;
         
 end
 
-% num2str(err) 
-% log2(err(1:end-1)./err(2:end))
-
-   err=err.';  
-   MinDn = MinDn.';
-   N=N.';
+ save('ETvars.mat','ETvars');
+%    err=err.';  
+%    MinDn = MinDn.';
+%    N=N.';
    Conv = log2(err(1:end-1)./err(2:end));
    spase = zeros(size(err));
    spase(1:end) = ' ';
-   [num2str(N), spase, num2str(MinDn),spase, num2str(err),spase,num2str([NaN;Conv])]
+   [num2str(N), spase, num2str(MinDn), spase, num2str(MaxDn),spase, num2str(err),spase,num2str([NaN;Conv])]
    
    
 

@@ -1,7 +1,18 @@
 function RunInteriorHomo
-    % Semyon Method, Homo HLM, Cart coord, 
-    
-%global R A x y x1 xn y1 yn dx dy cols rows NHR  ebinf etinf IntEta k0 k FocDist Eta%n 
+       LastKnownVersionOfTools = '2.1.0.0';
+try
+    ver = Tools.Version();
+    if ~strcmp(ver,LastKnownVersionOfTools)
+        error('MDP:wrong version of Tools, expected version %s, found version %s',LastKnownVersionOfTools,ver);
+    end
+catch err
+    if strcmp(err.identifier, 'MATLAB:undefinedVarOrClass')
+        error('MDP: please add parent folder to the path');
+    else%if strcmp(err.identifier,'MDP:wrong version of Tools')
+        sprintf(err.message);
+        rethrow(err);
+    end
+end
 
 x1=-1.2;xn=1.2;
 y1=-1.2;yn=1.2;
