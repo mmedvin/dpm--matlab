@@ -47,22 +47,9 @@ classdef SubmarineScatterer < Tools.Scatterer.SingleScatterer
         function TS = get.TheScatterer(obj)
             TS = 'TBD';%struct('R',obj.r0,'Th',obj.th);
            % error('TBD');
-        end
-        
-%         function S4S = get.ScattererForSource(obj)
-%             GridF = Grids( ...
-%                 obj.Grid.x1 - obj.Grid.dx/2 , ...
-%                 obj.Grid.xn + obj.Grid.dx/2 , ...
-%                 obj.Grid.Nx * 2 + 1         , ...
-%                 obj.Grid.y1 - obj.Grid.dy/2 , ...
-%                 obj.Grid.yn + obj.Grid.dy/2 , ...
-%                 obj.Grid.Ny * 2 + 1         ) ;
-%             
-%             AddP = struct('DEFINE THIS STRUCTURE',obj.r0);
-%             S4S = EllipticScatterer(GridF,AddP);
-%         end
-        
-        function obj = SubmarineScatterer(Grid,AddParams)
+		end
+		
+		function obj = SubmarineScatterer(Grid,AddParams)
             obj = obj@Tools.Scatterer.SingleScatterer(Grid);
             obj.ellipse = AddParams.ellipse;
             obj.tower = AddParams.tower;
@@ -171,7 +158,7 @@ classdef SubmarineScatterer < Tools.Scatterer.SingleScatterer
             x1 = obj.r .* cos(obj.th);
             y1 = obj.r .* sin(obj.th);
             
-            options = [];%optimset('TolX',10^-12);
+            options = [];%optimset('TolX',10^-10);
             
             [obj.nrml_th,fval,exitflag,output] ...
              = arrayfun(@(indx) ...
@@ -221,13 +208,13 @@ classdef SubmarineScatterer < Tools.Scatterer.SingleScatterer
 %             obj.dr = obj.r - r0;
                         
             %distance between (obj.r, obj.th) and (MyShape(obj.nrml_th),obj.nrml_th)
-            obj.dn = ((obj.r).^2+r0.^2-2*(obj.r).*r0.*cos(obj.th-obj.nrml_th)).^(1/2); % distance along normal to grid bdy nodes
+            obj.dn = sqrt((obj.r).^2+r0.^2-2*(obj.r).*r0.*cos(obj.th-obj.nrml_th)); % distance along normal to grid bdy nodes
 
             % sanity check 1:  check that no normal is longer than the diagonal of the grid
           %  assert(max(obj.dn) <= sqrt(obj.Grid.dx.^2 + obj.Grid.dy.^2));
             
             % sanity check 2: check that no normal is longer than curvature
-            c = obj.curvature(0:0.00001:2*pi);
+%             c = obj.curvature(0:0.00001:2*pi);
 %             if max(obj.dn) > min(abs(c))
 %              warning('max(obj.dn)=%d <= min(c)=%d', max(obj.dn) ,min(abs(c)))
 %             end

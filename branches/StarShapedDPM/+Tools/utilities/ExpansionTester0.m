@@ -6,8 +6,6 @@ Lx=xn-x1;Ly=yn-y1;
 k=1;
 ScatType = 'submarine'; 
 
-% AR=2;
-
 kolobok=0;
 ellipse = 0;
 circle=0;
@@ -46,7 +44,6 @@ ellipse = struct('a',a,'b',b);
 tower = struct('c',c,'p',20);
 
 
-
 NoSource = Tools.Source.SuperHelmholtzSource();  %construct empty source           
 ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
 
@@ -59,16 +56,17 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     
     
            
-    TestParams.dn = 1./[1,2,4,8,16,32,64,128];%,256,512,1024];
+    TestParams.dn = 1./[1,2,4,8,16,32,64,128,256,512,1024];
 
-    for n =-5:2:5
-        TestParams.Angle = pi/n;
+	
+	
+    for n =-9:2:9
+	      TestParams.Angle = pi/n;
     
     Scatterer   = Tools.Scatterer.TesterSubmarineScatterer(Grid,ScattererAddParams,TestParams); %Tools.Scatterer.SubmarineScatterer(Grid,ScattererAddParams);
     Submarine   = Scatterer.Submarine;
     t           = Scatterer.BasisArg;
     
-        
     WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber; %@WaveNumberElliptical;
     WaveNumberAddParams.k = k;
 
@@ -78,7 +76,7 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     Xi0 = Tools.Basis.BasisFunctionWD(); 
     Xi1 = Tools.Basis.BasisFunctionWD();  
    
-    [r,rt,rtt,r3t,r4t,r5t] = Submarine.Derivatives(t);
+    [r,rt,rtt,r3t,r4t] = Submarine.Derivatives(t);
     
     x   = r .*cos(t);
     y   = r .*sin(t);       
@@ -91,7 +89,7 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     y3t =  3*xtt+ 3*yt - x + r3t.*sin(t);
     x4t = -4*y3t+ 6*xtt +4*yt - x + r4t.*cos(t);
     y4t =  4*x3t+ 6*ytt - 4*xt - y + r4t.*sin(t);
-    x5t = -5*y4t+ 10*x3t + 10*ytt - 5*xt - y + r5t.*cos(t);
+    %x5t = -5*y4t+ 10*x3t + 10*ytt - 5*xt - y + r5t.*cos(t);
     %     y5t =  5*x4t+ 10*y3t - 10*xtt - 5*yt + x + r5t.*sin(t);
     %     x6t = -6*y5t+ 15*x4t + 20*y3t - 15*xtt - 6*yt + r6t.*cos(t);
     
@@ -111,44 +109,6 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     Xi0.xi0tttt    = u4t;
     %   Xi0.xi0tttttt  = u6t;
 
-    %     xr = cos(t);
-    %     xrt = -sin(t);
-    %     xrtt = -xr;
-    %     xr3t = -xrt;
-    %     xr4t = - xrtt;
-    %
-    %     xr  = rt.*cos(t);
-    %
-    %     xrt  = -rt.*sin(t) + rtt.*cos(t)  ;
-    %     xrtt = -xr - 2*rtt.*sin(t) + r3t.*cos(t) ;
-    %     xr3t = -xrt - 2*cos (t).*rtt - 3*r3t.*sin (t) + r4t.*cos (t);
-    %     xr4t = -2*xrtt - xr - 4*cos (t).*r3t - 4*sin (t).*r4t + cos (t).*r5t;
-    
-    %     xr = xt./rt;
-    %     xrt = (xtt - xr.*rtt)./rt;
-    %     xrtt = (x3t - 2*xrt.*rtt - xr.*r3t)./rt;
-    %     xr3t = (x4t - 3*xrtt.*rtt - 3*xrt.*r3t - xr.*r4t)./rt;
-    %     xr4t = (x5t - 4*xr3t.*rtt - 6*xrtt.*r3t - 4*xrt.*r4t - xr.*r5t)./rt;
-    
-    
-    %     dudr = dudx*dxdt*dtdr
-    %     ur = 1i*k*u .* xt ./rt; ==> xr = xt./rt
-    
-    %     xr = xt./rt;
-    %     xrt = (xtt - xr.*rtt)./rt;
-    %     xrtt = (x3t - 2*xrt.*rtt - xr.*r3t)./rt;
-    %     xr3t = (x4t - 3*xrtt.*rtt - 3*xrt.*r3t - xr.*r4t)./rt;
-    %     xr4t = (x5t - 4*xr3t.*rtt - 6*xrtt.*r3t - 4*xrt.*r4t - xr.*r5t)./rt;
-    %
-    %
-    %     ur      = 1i*k*u.*xr;
-    %     urt     = 1i*k*(ut.*xr + u.*xrt);
-    %     urtt    = 1i*k*(utt.*xr + 2*ut.*xrt + u.*xrtt);
-    %     ur3t    = 1i*k*(u3t.*xr + 3*utt.*xrt + 3*ut.*xrtt + u.*xr3t);
-    %     ur4t    = 1i*k*(u4t.*xr + 4*u3t.*xrt + 6*utt.*xrtt + 4*ut.*xr3t + u.*xr4t);
-    %     ur5t    = 1i*k*(u5t.*xr + 5*u4t.*xrt + 10*u3t.*xrtt + 10*utt.*xr3t + 5*ut.*xr4t + u.*xr5t);
-    %     ur6t    = 1i*k*(u6t.*xr + 6*u5t.*xrt + 15*u4t.*xrtt + 20*u3t.*xr3t + 15*utt.*xr4t + 6*ut.*xr5t + u.*xr6t);
-    
     hs      = sqrt(r.^2+rt.^2);
     hst     = (rt.*rtt + r.*rt)./hs;
     hstt    = (rt.^2 + rtt.*r + rtt.^2 + rt.*r3t - hst.^2)./hs;
@@ -176,24 +136,7 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
 %     uns  = urt./hs;
 %     un2s = (urt - uns.*hst)./hs;
 %     un3s = (urtt - 2*un2s.*hst -uns.*hstt)./hs;
-    
-  if 0  
-%     un      = ur./hr;
-%     unt     = (urt - un.*hrt)./hr;
-%     untt    = (urtt - 2*unt.*hrtt -un.*hrtt)./hr;
-%     un3t    = (ur3t - 3*untt.*hrt - 3*unt.*hrtt - un.* hr3t)./hr;
-
-%     x_n = xt./hr;
-%     xnt = (xtt - x_n.*hrt)./hr;
-%     xntt = (x3t - 2*xnt.*hrt - x_n.*hrtt)./hr;
-%     xn3t = (x4t - 3*xntt.*hrt - 3*xnt.*hrtt - x_n.*hr3t)./hr;
-% 
-%     un      = 1i*k*u.*x_n;
-%     unt     = 1i*k*(ut.*x_n + u.*xnt);
-%     untt    = 1i*k*(utt.*x_n + 2*ut.*xnt + u.*xntt);
-%     un3t    = 1i*k*(u3t.*x_n + 3*utt.*xnt + 3*ut.*xntt + u.*xn3t);    
-  end
-  
+      
     Xi1.xi0        = un;
     Xi1.xi0t       = unt;
     Xi1.xi0tt      = untt;
@@ -201,40 +144,25 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
 %     Xi1.xi0tttt    = ur4t;
     %     Xi1.xi0tttttt  = ur6t;
         
-    
     if 1 %test
         xi = Scatterer.Expansion(Xi0,Xi1,NoSource,Coeffs);
     else
-        xi = u + Scatterer.dn.*ur;% + ((obj.dn.^2)/2).*u_nn + obj.dn.^3./6.*u_nnn + obj.dn.^4./24.*u_nnnn;
+        xi = u + Scatterer.dn.*un;% + ((obj.dn.^2)/2).*u_nn + obj.dn.^3./6.*u_nnn + obj.dn.^4./24.*u_nnnn;
     end
         
-    
-    
     TstX = Scatterer.r.*cos(Scatterer.th);
-        
+	
+	
     exact = exp(1i*k*TstX);
     
-    err = abs(exact(:) - xi(:));
-%    indx = find(isnan(tmp));
- %   err(indx) = exact(indx);
-    
-   % err(n) = norm(tmp,inf);        
-
-   %err=err.';
-   Conv = log2(err(1:end-1)./err(2:end));
-   
-  %  dn = 1./[1,2,4,8,16,32,64,128,256,512,1024,2048,4096].';
-   
-   
-   
-   spase = zeros(size(err));
-   spase(1:end) = ' ';
-   Conv = [NaN;Conv];
-   for j=1:numel(TestParams.dn)
-       %fprintf('%-13.4e \t %s \t %-13.4e \n',dn(j),err(j),Conv(j));
-       fprintf('Angle=pi/%-6.0d\tn=1/%-6.0d \t err=%-12.6e \t rate=%-10.2f \n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j));
-   end
-   %fprintf('n=%-13.4e \t err=%-15.6e \t rate=%-13.4e \n',dn,err,[NaN;Conv]);
-   %[num2str(dn),spase, num2str(err),spase,num2str([NaN;Conv])]
-   fprintf('\n');
+	err = abs(exact(:) - xi(:));
+	
+	Conv = log2(err(1:end-1)./err(2:end));
+	
+	Conv = [NaN;Conv];
+	for j=1:numel(TestParams.dn)
+		fprintf('Angle=pi/%-6.0d\tn=1/%-6.0d \t err=%-12.6e \t rate=%-10.2f \n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j));
+	end
+	
+	fprintf('\n');
     end

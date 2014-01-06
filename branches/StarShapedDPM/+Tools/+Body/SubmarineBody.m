@@ -11,7 +11,7 @@ classdef SubmarineBody < Tools.Body.SuperStarShapedBody
             obj.tower = tower;                        
         end
         
-        function [R, DR, DRR, D3R, D4R,D5R] = Derivatives(obj,theta)
+        function [R, DR, DRR, D3R, D4R] = Derivatives(obj,theta)
 
             NotTheSameTheta = true; % Guilty until proven otherwise
             szTh     = size(theta); 
@@ -58,19 +58,27 @@ classdef SubmarineBody < Tools.Body.SuperStarShapedBody
                             - 24*de.*obj.dr.*obj.drr - 6*e.*obj.drr.^2 - 8*e.*obj.dr.*obj.d3r - 8*obj.r.*de.*obj.d3r)/2./obj.r./e;
                 end
                 
-                if nargout > 5
-                    d5g = (1/8)*obj.tower.c*obj.tower.p.*cos(theta).*(...
-                       -160 - 320*obj.tower.p + 200*obj.tower.p^2 - 40*obj.tower.p^3 + 3*obj.tower.p^4 ...
-                       + 4*(8 - 20*obj.tower.p + 20*obj.tower.p^2 - 10*obj.tower.p^3 + obj.tower.p^4).*cos(2*theta) ...
-                       + (obj.tower.p^4).*cos(4*theta)).*sin(theta).^(-5 + obj.tower.p);
-                    
-                    obj.d5r    = (d5g + 40*obj.r.*obj.dr.*dee - 16*de.*obj.r.^2 + 80*de.*obj.dr.^2 + 80*obj.r.*de.*obj.drr ...
-                               - 60*obj.dr.*dee.*obj.drr - 30*de.*obj.drr.^2 - 20*e.*obj.drr.*obj.d3r - 40*de.*obj.dr.*obj.d3r ...
-                               - 20*obj.r.*dee.*obj.d3r - 10*obj.r.*de.*obj.d4r - 10*e.*obj.dr.*obj.d4r)/2./obj.r./e;
-                end
+%                 if nargout > 5
+%                     d5g = (1/8)*obj.tower.c*obj.tower.p.*cos(theta).*(...
+%                        -160 - 320*obj.tower.p + 200*obj.tower.p^2 - 40*obj.tower.p^3 + 3*obj.tower.p^4 ...
+%                        + 4*(8 - 20*obj.tower.p + 20*obj.tower.p^2 - 10*obj.tower.p^3 + obj.tower.p^4).*cos(2*theta) ...
+%                        + (obj.tower.p^4).*cos(4*theta)).*sin(theta).^(-5 + obj.tower.p);
+%                     
+%                     obj.d5r    = (d5g + 40*obj.r.*obj.dr.*dee - 16*de.*obj.r.^2 + 80*de.*obj.dr.^2 + 80*obj.r.*de.*obj.drr ...
+%                                - 60*obj.dr.*dee.*obj.drr - 30*de.*obj.drr.^2 - 20*e.*obj.drr.*obj.d3r - 40*de.*obj.dr.*obj.d3r ...
+%                                - 20*obj.r.*dee.*obj.d3r - 10*obj.r.*de.*obj.d4r - 10*e.*obj.dr.*obj.d4r)/2./obj.r./e;
+%                 end
             end
             
-            [R, DR, DRR, D3R, D4R, D5R] = Derivatives@Tools.Body.SuperStarShapedBody(obj);
+            %[R, DR, DRR, D3R, D4R, D5R] = Derivatives@Tools.Body.SuperStarShapedBody(obj);
+			
+			R   = obj.r;
+			if nargout>1, DR  = obj.dr; end
+			if nargout>2, DRR  = obj.drr; end
+			if nargout>3, D3R  = obj.d3r; end
+            if nargout>4, D4R  = obj.d4r; end
+			%if nargout>5, D5R  = obj.d5r; end
+            
         end
 
         
