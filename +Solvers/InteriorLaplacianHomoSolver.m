@@ -1,7 +1,7 @@
 classdef InteriorLaplacianHomoSolver < Solvers.SuperHomoSolver
    
     properties(Access = protected, AbortSet = true)
-        Op;%A;
+        Op;
         OpCoeffs;
     end
     
@@ -65,6 +65,5 @@ classdef InteriorLaplacianHomoSolver < Solvers.SuperHomoSolver
         end
         
     end
-    
     
 end

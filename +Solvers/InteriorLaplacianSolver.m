@@ -1,14 +1,15 @@
-classdef InteriorLaplacianSolver < Solvers.SuperHomoSolver
+classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
    
     properties(Access = protected, AbortSet = true)
         Op;
+        OpCoeffs;
     end
     
     methods
         function obj = InteriorLaplacianSolver( ...
-                BasisIndices,Grid,CoeffsClsHandle,CoeffsClsAddParams,ScattererClsHandle,ScattererAddParams)
-            obj = obj@Solvers.SuperHomoSolver( ...
-                BasisIndices,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams)
+            obj = obj@Solvers.SuperNonHomoSolver( ...
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams);
             
             if  numel(obj.Coeffs.a) + numel(obj.Coeffs.b) + numel(obj.Coeffs.sigma)>3
                 GridK = Tools.Grid.CartesianGrid( ...
@@ -31,7 +32,6 @@ classdef InteriorLaplacianSolver < Solvers.SuperHomoSolver
             
             BCinRhs=0;
             obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.Coeffs,BCinRhs);
-            
         end
         
         function u = P_Omega(obj,xi_gamma)
@@ -62,8 +62,35 @@ classdef InteriorLaplacianSolver < Solvers.SuperHomoSolver
                 
         function Qj = Qcol(obj,GLW,~)
             Qj = -GLW(obj.GridGamma,:);
-        end
-                   
+		end
+        
+		function rhs = Bf(obj,F)
+			%obj.Op.AdjustRhs
+% 			 F = F.';% probably no need
+			rhs = F(:);
+			% do nothing, required for compact scheme only 
+		end
+		
+		function res = BF(obj)
+			 
+			% 			 GridF = Tools.Grid.CartesianGrid( ...
+			% 				 obj.Grid.x1 - obj.Grid.dx/2 , ...
+			% 				 obj.Grid.xn + obj.Grid.dx/2 , ...
+			% 				 obj.Grid.Nx * 2 + 1         , ...
+			% 				 obj.Grid.y1 - obj.Grid.dy/2 , ...
+			% 				 obj.Grid.yn + obj.Grid.dy/2 , ...
+			% 				 obj.Grid.Ny * 2 + 1         ) ;
+			% 			 ScattererForSource = obj.ScattererClsHandle(GridF,obj.ScattererAddParams);
+			ScattererForSource = obj.Scatterer;
+			
+			 HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
+			 
+			 res = obj.Bf(HS.Source);
+% 			 res(obj.Scatterer.Outside())=0;
+			% res(obj.Scatterer.Inside())=0;
+			 
+		 end
+		
     end
         
 end
