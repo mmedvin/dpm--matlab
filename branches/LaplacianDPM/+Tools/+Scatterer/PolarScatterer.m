@@ -154,11 +154,22 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
              [xi1] = Xi1.Derivatives();
              
              f=0;
-             [a,ar,b,bt,sigma] = LapCoeffs.Derivatives();
-                          
-             xirr = (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2))./a - xi1./obj.r0 ;
+			 [a,ar] = LapCoeffs.Derivatives('a');
+			 [b,bt] = LapCoeffs.Derivatives('b');
+			 sigma	= LapCoeffs.Derivatives('sigma');
+			 
+			 urr = (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2))./a - xi1./obj.r0 ;
              
-             res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*xirr/2 ;
+% 			 st = sin(obj.th);
+% 			 ct = cos(obj.th);
+%  			 st2=st.^2;
+%  			 ct2=ct.^2;
+% 			 sct=st.*ct;		 
+			 
+% 			urr = f + sigma.*xi0 - a./obj.r0 - a.*xi0tt./(obj.r0.^2) - ( ar +  st2.*(br - ar) + (sct./obj.r0).*(bt - at)).*xi1 ...
+% 				 - (at./(obj.r0.^2) + (ct2./(obj.r0.^2)).* (bt - at) + (ar + br).* (sct./obj.r0)).*xi0t;
+% 			 
+             res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*urr/2 ;
              
          end
          

@@ -18,13 +18,13 @@ classdef LaplacianOp<Tools.DifferentialOps.SuperDiffOp
             obj.LaplacianA();
         end
         function Rhs = AdjustRhs(obj,Rhs,Exact)
-            
-            dx2 = obj.Grid.dx.^2;
-            dy2 = obj.Grid.dy.^2;
+                       
             Nx = obj.Grid.Nx;
             Ny = obj.Grid.Ny;
                 
             if obj.BCinRhs                
+				dx2 = obj.Grid.dx.^2;
+				dy2 = obj.Grid.dy.^2;
                 Rhs(1:Nx,   1   ) = Rhs(1:Nx, 1    ) - obj.Coeffs.a(1:end-2 , 1       ).*Exact(2:end-1 , 1      )./dx2;%m
                 Rhs(1:Nx,   Ny  ) = Rhs(1:Nx, Ny   ) - obj.Coeffs.a(3:end   , Ny+1    ).*Exact(2:end-1 , end    )./dx2;%p
                 Rhs(1   ,  1:Ny ) = Rhs(1   , 1:Ny ) - obj.Coeffs.b(1       , 1:end-2 ).*Exact(1       , 2:end-1)./dy2; %m

@@ -10,6 +10,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
        %  Source;
          rhsf;  
          SourceHandle;
+		 SourceParams;
          myQf;
      end
      
@@ -26,11 +27,17 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
         end
          
          function obj = SuperNonHomoSolver( ...
-             Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,SourceHandle)
+             Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,SourceHandle,SourceParams)
              
              obj = obj@Solvers.SuperHomoSolver( ...
                  Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams);
              obj.SourceHandle = SourceHandle;
+			  if exist('SourceParams','var')
+				  obj.SourceParams = SourceParams;
+			  else
+				  obj.SourceParams=[];
+			  end
+			 
                                      
             % obj.Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.WaveNumberClsHandle,obj.WaveNumberAddParams);
                           
@@ -80,77 +87,29 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
              
            %  HS = obj.Source(obj.FocalDist,obj.Eta0,obj.phi,obj.k0,obj.r0); %?????
            
-           Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsClsHandle,obj.CoeffsAddParams);
+           Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
            
              obj.Wf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);             
          end
                   
         
                 
-        function res = BF(obj)
-            %             global Eta x y x1 xn y1 yn dx dy cols rows IntEta k0 k
-            
-            % obj.WN = WaveNumberElliptical(FocalDist,eta,phi,k0,r0);
-            % Exact = ExactElpsVarKr(FocalDist,eta, phi, obj.WN);
-            
-            
-%             GridF = Grids( ...
-%                         obj.Grid.x1 - obj.Grid.dx/2 , ...
-%                         obj.Grid.xn + obj.Grid.dx/2 , ...
-%                         obj.Grid.Nx * 2 + 1         , ...
-%                         obj.Grid.y1 - obj.Grid.dy/2 , ...
-%                         obj.Grid.yn + obj.Grid.dy/2 , ...
-%                         obj.Grid.Ny * 2 + 1         ) ;
-%             
-%             
-%             ScattF = obj.ScattererClsHandle(GridF,obj.ScattererAddParams);
-           % WN = WaveNumberClsHandle(ScattF,obj.WaveNumberAddParams);
-           % HS = SourceHandle(ScattF,WN);
-           
-           GridF = Tools.Grid.CartesianGrid( ...
-                        obj.Grid.x1 - obj.Grid.dx/2 , ...
-                        obj.Grid.xn + obj.Grid.dx/2 , ...
-                        obj.Grid.Nx * 2 + 1         , ...
-                        obj.Grid.y1 - obj.Grid.dy/2 , ...
-                        obj.Grid.yn + obj.Grid.dy/2 , ...
-                        obj.Grid.Ny * 2 + 1         ) ;
-            ScattererForSource = obj.ScattererClsHandle(GridF,obj.ScattererAddParams);
-           HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams);
-            
-            
-            
-% %             
-% %             [X,Y] = meshgrid(obj.x(1)-obj.dx/2:obj.dx/2:obj.x(end)+obj.dx/2 ,obj.y(1)-obj.dy/2:obj.dy/2:obj.y(end)+obj.dy/2);
-% %             Z=X+1i*Y;
-% %             
-% %             ETA = real(acosh(Z/obj.FocalDist));
-% %             PHI = imag(acosh(Z/obj.FocalDist));
-% %             
-% %             GrdGamma = IntCartSlvrElps.SplitGrid(ETA, obj.Eta0);
-%             
-%             F=zeros(size(ETA));
-%             %             F(GrdGamma)= approx_f(obj.FocalDist,obj.Eta0,PHI(GrdGamma),obj.k0,ETA(GrdGamma) - obj.Eta0);
-%                         
-%             HS = obj.Source(obj.FocalDist,obj.Eta0,PHI(GrdGamma),obj.k0,r0);
-%             
-%             %tmp   = calc_f(obj.FocalDist,ETA,PHI,obj.k0);
-%             
-%             DETA=ETA(GrdGamma) - obj.Eta0;
-%             F(GrdGamma) = HS.F + DETA.*HS.Fn  + (DETA.^2).*HS.Fnn/2;%taylor
-%             
-%             tmp = obj.Source.calc_F(obj.FocalDist,ETA,PHI,obj.k0,r0);            
-%             F(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
-%             
-%             %F=tmp;
-%             BF  = IntCartSlvrElps.HlmSemBf(obj.x,obj.y,obj.k,F);
-%             %obj.k=[];%kinda clean
-
-           
-            res = obj.Bf(HS.Source);
-          %  BF=reshape(BF,obj.Grid.Nx,obj.Grid.Ny);
-            res(obj.Scatterer.Outside())=0;
-            
-        end
+		 function res = BF(obj)
+			 
+			 GridF = Tools.Grid.CartesianGrid( ...
+				 obj.Grid.x1 - obj.Grid.dx/2 , ...
+				 obj.Grid.xn + obj.Grid.dx/2 , ...
+				 obj.Grid.Nx * 2 + 1         , ...
+				 obj.Grid.y1 - obj.Grid.dy/2 , ...
+				 obj.Grid.yn + obj.Grid.dy/2 , ...
+				 obj.Grid.Ny * 2 + 1         ) ;
+			 ScattererForSource = obj.ScattererClsHandle(GridF,obj.ScattererAddParams);
+			 HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams);
+			 
+			 res = obj.Bf(HS.Source);
+			 res(obj.Scatterer.Outside())=0;
+			 
+		 end
         
         
         

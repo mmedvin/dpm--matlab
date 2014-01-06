@@ -17,10 +17,11 @@ classdef ExLapCrclVarCoeffs < Tools.Exact.SuperExact
         function obj = ExLapCrclVarCoeffs(Scatterer, Coeffs)
             obj = obj@Tools.Exact.SuperExact(Scatterer, Coeffs);
             
-            r0 = 2*Scatterer.r0;
+            r0 = Scatterer.r0;
+			r = Scatterer.R;
             
-            obj.B = Params.B;
-            obj.C = Params.C;
+            obj.B = Coeffs.B;
+            obj.C = Coeffs.C;
             
             p   = r.^2;
             pr  = 2*r;
