@@ -33,7 +33,7 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
         
         function u = P_Omega(obj,xi_gamma,Uinc)
             
-            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,length(obj.Scatterer.Nm));
+            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Nm));
             
             if ~exist('Uinc','var')
                 Uinc=zeros(size(obj.w0));

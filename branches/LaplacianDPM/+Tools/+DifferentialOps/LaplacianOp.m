@@ -68,36 +68,40 @@ classdef LaplacianOp<Tools.DifferentialOps.SuperDiffOp
                 dx2 = dx.^2;
                 dy2 = dy.^2;
                                 
-                a_iphalf_j=obj.Coeffs.a(2:end-1,3:end);
-                b_i_jphalf=obj.Coeffs.b(2:end-1,3:end);
-                a_imhalf_j=obj.Coeffs.a(2:end-1,1:end-2);
-                b_i_jmhalf=obj.Coeffs.b(2:end-1,1:end-2);
+                a_iphalf_j = obj.Coeffs.a(2:2:end-1,3:2:end)./dx2;
+                a_imhalf_j = obj.Coeffs.a(2:2:end-1,1:2:end-1)./dx2;
+                
+                b_i_jphalf = obj.Coeffs.b(3:2:end,2:2:end-1)./dy2;
+                b_i_jmhalf = obj.Coeffs.b(1:2:end-1,2:2:end-1)./dy2;
                 
                 
-                Aij = -( (a_iphalf_j(:) + a_imhalf_j(:))./dx2+ (b_i_jphalf(:) + b_i_jmhalf(:))./dy2 + obj.Coeffs.Sigma(:) );
+                Aij = -( (a_iphalf_j(:) + a_imhalf_j(:))+ (b_i_jphalf(:) + b_i_jmhalf(:)) + obj.Coeffs.Sigma(:) );
                 
-                Aim1j = a_imhalf_j(:)./dx2;
-                Aim1j(cols:cols:rc) = 0;
+                Aip1j = [zeros(1,cols)          ,a_iphalf_j(1:end-cols) ].';
+                Aim1j = [a_imhalf_j(cols+1:end) ,zeros(1,cols)          ].';
+                Aijp1 = [0                      ,b_i_jphalf(1:end-1)    ].';
+                Aijm1 = [b_i_jmhalf(2:end)      ,0                      ].';
                 
-                Aip1j = a_iphalf_j(:)./dx2;
-                Aip1j(cols+1:cols:rc) = 0;
+                obj.A = spdiags([Aim1j,Aijm1,Aij,Aijp1,Aip1j],[-cols,-1,0,1,cols], rc,rc);
                 
-                Aijm1 = b_i_jphalf(:)./dy2;
-                Aijp1 = b_i_jmhalf(:)./dy2;
-                
-                obj.A = spdiags([Aijm1, Aim1j,Aij,Aip1j,Aijp1],[-cols,-1,0,1,cols], rc,rc);
+%                 Aim1j = diag(a_imhalf_j(cols+1:rc),-cols)./dx2;
+%                 Aip1j = diag(a_iphalf_j(1:rc-cols),cols)./dx2;
+%                 Aijm1 = diag(b_i_jphalf(2:end),-1)./dy2;
+%                 Aijp1 = diag(b_i_jmhalf(1:end-1),1)./dy2;
+%                 
+%                 obj.A = Aim1j+Aijm1+Aijp1+Aip1j + diag(Aij);
             end
             
         end
           
         function VerifyCoeffs(obj,coeffs)
             if numel(coeffs.a)==1
-                obj.Coeffs.a=  coeffs.a*ones( obj.Grid.Nx + 2, obj.Grid.Ny + 2 ) ;
+                obj.Coeffs.a=  coeffs.a*ones( 2*obj.Grid.Nx + 1, 2*obj.Grid.Ny + 1 ) ;
             else
                 obj.Coeffs.a = coeffs.a;
             end
             if numel(coeffs.b)==1
-                obj.Coeffs.b=  coeffs.b*ones( obj.Grid.Nx + 2, obj.Grid.Ny + 2 ) ;
+                obj.Coeffs.b=  coeffs.b*ones( 2*obj.Grid.Nx + 1, 2*obj.Grid.Ny + 1 ) ;
             else
                 obj.Coeffs.b = coeffs.b;
             end
@@ -113,10 +117,15 @@ classdef LaplacianOp<Tools.DifferentialOps.SuperDiffOp
                 error('non constant sigma should be evaluated at x1:xn, y1:yn')
             end
                                     
-            if     any(size(obj.Coeffs.a) ~= [obj.Grid.Nx+2 , obj.Grid.Ny+2]) || ...
-                   any(size(obj.Coeffs.b) ~= [obj.Grid.Nx+2,obj.Grid.Ny+2])                   
-                error('non constant coefficients a and b should be evaluated at x1-dx/2:xn+dx/2, y1-dy/2:yn+dy/2')
+            if     any(size(obj.Coeffs.a) ~= [2*obj.Grid.Nx+1 , 2*obj.Grid.Ny+1]) || ...
+                   any(size(obj.Coeffs.b) ~= [2*obj.Grid.Nx+1 , 2*obj.Grid.Ny+1])                   
+                error('non constant coefficients a and b should be evaluated at x1-dx/2:dx:xn+dx/2, y1-dy/2:dy:yn+dy/2')
             end
+            
+            
+%             obj.Coeffs.a = sparse(obj.Coeffs.a);
+%             obj.Coeffs.b = sparse(obj.Coeffs.b);
+%             obj.Coeffs.Sigma = sparse(obj.Coeffs.Sigma);
         end
         
     end

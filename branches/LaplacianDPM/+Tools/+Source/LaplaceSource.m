@@ -19,8 +19,16 @@ classdef LaplaceSource < Tools.Source.SuperSource
                 Ff=0;
                 Fnn=0;
                 Fff=0;
-            else
-                r = obj.Scatterer.R;
+			else
+				try
+					r = obj.Scatterer.R;
+				catch exception
+					if strcmp(exception.identifier,'MATLAB:nonExistentField')
+						r = obj.Scatterer.r;
+					else
+						rethrow(exception);
+					end
+				end
                 F   = 8*r.^2 + 4;
                 
                 if nargout>1, Fn  = 16*r;  end
@@ -40,7 +48,7 @@ classdef LaplaceSource < Tools.Source.SuperSource
 		end
         
 		function S = get.Source(obj)
-% 			S = spalloc(obj.Scatterer.Size(1),obj.Scatterer.Size(2),numel(obj.Scatterer.Np));
+ 			S = spalloc(obj.Scatterer.Size(1),obj.Scatterer.Size(2),numel(obj.Scatterer.Np));
 			
 			[F,Fn,~,Fnn] = obj.Derivatives();
 			
@@ -49,15 +57,15 @@ classdef LaplaceSource < Tools.Source.SuperSource
 			
 			
 			
-			S = F;
+			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
             S(1:end,1)=	Exact.u(1:end,1);
             S(1,1:end)= Exact.u(1,1:end);
             S(1:end,end)= Exact.u(1:end,end);
             S(end,1:end)= Exact.u(end,1:end);
 			
-			%S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
-			%							+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ...  
-			%							+ (obj.Scatterer.dr.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
+			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
+										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ...  
+										+ (obj.Scatterer.dr.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
 			
 			%%tmp = obj.Derivatives();
 			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
