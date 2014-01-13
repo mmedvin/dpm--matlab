@@ -178,8 +178,8 @@ classdef SuperHomoSolver < handle
              
              GLW = obj.Gf([obj.rhs0,obj.rhs1]);
              
-             obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   ) );
-             obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss ) );
+             obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   )			,obj.W0 );
+             obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss )	,obj.W1 );
              obj.IsReadyQnW = true;
          end
         

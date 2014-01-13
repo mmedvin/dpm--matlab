@@ -63,9 +63,9 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
             GLW = obj.Gf(rhs(:));
             
             
-            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
-            u(obj.Scatterer.Np)=xi_gamma(obj.Scatterer.Np) - GLW(obj.Scatterer.Np).';            
-            u=u + obj.GF;
+            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Np));
+            u(obj.Scatterer.Np)=xi_gamma(obj.Scatterer.Np) - GLW(obj.Scatterer.Np).' + obj.GF(obj.Scatterer.Np);            
+%             u=u + obj.GF;
         end
     end
     

@@ -149,11 +149,11 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
 
          end
          
-         function res = Expansion3thOrdrHomoLap(obj,Xi0,Xi1,F,LapCoeffs)
+         function res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,LapCoeffs)
              [xi0,xi0t,xi0tt] = Xi0.Derivatives();
              [xi1] = Xi1.Derivatives();
              
-             f=0;
+			 f = F.Derivatives();
 			 [a,ar] = LapCoeffs.Derivatives('a');
 			 [b,bt] = LapCoeffs.Derivatives('b');
 			 sigma	= LapCoeffs.Derivatives('sigma');
@@ -189,7 +189,7 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
              elseif obj.ExpansionType==25
                  res = Expansion5thOrdrHelm(obj,Xi0,Xi1,F,Coeffs);
              elseif obj.ExpansionType==33
-                 res = Expansion3thOrdrHomoLap(obj,Xi0,Xi1,F,Coeffs);
+                 res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,Coeffs);
              elseif obj.ExpansionType==35
                  res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,Coeffs);
              end
