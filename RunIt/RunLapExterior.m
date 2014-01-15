@@ -4,6 +4,8 @@ function RunLapExterior
 	Lx=xn-x1;Ly=yn-y1;
 	ebinf=[];etinf=[];
 	
+
+
 	ExParams.B  = 10^-3;
 	ExParams.C  = 0.1;
 	ExParams.r0 = 1/4;
@@ -29,7 +31,7 @@ function RunLapExterior
 		
 		Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 		
-		CoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;%WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
+		CoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
 		CoeffsAddParams = struct('a',ExParams.B,'b',ExParams.B,'sigma',0);
 		
 		ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
@@ -54,8 +56,6 @@ function RunLapExterior
 		xi(ExtPrb.GridGamma) = ...
 			ExtPrb.W0(ExtPrb.GridGamma,:)*Basis.cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*cn1 + ExtPrb.Wf(ExtPrb.GridGamma);
 		
-		
-		
 		XiGammaExParams = ExParams;
 		XiGammaExParams.r0 = ExtPrb.Scatterer.r;
 		xiex = Exact(XiGammaExParams,ExtPrb.Scatterer.th);
@@ -64,12 +64,13 @@ function RunLapExterior
 % 		xi(ExtPrb.GridGamma) = xiex; %test
 		u = ExtPrb.P_Omega(xi); 
 
+    %%%%%%%%%%%%%%
+
 		t1=toc;
 		
 		% % % % % % % % % % % % % % % %
 		% Comparison
 		% % % % % % % % % % % % % % % %
-		
 		
 		exact = zeros(Nx,Ny);
 
@@ -81,11 +82,6 @@ function RunLapExterior
 		
 		etinf(n) =norm(exact(:)-u(:),inf);
 		fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
-		
-		
-		% figure, plot(x,abs(u(fix(Ny/2),:)),'r+-',x,abs(exact(fix(Ny/2),:)),'bo');
-		%     saveas(gcf,['inhomo_k=' num2str(k) 'N=' num2str(Nx) '.jpg'],'jpg');
-		% plot(x,abs(u(:,fix(Ny/2))),'r+-',x,abs(exact(:,fix(Ny/2))),'bo');
 		
 	end
 	

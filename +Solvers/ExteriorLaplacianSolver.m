@@ -26,29 +26,15 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
             Qj = GLW(obj.GridGamma,:)-w(obj.GridGamma,:);
         end
         
-		function rhs = Bf(obj,F)
-			%obj.Op.AdjustRhs
-% 			 F = F.';% probably no need
-			rhs = F(:);
-			% do nothing, required for compact scheme only 
-		end
+
 		
 		function res = BF(obj)
 			 
-			% 			 GridF = Tools.Grid.CartesianGrid( ...
-			% 				 obj.Grid.x1 - obj.Grid.dx/2 , ...
-			% 				 obj.Grid.xn + obj.Grid.dx/2 , ...
-			% 				 obj.Grid.Nx * 2 + 1         , ...
-			% 				 obj.Grid.y1 - obj.Grid.dy/2 , ...
-			% 				 obj.Grid.yn + obj.Grid.dy/2 , ...
-			% 				 obj.Grid.Ny * 2 + 1         ) ;
-			% 			 ScattererForSource = obj.ScattererClsHandle(GridF,obj.ScattererAddParams);
 			ScattererForSource = obj.Scatterer;
 			
 			 HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
 			 
 			 res = obj.Bf(HS.Source);
-% 			 res(obj.Scatterer.Outside())=0;
 			 res(obj.Scatterer.Inside())=0;
 			 
 		 end
