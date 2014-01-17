@@ -8,7 +8,7 @@ function RunLapExterior
 
 	ExParams.B  = 10^-3;
 	ExParams.C  = 0.1;
-	ExParams.r0 = 1/4;
+	ExParams.r0 = 1/2;
 %ExParams.r  = ExParams.r0;
 
 	

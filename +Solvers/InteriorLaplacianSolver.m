@@ -13,16 +13,14 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
             
             if  numel(obj.Coeffs.a) + numel(obj.Coeffs.b) + numel(obj.Coeffs.sigma)>3
                 GridK = Tools.Grid.CartesianGrid( ...
-                    obj.Grid.x1 - obj.Grid.dx , ...
-                    obj.Grid.xn + obj.Grid.dx , ...
-                    obj.Grid.Nx + 2           , ...
-                    obj.Grid.y1 - obj.Grid.dy , ...
-                    obj.Grid.yn + obj.Grid.dy , ...
-                    obj.Grid.Ny + 2         ) ;
-                
-                [X,Y] = GridK.mesh();
-                
-                ScattK = struct('r',abs(X+1i.*Y));
+                    obj.Grid.x1 - obj.Grid.dx/2 , ...
+                    obj.Grid.xn + obj.Grid.dx/2 , ...
+                    2*obj.Grid.Nx + 1           , ...
+                    obj.Grid.y1 - obj.Grid.dy/2 , ...
+                    obj.Grid.yn + obj.Grid.dy/2 , ...
+                    2*obj.Grid.Ny + 1         ) ;
+                                
+                ScattK = struct('r',GridK.R);
 				obj.OpCoeffs=Tools.Coeffs.LaplaceCoeffsPolar(ScattK,CoeffsAddParams);
 				
             else
@@ -30,7 +28,7 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
             end
             
             BCinRhs=0;
-            obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.Coeffs,BCinRhs);
+            obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.OpCoeffs,BCinRhs);
         end
 		
 		function u = P_Omega(obj,xi_gamma)
@@ -52,7 +50,7 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
                 f = obj.Op.A(msk,:)*u;
             else
                 f = obj.Op.A*u;
-            end
+             end
         end
         
         function u = Gf(obj,f)
@@ -75,7 +73,16 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
 			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
 			
 			res = obj.Bf(HS.Source);
-			res(obj.Scatterer.Outside())=0;
+% 			Src  = HS.Source;
+% 			res = Src;
+ 			res(obj.Scatterer.Outside())=0;
+% 			
+% 			res(1:end,1)	= Src(1:end,1);
+%             res(1,1:end)	= Src(1,1:end);
+%             res(1:end,end)	= Src(1:end,end);
+%             res(end,1:end)	= Src(end,1:end);
+% 			res = res(:);
+			
 		end
 		
     end
