@@ -39,7 +39,7 @@ ExParams.r0 = 1/4;
 		ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
 		ScattererAddParams  = struct('r0',ExParams.r0,'ExpansionType',33);
 		
-		Source              = @Tools.Source.LaplaceSource;
+		Source              = @Tools.Source.LaplaceSourceInterior;
 		SourceParams		= ExParams;
 		
 		IntPrb = Solvers.InteriorLaplacianSolver ...
@@ -63,7 +63,7 @@ ExParams.r0 = 1/4;
 		xiex = Exact(XiGammaExParams,IntPrb.Scatterer.th);
 		ebinf(n) =norm(xiex -xi(IntPrb.GridGamma),inf);
 
-% 		xi(IntPrb.GridGamma) = xiex; %test
+ 		xi(IntPrb.GridGamma) = xiex; %test
                 u = IntPrb.P_Omega(xi);
     
     %%%%%%%%%%%%%%
