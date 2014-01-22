@@ -170,8 +170,32 @@ classdef TesterSubmarineScatterer < Tools.Scatterer.SingleScatterer
             %tst = obj.TestParams.Angle;
             %pi/37; %0; p/2; pi/3; pi/4; pi/8; pi/37;  %pi./37;
            %obj.th = tst;
-            obj.r  = obj.Submarine.Derivatives(obj.TestParams.Angle) +obj.TestParams.dn;% 1./[1,2,4,8,16,32,64,128,256,512,1024,2048,4096];
-            obj.th = ones(size(obj.r)).*obj.TestParams.Angle;
+            
+           [r0, dr] = obj.Submarine.Derivatives(obj.TestParams.Angle);
+           
+           x0=r0.*cos(obj.TestParams.Angle);
+           y0=r0.*sin(obj.TestParams.Angle);
+           
+           %(y-y0) = (-1./dr).*(x-x0);
+           
+           %dn   = sqrt((x-x0).^2 + (y-y0).^2) = sqrt((x-x0).^2 + ((-1./dr).*(x-x0)).^2) = sqrt((x-x0).^2 (1 + 1./(dr.^2)) )              
+           
+%            sgnDN = sign(obj.TestParams.dn);
+%            sgnDR = sign(dr);
+%            x = x0 +  sgnDN.*abs(obj.TestParams.dn.*dr)./sqrt(1+dr.^2);
+%            y = obj.TestParams.dn./sqrt(1+dr.^2) + y0;
+            
+
+            dtds    = sqrt(r0.^2+dr.^2);
+            dx0ds = (dr.*cos(obj.TestParams.Angle) - r0.*sin(obj.TestParams.Angle))./dtds;
+            dy0ds = (dr.*sin(obj.TestParams.Angle) + r0.*cos(obj.TestParams.Angle))./dtds;
+                                   
+            x = x0 + obj.TestParams.dn.*dy0ds;
+            y = y0 - obj.TestParams.dn.*dx0ds;
+            z = x+1i*y;
+           
+            obj.r  = abs(z);%obj.Submarine.Derivatives(obj.TestParams.Angle) + obj.TestParams.dn;% 1./[1,2,4,8,16,32,64,128,256,512,1024,2048,4096];
+            obj.th = angle(z);%ones(size(obj.r)).*obj.TestParams.Angle;
             
             x1 = obj.r .* cos(obj.th);
             y1 = obj.r .* sin(obj.th);
@@ -262,25 +286,22 @@ classdef TesterSubmarineScatterer < Tools.Scatterer.SingleScatterer
 %                       );
 
 %old version
-                        dsds_curv = -((2*dr.*(d3r + dr) - d4r.*r0 + d2r.*(3*d2r + 2*r0))./(h.^5) ...
-                                  - (4*dr.*(d2r + r0).*(-d3r.*r0 + dr.*(3*d2r + 2*r0)))./(h.^7) ...
-                                  - (-3*curv.*d2r.*(d2r + r0))./(h.^4) ...
-                                  - (-3*dr.*(d2r + r0).*ds_curv)./(h.^3) ...
-                                  - 3*(-curv).*dr.*((d3r + dr)./(h.^4) - (3*dr.*(d2r + r0).^2)./(h.^6)));
-            
+                        dsds_curv = (-(2*dr.*(d3r + dr) - d4r.*r0 + d2r.*(3*d2r + 2*r0))./(h.^5) ...
+                                  + (4*dr.*(d2r + r0).*(-d3r.*r0 + dr.*(3*d2r + 2*r0)))./(h.^7) ...
+                                  + (-3*curv.*d2r.*(d2r + r0))./(h.^4) ...
+                                  + (-3*dr.*(d2r + r0).*ds_curv)./(h.^3) ...
+                                  + 3*(-curv).*dr.*((d3r + dr)./(h.^4) - (3*dr.*(d2r + r0).^2)./(h.^6)));
+
+%                         dsds_curv = -((2*dr.*(d3r + dr) - d4r.*r0 + d2r.*(3*d2r + 2*r0))./(h.^5) ...
+%                                   - (4*dr.*(d2r + r0).*(-d3r.*r0 + dr.*(3*d2r + 2*r0)))./(h.^7) ...
+%                                   - (-3*curv.*d2r.*(d2r + r0))./(h.^4) ...
+%                                   - (-3*dr.*(d2r + r0).*ds_curv)./(h.^3) ...
+%                                   - 3*(-curv).*dr.*((d3r + dr)./(h.^4) - (3*dr.*(d2r + r0).^2)./(h.^6)));                              
+                              
 							  %newest version
             %    -((3 DScurv h^2 ht + 2 htt + 3 curv (-2 ht^2 + h htt) - (
 			 % 4 ht (d2r dr - d3r r0))/h^2 + (d2r^2 - 6 ht^2 - d4r r0)/h)/h^4)
-            
-% %             x0 = r_.*cos(theta);
-% %             y0 = r_.*sin(theta);
-%             dx0dtheta = dr_.*cos(theta) - r_.*sin(theta);
-%             dy0dtheta = dr_.*sin(theta) + r_.*cos(theta);
-%             
-%             c=abs( ...
-%                 dx0dtheta + 1i*dy0dtheta + dr_.*(cos(theta) + 1i.*sin(theta)) ...
-%                 + drr_.*(sin(theta) - 1i.*cos(theta)) ...
-%             );
+           
                         
         end
         

@@ -1,14 +1,11 @@
-
-x1=-3;xn=3;
-y1=-3;yn=3;%=-0.7;yn=0.7;%
-Lx=xn-x1;Ly=yn-y1;
+err=[];
 
 k=1;
 ScatType = 'submarine'; 
 
 kolobok=0;
 ellipse = 0;
-circle=1;
+circle=0;
 
 if kolobok
 	AR=1.2;
