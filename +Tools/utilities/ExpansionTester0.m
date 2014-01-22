@@ -60,7 +60,7 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
 
 	
 	
-    for n =-9:2:9
+    for n =-8:2:8
 	      TestParams.Angle = pi/n;
     
     Scatterer   = Tools.Scatterer.TesterSubmarineScatterer(Grid,ScattererAddParams,TestParams); %Tools.Scatterer.SubmarineScatterer(Grid,ScattererAddParams);
@@ -151,8 +151,7 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     end
         
     TstX = Scatterer.r.*cos(Scatterer.th);
-	
-	
+		
     exact = exp(1i*k*TstX);
     
 	err = abs(exact(:) - xi(:));
@@ -161,7 +160,8 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
 	
 	Conv = [NaN;Conv];
 	for j=1:numel(TestParams.dn)
-		fprintf('Angle=pi/%-6.0d\tn=1/%-6.0d \t err=%-12.6e \t rate=%-10.2f \n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j));
+		%fprintf('Angle=pi/%-6.0d\tn=1/%-6.0d \t err=%-12.6e \t rate=%-10.2f \n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j));
+		fprintf('Angle=pi/%-3.0d\tn=1/%-4.0d \t err=%-10.6e \t rate=%-4.2f \t an=%-15.10f \t en=%-15.10f\n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j),Scatterer.dn(j), TestParams.dn(j));
 	end
 	
 	fprintf('\n');
