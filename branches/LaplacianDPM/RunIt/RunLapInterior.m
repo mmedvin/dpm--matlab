@@ -63,7 +63,7 @@ ExParams.r0 = 1/4;
 		xiex = Exact(XiGammaExParams,IntPrb.Scatterer.th);
 		ebinf(n) =norm(xiex -xi(IntPrb.GridGamma),inf);
 
- 		xi(IntPrb.GridGamma) = xiex; %test
+ 		%xi(IntPrb.GridGamma) = xiex; %test
                 u = IntPrb.P_Omega(xi);
     
     %%%%%%%%%%%%%%
@@ -97,7 +97,7 @@ end
 
 
 function e = Exact(Params,theta)
-	r = Params.r0.^2;
+	r = Params.r0;
 	if size(r)==1
 		r = ones(size(theta)).*r;
 	end
