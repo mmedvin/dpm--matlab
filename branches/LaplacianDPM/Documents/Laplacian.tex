@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage{makeidx}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage[dvipsnames,svgnames,table]{xcolor}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{ulem}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\author{Michael}
+\title{}
+\usepackage[paperwidth=612pt,paperheight=792pt,top=56pt,right=42pt,bottom=56pt,left=85pt]{geometry}
+
+\makeatletter
+	\newenvironment{indentation}[3]%
+	{\par\setlength{\parindent}{#3}
+	\setlength{\leftmargin}{#1}       \setlength{\rightmargin}{#2}%
+	\advance\linewidth -\leftmargin       \advance\linewidth -\rightmargin%
+	\advance\@totalleftmargin\leftmargin  \@setpar{{\@@par}}%
+	\parshape 1\@totalleftmargin \linewidth\ignorespaces}{\par}%
+\makeatother 
+
+% new LaTeX commands
+
+
+\begin{document}
+
+
+
+\[
+\begin{array}{l}
+\nabla  \cdot \left( {\begin{array}{*{20}{c}}
+a&0\\
+0&b
+\end{array}} \right)\left( \begin{array}{l}
+{u_x}\\
+{u_y}
+\end{array} \right) = \nabla  \cdot \left( \begin{array}{l}
+a{u_x}\\
+b{u_y}
+\end{array} \right) = {\left( {a{u_x}} \right)_x} + {\left( {b{u_y}}
+\right)_y}\\
+\nabla  \cdot \left( \begin{array}{l}
+{u_r}\\
+\frac{1}{r}{u_\theta }
+\end{array} \right) = \frac{1}{r}{\left( {r{u_r}} \right)_r} +
+\frac{1}{{{r^2}}}{u_{\theta \theta }} = {u_{rr}} + \frac{1}{r}{u_r} +
+\frac{1}{{{r^2}}}{u_{\theta \theta }}\\
+\nabla  \cdot \left( {\begin{array}{*{20}{c}}
+a&0\\
+0&b
+\end{array}} \right)\left( \begin{array}{l}
+{u_r}\\
+\frac{1}{r}{u_\theta }
+\end{array} \right) = \nabla  \cdot \left( \begin{array}{l}
+a{u_r}\\
+b\frac{1}{r}{u_\theta }
+\end{array} \right) = \frac{1}{r}{\left( {ra{u_r}} \right)_r} +
+\frac{1}{{{r^2}}}{\left( {b{u_\theta }} \right)_\theta } = \\
+= \frac{1}{r}a{u_r} + {a_r}{u_r} + a{u_{rr}} + \frac{1}{{{r^2}}}\left(
+{{b_\theta }{u_\theta } + b{u_{\theta \theta }}} \right)\\
+\frac{1}{r}a{u_r} + {a_r}{u_r} + a{u_{rr}} + \frac{1}{{{r^2}}}\left( {{b_\theta
+}{u_\theta } + b{u_{\theta \theta }}} \right) - \sigma u = f\\
+a{u_{rr}} = f + \sigma u - \frac{1}{r}a{u_r} - {a_r}{u_r} -
+\frac{1}{{{r^2}}}\left( {{b_\theta }{u_\theta } + b{u_{\theta \theta }}} \right)
+\end{array}
+\]
+
+
+
+\end{document}

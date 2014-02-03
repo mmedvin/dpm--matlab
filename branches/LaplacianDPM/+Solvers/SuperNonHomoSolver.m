@@ -1,5 +1,7 @@
 classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
      properties(Access = public)
+		Qall;
+		Wall;
         Qf;
         Wf;
         GF;
@@ -17,15 +19,23 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
      
      methods
          
-          function qf = get.Qf(obj)
-            if obj.IsReadyQnW == false
-                obj.calc_QnW();
-            end
-            
-            qf=obj.myQf;
-            
-        end
+		 function qf = get.Qf(obj)
+			 if obj.IsReadyQnW == false
+				 obj.calc_QnW();
+			 end
+			 
+			 qf=obj.myQf;
+			 
+		 end
          
+		 function q = get.Qall(obj)
+            q=[obj.Q,obj.myQf];
+		 end
+		 
+		 function w = get.Wall(obj)
+			 w=[obj.W,obj.Wf(:)];
+		 end
+		 
          function obj = SuperNonHomoSolver( ...
              Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,SourceHandle,SourceParams)
              
