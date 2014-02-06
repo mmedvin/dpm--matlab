@@ -14,13 +14,14 @@ ExParams.r0 = 1/2;
     
 	BType		= 'Fourier';
     
-    f   =@(theta) Exact(ExParams,theta);
-    dfdn=@(theta) drExact(ExParams,theta);
+    f   =@(theta) ExtExact(ExParams,theta);
+	g   =@(theta) IntExact(ExParams,theta);
+    %dfdn=@(theta) drExact(ExParams,theta);
 
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(@sin,@sin,1);%(f,dfdn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g,5);%(@sin,@sin,1);%(f,dfdn);
 	end
 
 	for n=1:4 %run different grids
@@ -35,7 +36,7 @@ ExParams.r0 = 1/2;
 		ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
 		ScattererAddParams  = struct('r0',ExParams.r0,'ExpansionType',33);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
+		%------------------------------------------------------------------
 		InteriorCoeffsClsHandle = @Tools.Coeffs.LaplaceCoeffsPolar;
 		InteriorCoeffsClsAddParams = [];
 		InteriorSource              = @Tools.Source.LaplaceSourceInterior;
@@ -43,7 +44,7 @@ ExParams.r0 = 1/2;
 		IntPrb = Solvers.InteriorLaplacianSolver ...
 			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,InteriorSource,SourceParams);
 		
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%------------------------------------------------------------------
 		ExteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
 		ExteriorCoeffsAddParams = struct('a',ExParams.B,'b',ExParams.B,'sigma',0);
 		ExteriorSource              = @Tools.Source.LaplaceSource;
@@ -51,14 +52,14 @@ ExParams.r0 = 1/2;
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
 			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams);
 							
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%------------------------------------------------------------------
 	if 1
 		IntQ = IntPrb.Q;
 		ExtQ = ExtPrb.Q;		
 	
 		rhs = zeros(numel(IntPrb.GridGamma) + numel(ExtPrb.GridGamma),1);
-		rhs(1:numel(IntPrb.GridGamma),1)	= -IntPrb.TrGF -IntPrb.Qf;
-		rhs(numel(IntPrb.GridGamma)+1:end,1)= -ExtPrb.TrGF -ExtPrb.Qf;
+		rhs(1:numel(IntPrb.GridGamma),1)	= (-IntPrb.TrGF -IntPrb.Qf);
+		rhs(numel(IntPrb.GridGamma)+1:end,1)= (-ExtPrb.TrGF -ExtPrb.Qf);
 	
 		cn = [ IntQ ; ExtQ ] \ rhs;
 		
@@ -67,10 +68,41 @@ ExParams.r0 = 1/2;
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
-		Extxi(ExtPrb.GridGamma) = ExtPrb.W(ExtPrb.GridGamma,:)*cn  + ExtPrb.Wf(ExtPrb.GridGamma);
+		Extxi(ExtPrb.GridGamma) = (ExtPrb.W(ExtPrb.GridGamma,:)*cn  + ExtPrb.Wf(ExtPrb.GridGamma));
 		Extu = ExtPrb.P_Omega(Extxi);
 	else
-		%TBD
+		%exterior
+		Extcn1 =( ExtPrb.Q1 \ ( -ExtPrb.Q0*Basis.cn0 - ExtPrb.TrGF - ExtPrb.Qf)) ;
+		
+		
+		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
+		Extxi(ExtPrb.GridGamma) = ...
+			ExtPrb.W0(ExtPrb.GridGamma,:)*Basis.cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*Extcn1 + ExtPrb.Wf(ExtPrb.GridGamma);
+		
+		%XiGammaExParams = ExParams;
+		%XiGammaExParams.r0 = ExtPrb.Scatterer.r;
+		%xiex = Exact(XiGammaExParams,ExtPrb.Scatterer.th);
+		%ebinf(n) =norm(xiex -xi(ExtPrb.GridGamma),inf);
+		
+		% % 		xi(ExtPrb.GridGamma) = xiex; %test
+		Extu = ExtPrb.P_Omega(Extxi); 
+		
+		%interior
+
+		Intcn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 - IntPrb.TrGF - IntPrb.Qf)) ;
+    
+        
+		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
+		Intxi(IntPrb.GridGamma) = ...
+			IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1 + IntPrb.Wf(IntPrb.GridGamma);
+    
+		%XiGammaExParams = ExParams;
+		%XiGammaExParams.r0 = IntPrb.Scatterer.r;
+		%xiex = Exact(XiGammaExParams,IntPrb.Scatterer.th);
+		%ebinf(n) =norm(xiex -xi(IntPrb.GridGamma),inf);
+
+ 		%%xi(IntPrb.GridGamma) = xiex; %test
+		Intu = IntPrb.P_Omega(Intxi);
 	end
 % 		u=zeros(size(Grid.R));
 % 		u(IntPrb.Np) = Intu(IntPrb.Np);
@@ -81,13 +113,13 @@ ExParams.r0 = 1/2;
 		
 
 %	u(IntPrb.GridGamma) = (Intu(IntPrb.GridGamma) + Extu(IntPrb.GridGamma))/2;
-    %%%%%%%%%%%%%%
+    %------------------------------------------------------------------
     
    t1=toc; 
 
-   % % % % % % % % % % % % % % % %
+   %------------------------------------------------------------------
     % Comparison
-    % % % % % % % % % % % % % % % %
+    %------------------------------------------------------------------
     
 	
 % 	Ex=Tools.Exact.ExLapCrclVarCoeffs(Grid, ExParams);
@@ -95,7 +127,7 @@ ExParams.r0 = 1/2;
 %     exact = Ex.u;
 	%%%%%%%delete next row
      
-	  Intexact = zeros(size(Grid.R));
+	 Intexact = zeros(size(Grid.R));
      IntCmprExParams = ExParams;
      IntCmprExParams.r0 = Grid.R(IntPrb.Scatterer.Np);
 	 
@@ -108,8 +140,8 @@ ExParams.r0 = 1/2;
 
     t2=toc;
     
-    Intetinf(n) =norm(Intexact(IntPrb.Np)-Intu(IntPrb.Np),inf);
-	Extetinf(n) =norm(Extexact(ExtPrb.Nm)-Extu(ExtPrb.Nm),inf);
+    Intetinf(n) =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
+	Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
 	
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
@@ -117,7 +149,8 @@ ExParams.r0 = 1/2;
 	fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t Intetinf=%d\t Extetinf=%d\t timeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(Intetinf(n)),full(Extetinf(n)),t1,t2-t1);
 end
 
-Linf=log2(etinf(1:end-1)./etinf(2:end))
+IntLinf=log2(Intetinf(1:end-1)./Intetinf(2:end))
+ExtLinf=log2(Extetinf(1:end-1)./Extetinf(2:end))
 % Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
 
 end
