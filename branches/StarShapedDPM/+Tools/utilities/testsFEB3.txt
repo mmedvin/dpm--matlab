@@ -1,0 +1,102 @@
+working condition test
+>> ExpansionTester
+circle,params: a=1.800000e+00, b=1.800000e+00 (AR=1), c=0, p=20, -2<x,y<2 
+k=1  	 N=65  	 Min |n|=4.7749e-04	 Max |n|=8.3809e-02	 err=1.931370e-08 	 rate=NaN  err_thOnScat=-2.7673e+00	 	 err_th=-2.7673e+00	 err_r=1.8802e+00	 err_dist=8.0201e-02	 |x-xn|=8.8818e-16	 |y-yn|=3.3307e-16	
+k=1  	 N=129 	 Min |n|=4.7749e-04	 Max |n|=4.3038e-02	 err=5.902143e-10 	 rate=5.03 err_thOnScat=-3.6473e-01	 	 err_th=-3.6473e-01	 err_r=1.8398e+00	 err_dist=3.9773e-02	 |x-xn|=8.8818e-16	 |y-yn|=3.3307e-16	
+k=1  	 N=257 	 Min |n|=1.3292e-04	 Max |n|=2.1699e-02	 err=1.744420e-11 	 rate=5.08 err_thOnScat=-2.7818e+00	 	 err_th=-2.7818e+00	 err_r=1.8196e+00	 err_dist=1.9625e-02	 |x-xn|=1.8652e-14	 |y-yn|=6.8834e-15	
+k=1  	 N=513 	 Min |n|=8.2057e-05	 Max |n|=1.0900e-02	 err=1.883006e-12 	 rate=3.21 err_thOnScat=-7.1475e-01	 	 err_th=-7.1475e-01	 err_r=1.7999e+00	 err_dist=-1.2140e-04	 |x-xn|=1.8829e-12	 |y-yn|=1.6338e-12	
+k=1  	 N=1025	 Min |n|=1.5258e-06	 Max |n|=5.4830e-03	 err=1.310235e-10 	 rate=-6.12 err_thOnScat=-6.4220e-01	 	 err_th=-6.4220e-01	 err_r=1.8000e+00	 err_dist=1.5260e-06	 |x-xn|=1.3102e-10	 |y-yn|=9.8001e-11	
+
+>> ExpansionTester
+ellipse,params: a=1.800000e+00, b=9.000000e-01 (AR=2), c=0, p=20, -2<x,y<2 
+k=1  	 N=65  	 Min |n|=4.0914e-04	 Max |n|=8.7123e-02	 err=1.317876e-08 	 rate=NaN  err_thOnScat=-1.8928e-01	 	 err_th=-2.1109e-01	 err_r=1.7897e+00	 err_dist=8.7123e-02	 |x-xn|=8.8818e-16	 |y-yn|=5.5511e-16	
+k=1  	 N=129 	 Min |n|=2.5034e-04	 Max |n|=4.3332e-02	 err=4.952099e-10 	 rate=4.73 err_thOnScat=-3.0604e+00	 	 err_th=-3.0556e+00	 err_r=1.8192e+00	 err_dist=3.7728e-02	 |x-xn|=6.8834e-15	 |y-yn|=2.2482e-15	
+k=1  	 N=257 	 Min |n|=6.7871e-05	 Max |n|=2.1618e-02	 err=1.455140e-11 	 rate=5.09 err_thOnScat=-3.0397e+00	 	 err_th=-3.0367e+00	 err_r=1.7911e+00	 err_dist=1.9145e-02	 |x-xn|=1.3545e-14	 |y-yn|=5.9397e-15	
+k=1  	 N=513 	 Min |n|=5.6523e-05	 Max |n|=1.0764e-02	 err=2.490364e-12 	 rate=2.55 err_thOnScat=-3.0123e+00	 	 err_th=-3.0123e+00	 err_r=1.7569e+00	 err_dist=1.3738e-04	 |x-xn|=2.4905e-12	 |y-yn|=1.2955e-12	
+k=1  	 N=1025	 Min |n|=1.0587e-06	 Max |n|=5.4442e-03	 err=1.357857e-10 	 rate=-5.77 err_thOnScat=-2.7837e+00	 	 err_th=-2.7837e+00	 err_r=1.5389e+00	 err_dist=1.0587e-06	 |x-xn|=1.3579e-10	 |y-yn|=2.0313e-10	
+
+>> ExpansionTester
+kolobok,params: a=1.800000e+00, b=1.500000e+00 (AR=1.200000e+00), c=1.200000e+00, p=20, -3<x,y<3 
+k=1  	 N=65  	 Min |n|=8.0420e-04	 Max |n|=1.3175e-01	 err=9.811729e-08 	 rate=NaN  err_thOnScat=-1.1690e+00	 	 err_th=-1.2120e+00	 err_r=1.6020e+00	 err_dist=-1.2319e-01	 |x-xn|=3.3307e-16	 |y-yn|=4.4409e-16	
+k=1  	 N=129 	 Min |n|=3.1890e-04	 Max |n|=6.5687e-02	 err=3.815208e-09 	 rate=4.68 err_thOnScat=-3.0965e-01	 	 err_th=-3.1362e-01	 err_r=1.8233e+00	 err_dist=5.9421e-02	 |x-xn|=2.6645e-15	 |y-yn|=1.2212e-15	
+k=1  	 N=257 	 Min |n|=1.2198e-04	 Max |n|=3.2682e-02	 err=1.326624e-10 	 rate=4.85 err_thOnScat=-1.8679e+00	 	 err_th=-1.8561e+00	 err_r=1.8319e+00	 err_dist=-3.1961e-02	 |x-xn|=8.1046e-15	 |y-yn|=4.4409e-15	
+k=1  	 N=513 	 Min |n|=4.0426e-06	 Max |n|=1.6538e-02	 err=2.651643e-11 	 rate=2.32 err_thOnScat=-1.1776e+00	 	 err_th=-1.1776e+00	 err_r=1.7127e+00	 err_dist=1.0557e-05	 |x-xn|=2.6516e-11	 |y-yn|=1.6784e-11	
+k=1  	 N=1025	 Min |n|=4.0426e-06	 Max |n|=8.2612e-03	 err=3.565046e-11 	 rate=-0.43 err_thOnScat=-1.8512e+00	 	 err_th=-1.8512e+00	 err_r=1.8842e+00	 err_dist=1.2343e-05	 |x-xn|=3.5650e-11	 |y-yn|=2.1488e-11	
+
+>> ExpansionTester
+submarine,params: a=1.800000e+00, b=9.000000e-01 (AR=2), c=4, p=20, -3<x,y<3 
+k=1  	 N=65  	 Min |n|=5.9645e-04	 Max |n|=1.2827e-01	 err=1.797668e-07 	 rate=NaN  err_thOnScat=-1.0705e+00	 	 err_th=-1.0041e+00	 err_r=1.2224e+00	 err_dist=1.2473e-01	 |x-xn|=9.9920e-16	 |y-yn|=2.2204e-16	
+k=1  	 N=129 	 Min |n|=5.1593e-04	 Max |n|=6.3922e-02	 err=4.676327e-09 	 rate=5.26 err_thOnScat=-2.0953e+00	 	 err_th=-2.1251e+00	 err_r=1.1577e+00	 err_dist=6.2957e-02	 |x-xn|=2.1094e-15	 |y-yn|=8.8818e-16	
+k=1  	 N=257 	 Min |n|=6.4633e-06	 Max |n|=3.1959e-02	 err=1.376443e-10 	 rate=5.09 err_thOnScat=-1.8205e+00	 	 err_th=-1.8052e+00	 err_r=1.6145e+00	 err_dist=-2.9296e-02	 |x-xn|=9.9920e-15	 |y-yn|=2.8866e-15	
+k=1  	 N=513 	 Min |n|=1.0570e-06	 Max |n|=1.6250e-02	 err=1.374408e-11 	 rate=3.32 err_thOnScat=-1.2688e+00	 	 err_th=-1.2688e+00	 err_r=1.4974e+00	 err_dist=6.4633e-06	 |x-xn|=1.3744e-11	 |y-yn|=3.2832e-12	
+k=1  	 N=1025	 Min |n|=1.0570e-06	 Max |n|=8.2807e-03	 err=1.421784e-10 	 rate=-3.37 err_thOnScat=-1.5386e+00	 	 err_th=-1.5386e+00	 err_r=2.0049e+00	 err_dist=1.6748e-06	 |x-xn|=1.4218e-10	 |y-yn|=5.3287e-10	
+
+>> 
+
+
+
+
+
+pure test
+>> ExpansionTester0
+k=1  	 Angle=pi*0.750	n=1/1    	 err=1.005479e-04 	 rate=NaN  	 an-en=4.748456e-03 	 !circle! ath-eth=-1.140571e-01, |x-nx|=1.954129e-03, |y-ny|=4.327726e-03
+k=1  	 Angle=pi*0.750	n=1/2    	 err=3.680574e-05 	 rate=1.45 	 an-en=2.198127e-02 	 !circle! ath-eth=3.553847e-02, |x-nx|=1.424019e-02, |y-ny|=1.674495e-02
+k=1  	 Angle=pi*0.750	n=1/4    	 err=1.182053e-08 	 rate=11.60 	 an-en=-8.881784e-16 	 !circle! ath-eth=-8.979588e-02, |x-nx|=5.551115e-16, |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.750	n=1/8    	 err=3.694039e-10 	 rate=5.00 	 an-en=1.776357e-15 	 !circle! ath-eth=-4.890717e-02, |x-nx|=2.220446e-16, |y-ny|=1.110223e-16
+k=1  	 Angle=pi*0.750	n=1/16   	 err=1.154303e-11 	 rate=5.00 	 an-en=3.552714e-15 	 !circle! ath-eth=-2.558365e-02, |x-nx|=000000  , |y-ny|=000000  
+k=1  	 Angle=pi*0.750	n=1/32   	 err=3.609763e-13 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=-1.309243e-02, |x-nx|=2.220446e-16, |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.750	n=1/64   	 err=1.154258e-14 	 rate=4.97 	 an-en=000000   	 !circle! ath-eth=-6.623779e-03, |x-nx|=2.220446e-16, |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.750	n=1/128  	 err=0.000000e+00 	 rate=Inf  	 an-en=000000   	 !circle! ath-eth=-3.331591e-03, |x-nx|=1.110223e-16, |y-ny|=1.110223e-16
+k=1  	 Angle=pi*0.750	n=1/256  	 err=1.554709e-14 	 rate=-Inf 	 an-en=5.684342e-14 	 !circle! ath-eth=-1.670760e-03, |x-nx|=1.110223e-16, |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.750	n=1/512  	 err=3.078022e-14 	 rate=-0.99 	 an-en=1.136868e-13 	 !circle! ath-eth=-8.366264e-04, |x-nx|=000000  , |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.750	n=1/1024 	 err=6.140346e-14 	 rate=-1.00 	 an-en=-2.273737e-13 	 !circle! ath-eth=-4.186254e-04, |x-nx|=1.110223e-16, |y-ny|=000000  
+
+k=1  	 Angle=pi*0.625	n=1/1    	 err=1.921852e-05 	 rate=NaN  	 an-en=-2.547788e-01 	 !circle! ath-eth=-2.228702e-01, |x-nx|=1.015159e-01, |y-ny|=2.336808e-01
+k=1  	 Angle=pi*0.625	n=1/2    	 err=8.234064e-05 	 rate=-2.10 	 an-en=4.328931e-02 	 !circle! ath-eth=8.165065e-02, |x-nx|=3.165516e-02, |y-ny|=2.952821e-02
+k=1  	 Angle=pi*0.625	n=1/4    	 err=7.533766e-06 	 rate=3.45 	 an-en=000000   	 !circle! ath-eth=1.472442e-01, |x-nx|=1.110223e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.625	n=1/8    	 err=2.355364e-07 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=7.767956e-02, |x-nx|=2.220446e-16, |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.625	n=1/16   	 err=7.361342e-09 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=3.988639e-02, |x-nx|=000000  , |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.625	n=1/32   	 err=2.300484e-10 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=2.020795e-02, |x-nx|=000000  , |y-ny|=000000  
+k=1  	 Angle=pi*0.625	n=1/64   	 err=7.188821e-12 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=1.017048e-02, |x-nx|=2.220446e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.625	n=1/128  	 err=2.243219e-13 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=5.101900e-03, |x-nx|=2.220446e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.625	n=1/256  	 err=6.308764e-14 	 rate=1.83 	 an-en=-5.684342e-14 	 !circle! ath-eth=2.555119e-03, |x-nx|=5.551115e-17, |y-ny|=000000  
+k=1  	 Angle=pi*0.625	n=1/512  	 err=2.989367e-16 	 rate=7.72 	 an-en=000000   	 !circle! ath-eth=1.278602e-03, |x-nx|=1.110223e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.625	n=1/1024 	 err=2.240738e-13 	 rate=-9.55 	 an-en=2.273737e-13 	 !circle! ath-eth=6.395619e-04, |x-nx|=1.665335e-16, |y-ny|=000000  
+
+k=1  	 Angle=pi*0.500	n=1/1    	 err=1.241793e-15 	 rate=NaN  	 an-en=000000   	 !circle! ath-eth=-2.220446e-16, |x-nx|=2.249663e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/2    	 err=2.481842e-16 	 rate=2.32 	 an-en=1.776357e-15 	 !circle! ath-eth=000000  , |x-nx|=2.219672e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/4    	 err=1.109836e-16 	 rate=1.16 	 an-en=000000   	 !circle! ath-eth=000000  , |x-nx|=1.109836e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/8    	 err=5.549181e-17 	 rate=1.00 	 an-en=7.105427e-15 	 !circle! ath-eth=000000  , |x-nx|=5.549181e-17, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/16   	 err=2.774590e-17 	 rate=1.00 	 an-en=000000   	 !circle! ath-eth=000000  , |x-nx|=2.774590e-17, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/32   	 err=1.387295e-17 	 rate=1.00 	 an-en=000000   	 !circle! ath-eth=000000  , |x-nx|=1.387295e-17, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/64   	 err=6.936476e-18 	 rate=1.00 	 an-en=000000   	 !circle! ath-eth=000000  , |x-nx|=6.936476e-18, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/128  	 err=3.468238e-18 	 rate=1.00 	 an-en=-1.136868e-13 	 !circle! ath-eth=000000  , |x-nx|=3.468238e-18, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/256  	 err=1.734119e-18 	 rate=1.00 	 an-en=000000   	 !circle! ath-eth=000000  , |x-nx|=1.734119e-18, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/512  	 err=8.670595e-19 	 rate=1.00 	 an-en=000000   	 !circle! ath-eth=000000  , |x-nx|=8.670595e-19, |y-ny|=000000  
+k=1  	 Angle=pi*0.500	n=1/1024 	 err=4.335298e-19 	 rate=1.00 	 an-en=000000   	 !circle! ath-eth=000000  , |x-nx|=4.335298e-19, |y-ny|=000000  
+
+k=1  	 Angle=pi*0.375	n=1/1    	 err=1.921852e-05 	 rate=NaN  	 an-en=-2.547788e-01 	 !circle! ath-eth=2.228702e-01, |x-nx|=1.015159e-01, |y-ny|=2.336808e-01
+k=1  	 Angle=pi*0.375	n=1/2    	 err=8.234064e-05 	 rate=-2.10 	 an-en=4.328931e-02 	 !circle! ath-eth=-8.165065e-02, |x-nx|=3.165516e-02, |y-ny|=2.952821e-02
+k=1  	 Angle=pi*0.375	n=1/4    	 err=7.533766e-06 	 rate=3.45 	 an-en=000000   	 !circle! ath-eth=-1.472442e-01, |x-nx|=000000  , |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.375	n=1/8    	 err=2.355364e-07 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=-7.767956e-02, |x-nx|=1.110223e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.375	n=1/16   	 err=7.361342e-09 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=-3.988639e-02, |x-nx|=000000  , |y-ny|=4.440892e-16
+k=1  	 Angle=pi*0.375	n=1/32   	 err=2.300416e-10 	 rate=5.00 	 an-en=7.105427e-15 	 !circle! ath-eth=-2.020795e-02, |x-nx|=2.220446e-16, |y-ny|=4.440892e-16
+k=1  	 Angle=pi*0.375	n=1/64   	 err=7.203033e-12 	 rate=5.00 	 an-en=-1.421085e-14 	 !circle! ath-eth=-1.017048e-02, |x-nx|=000000  , |y-ny|=4.440892e-16
+k=1  	 Angle=pi*0.375	n=1/128  	 err=2.246227e-13 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=-5.101900e-03, |x-nx|=000000  , |y-ny|=4.440892e-16
+k=1  	 Angle=pi*0.375	n=1/256  	 err=6.298608e-14 	 rate=1.83 	 an-en=-5.684342e-14 	 !circle! ath-eth=-2.555119e-03, |x-nx|=000000  , |y-ny|=000000  
+k=1  	 Angle=pi*0.375	n=1/512  	 err=2.220446e-16 	 rate=8.15 	 an-en=000000   	 !circle! ath-eth=-1.278602e-03, |x-nx|=5.551115e-17, |y-ny|=000000  
+k=1  	 Angle=pi*0.375	n=1/1024 	 err=2.239271e-13 	 rate=-9.98 	 an-en=2.273737e-13 	 !circle! ath-eth=-6.395619e-04, |x-nx|=000000  , |y-ny|=000000  
+
+k=1  	 Angle=pi*0.250	n=1/1    	 err=1.005479e-04 	 rate=NaN  	 an-en=4.748456e-03 	 !circle! ath-eth=1.140571e-01, |x-nx|=1.954129e-03, |y-ny|=4.327726e-03
+k=1  	 Angle=pi*0.250	n=1/2    	 err=3.680574e-05 	 rate=1.45 	 an-en=2.198127e-02 	 !circle! ath-eth=-3.553847e-02, |x-nx|=1.424019e-02, |y-ny|=1.674495e-02
+k=1  	 Angle=pi*0.250	n=1/4    	 err=1.182053e-08 	 rate=11.60 	 an-en=-8.881784e-16 	 !circle! ath-eth=8.979588e-02, |x-nx|=000000  , |y-ny|=2.220446e-16
+k=1  	 Angle=pi*0.250	n=1/8    	 err=3.694038e-10 	 rate=5.00 	 an-en=1.776357e-15 	 !circle! ath-eth=4.890717e-02, |x-nx|=000000  , |y-ny|=1.110223e-16
+k=1  	 Angle=pi*0.250	n=1/16   	 err=1.154405e-11 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=2.558365e-02, |x-nx|=000000  , |y-ny|=000000  
+k=1  	 Angle=pi*0.250	n=1/32   	 err=3.607426e-13 	 rate=5.00 	 an-en=000000   	 !circle! ath-eth=1.309243e-02, |x-nx|=000000  , |y-ny|=000000  
+k=1  	 Angle=pi*0.250	n=1/64   	 err=1.554709e-14 	 rate=4.54 	 an-en=-1.421085e-14 	 !circle! ath-eth=6.623779e-03, |x-nx|=3.330669e-16, |y-ny|=1.110223e-16
+k=1  	 Angle=pi*0.250	n=1/128  	 err=1.570092e-16 	 rate=6.63 	 an-en=000000   	 !circle! ath-eth=3.331591e-03, |x-nx|=000000  , |y-ny|=000000  
+k=1  	 Angle=pi*0.250	n=1/256  	 err=1.539411e-14 	 rate=-6.62 	 an-en=-5.684342e-14 	 !circle! ath-eth=1.670760e-03, |x-nx|=2.220446e-16, |y-ny|=000000  
+k=1  	 Angle=pi*0.250	n=1/512  	 err=1.110223e-16 	 rate=7.12 	 an-en=000000   	 !circle! ath-eth=8.366264e-04, |x-nx|=000000  , |y-ny|=000000  
+k=1  	 Angle=pi*0.250	n=1/1024 	 err=6.156044e-14 	 rate=-9.12 	 an-en=-2.273737e-13 	 !circle! ath-eth=4.186254e-04, |x-nx|=000000  , |y-ny|=000000  
+
+>> 

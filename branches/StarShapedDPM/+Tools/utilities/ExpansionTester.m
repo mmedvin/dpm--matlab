@@ -1,19 +1,22 @@
 err=[];
 
-k=1;
+%k=3;
 ScatType = 'submarine'; 
 
 kolobok=0;
 ellipse = 0;
 circle=0;
 
+shape='submarine';
 if kolobok
+    shape='kolobok';
 	AR=1.2;
 	c=1.2;
 
 	x1=-3;xn=3;
 	y1=-3;yn=3;%=-0.7;yn=0.7;%	
 elseif ellipse
+    shape = 'ellipse';
  	AR=2;
 	c=0;
 
@@ -21,6 +24,7 @@ elseif ellipse
 	y1=-2;yn=2;
    
 elseif circle 
+    shape = 'circle';
     AR=1;
 	c=0;
 
@@ -30,20 +34,25 @@ elseif circle
 else %submarine
 	AR=2;
 	c=4;
-	x1=-2.2; xn=2.2;
-	y1=-2.2; yn=2.2;
+	%x1=-2.2; xn=2.2;
+	%y1=-2.2; yn=2.2;
+    
+    x1=-3; xn=3;
+	y1=-3; yn=3;
 end
 
 a=1.8;
 b=a/AR;
+p=20;
 ellipse = struct('a',a,'b',b);
-%tower = struct('c',1.2,'p',20);
-tower = struct('c',c,'p',20);
+%tower = struct('c',1.2,'p',p);
+tower = struct('c',c,'p',p);
 
+fprintf('%s,params: a=%d, b=%d (AR=%d), c=%d, p=%d, %d<x,y<%d \n',shape,a,b,AR,c,p,x1,xn);
 
 NoSource = Tools.Source.SuperHelmholtzSource();  %construct empty source           
 ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
-
+for k=1;%[0.1,0.5,1,2,3,5,10]
 for n=1:5 %run different grids    
     p=5;%3;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
@@ -139,32 +148,76 @@ for n=1:5 %run different grids
         xi = u + Scatterer.dn.*un;% + ((obj.dn.^2)/2).*u_nn + obj.dn.^3./6.*u_nnn + obj.dn.^4./24.*u_nnnn;
     end
              
+    % the following x,y are input test locations of grid gamma
     TstX = Scatterer.r.*cos(Scatterer.th);
+    TstY = Scatterer.r.*sin(Scatterer.th);
+    
+    % the following x,y are result of finding the normal to the body from
+    % the prefious x,y's, we want to verify if they appears to be the same
+    % as in the input...
+    dtds    = sqrt(r.^2+rt.^2);
+    NrmlX = x + Scatterer.dn.*yt./dtds;
+    NrmlY = y - Scatterer.dn.*xt./dtds;
         
+    
+    
+    
+    
     exact = exp(1i*k*TstX);
     
 	tmp = exact(:) - xi(:);
     err(n,1) = norm( tmp ,inf);
-	[ix,jx]=find(abs(tmp)==err(n));
+	ErrCords(n).GG_i=find(abs(tmp)==err(n));
+    ErrCords(n).dn = Scatterer.dn(ErrCords(n).GG_i);
+    ErrCords(n).r = Scatterer.r(ErrCords(n).GG_i);
+    ErrCords(n).th = Scatterer.th(ErrCords(n).GG_i);
+    ErrCords(n).nrml_th = Scatterer.nrml_th(ErrCords(n).GG_i);
+    [ErrCords(n).Grid_i,ErrCords(n).Grid_j] = ind2sub([Nx,Ny],Scatterer.GridGamma(ErrCords(n).GG_i));
+    ErrCords(n).diffX = abs(NrmlX(ErrCords(n).GG_i) - TstX(ErrCords(n).GG_i));
+    ErrCords(n).diffY = abs(NrmlY(ErrCords(n).GG_i) - TstY(ErrCords(n).GG_i));
+    
     N(n,1) = Nx;
 	
-	Scat.r = Scatterer.r;
-	Scat.t = Scatterer.th;
-	Scat.nt= Scatterer.nrml_th;
-	Scat.dn= Scatterer.dn;
-	
-	ETvars{n} = Scat;
+% 	Scat.r = Scatterer.r;
+% 	Scat.t = Scatterer.th;
+% 	Scat.nt= Scatterer.nrml_th;
+% 	Scat.dn= Scatterer.dn;
+% 	
+% 	ETvars{n} = Scat;
         
 end
 
- save('ETvars.mat','ETvars');
+% save('ETvars.mat','ETvars');
 %    err=err.';  
 %    MinDn = MinDn.';
 %    N=N.';
-   Conv = log2(err(1:end-1)./err(2:end));
-   spase = zeros(size(err));
-   spase(1:end) = ' ';
-   [num2str(N), spase, num2str(MinDn), spase, num2str(MaxDn),spase, num2str(err),spase,num2str([NaN;Conv])]
+    Conv = log2(err(1:end-1)./err(2:end));
+%    spase = zeros(size(err));
+%    spase(1:end) = ' ';
+%    [num2str(N), spase, num2str(MinDn), spase, num2str(MaxDn),spase, num2str(err),spase,num2str([NaN;Conv])]
+   
+   FormatSpectForNUM2STR =  '%-6.4e';
+   FS = FormatSpectForNUM2STR;
+
+   Conv = [NaN;Conv];
+   	for j=1:numel(err)
+ 		fprintf('k=%-3.0d\t N=%-4.0d\t Min |n|=%-5.4d\t Max |n|=%-5.4d\t err=%-10.6e \t rate=%-4.2f err_thOnScat=%s\t \t err_th=%s\t err_r=%s\t err_dist=%s\t |x-xn|=%s\t |y-yn|=%s\t\n',...
+                        ... %err loc (%s   ;  %s)\n',...
+                        k,N(j),MinDn(j),MaxDn(j),err(j),Conv(j),...
+                        num2str(ErrCords(j).nrml_th(1),FS),...
+                        num2str(ErrCords(j).th(1),FS),...
+                        num2str(ErrCords(j).r(1),FS),...
+                        num2str(ErrCords(j).dn(1),FS),...
+                        num2str(ErrCords(j).diffX(1),FS),...
+                        num2str(ErrCords(j).diffY(1),FS)...
+                        ... %num2str( ErrCords(j).Grid_i'),...
+                        ... %num2str(ErrCords(j).Grid_j')...
+                        );
+    end
+    fprintf('\n');
+   
+end   
+   
    
    
 

@@ -14,19 +14,59 @@ catch err
     end
 end
 
-x1=-2.5;xn=2.5;
-y1=-2.5;yn=2.5;%=-0.7;yn=0.7;%
-Lx=xn-x1;Ly=yn-y1;
+
+kolobok=0;
+ellipse = 0;
+circle=1;
+
+shape='submarine';
+if kolobok
+    shape='kolobok';
+	AR=1.2;
+	c=1.2;
+
+	x1=-3;xn=3;
+	y1=-3;yn=3;%=-0.7;yn=0.7;%	
+elseif ellipse
+    shape = 'ellipse';
+ 	AR=2;
+	c=0;
+
+	x1=-2;xn=2;
+	y1=-2;yn=2;
+   
+elseif circle 
+    shape = 'circle';
+    AR=1;
+	c=0;
+
+	x1=-2;xn=2;
+	y1=-2;yn=2;
+
+else %submarine
+	AR=2;
+	c=4;
+	%x1=-2.2; xn=2.2;
+	%y1=-2.2; yn=2.2;
+    
+    x1=-2.2; xn=2.2;
+	y1=-2.2; yn=2.2;
+end
+
+
+a=1.8;
+b=a/AR;
+ellipse = struct('a',a,'b',b);
+%tower = struct('c',1.2,'p',20);
+tower = struct('c',c,'p',20);
+
+
+%Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
 
 R0 = 1;
 NHR = 1.6;
-AR=2;%1.2;
-a=1.8;%1.6;%2.5;
-b=a/AR;%0.8;
-ellipse = struct('a',a,'b',b);
-%tower  = struct('c',1.2,'p',20);
-tower  = struct('c',4,'p',20);
+
 FocalDist = sqrt(a^2-b^2);
 Eta0 = acosh(a/FocalDist);
 
@@ -43,7 +83,7 @@ elseif strcmpi(ScatType,'submarine')
     ExParams  = struct('ScattererType','submarine','ellipse',ellipse,'tower',tower);
 end
 
-fprintf('Interior Homogeneous Submarine solver: ScatType=%s, Basis Type=%s , FD=%d, ,Eta0=%d, a=%d, b=%d,c=%d,p=%d, AR=%d , x=+/-%d,y+/-=%d\n', ...
+fprintf('Interior Homogeneous Submarine solver: ScatType=%s:%s, Basis Type=%s , FD=%d, ,Eta0=%d, a=%d, b=%d,c=%d,p=%d, AR=%d , x=+/-%d,y+/-=%d\n', ...
 ScatType , BType , FocalDist , Eta0 , ellipse.a,ellipse.b,tower.c,tower.p,AR,xn,yn);
 
 for k = 1%[1,5,10,15,20,25]
@@ -78,7 +118,7 @@ p=4;%3;
         ScattererAddParams  = struct('r0',R0,'ExpansionType',25);
     elseif strcmpi(ScatType,'submarine')
         ScattererClsHandle  = @Tools.Scatterer.SubmarineScatterer;
-        ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
+        ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25,'Shape',shape,'FZeroAlg',3);
     end
 
     IntPrb =  Solvers.InteriorHomoSolver ... 

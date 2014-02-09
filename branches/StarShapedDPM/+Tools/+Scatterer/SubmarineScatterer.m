@@ -29,6 +29,11 @@ classdef SubmarineScatterer < Tools.Scatterer.SingleScatterer
     
     properties(Access = private)
         ExpansionType;
+        FZeroAlg = 1;  %default value
+        Shape = 'unknown'; %atm it's value considered for debugging
+        
+        %BodyMatchUp;
+        %BodyMatchLow;
     end
     
     methods
@@ -58,9 +63,19 @@ classdef SubmarineScatterer < Tools.Scatterer.SingleScatterer
             
             obj.ExpansionType = AddParams.ExpansionType;
             
+            try
+                obj.FZeroAlg = AddParams.FZeroAlg;
+                obj.Shape    = AddParams.Shape;
+            catch
+                %if they doesn't exists default value will be used.
+            end
+            
             obj.MyGrid();
+            
+            %obj.MatchTheGrid();
+            
             obj.SplitGrid();%(obj.Eta,obj.Eta0);
-            obj.GridGamma = intersect(obj.Np,obj.Nm)';
+            obj.GridGamma = intersect(obj.Np,obj.Nm).';
             obj.GridOnScatterer();
             
             assert(max(  [abs(obj.Grid.yn),abs(obj.Grid.y1)] ) >  max(abs(obj.Submarine.Derivatives(obj.nrml_th(:)).*sin(obj.nrml_th(:)) )) );
@@ -160,12 +175,25 @@ classdef SubmarineScatterer < Tools.Scatterer.SingleScatterer
             
             options = [];%optimset('TolX',10^-10);
             
-            [obj.nrml_th,fval,exitflag,output] ...
-             = arrayfun(@(indx) ...
+             switch obj.FZeroAlg 
+                case 1 %regular choice
+                    [obj.nrml_th,fval,exitflag,output] ...
+                        = arrayfun(@(indx) ...
                            fzero(@(arg) obj.FindMyZeros(arg,x1(indx),y1(indx)), obj.th(indx),options), ... % obj.th(indx) is an initial guess of root finding algorithm of 'fzero'
                            1:numel(obj.th));%,'UniformOutput',false);
             
-            obj.nrml_th = obj.nrml_th.';
+                    obj.nrml_th = obj.nrml_th.';
+                 case 2 %TBD
+                 case 3
+                     if ~strcmpi(obj.Shape,'circle')
+                         error('wrong use of debugging parameter');
+                     end
+                     obj.nrml_th = obj.th;
+                     
+             end
+                     
+                     
+            
             [r0,dr0] = obj.Submarine.Derivatives(obj.nrml_th); %obj.MyShape(obj.nrml_th);% points of submarine normal to grid gamma
             
             if 0
@@ -222,8 +250,35 @@ classdef SubmarineScatterer < Tools.Scatterer.SingleScatterer
             
             %now we add direction to dn (delta n)
             sgn = sign(obj.r - r0);
+            %sgn = ones(size(obj.GridGamma));
+            %sgn(obj.Inside(obj.GridGamma)) = -1;
             obj.dn = obj.dn.*sgn;
                         
+        end
+        
+        function MatchTheGrid(obj)
+            %not finished, no need here?
+            x1=obj.Grid.x;
+
+        
+                    options = [];%optimset('TolX',10^-10);
+            
+                    fun = @(th,x) obj.Submarine.Derivatives(th).*cos(th) - x;
+                    
+            [UpperThetas,fval,exitflag,output] ...
+             = arrayfun(@(indx) ...
+                           fzero(@(arg) fun(arg,x1(indx)), [0,pi],options), ... % obj.th(indx) is an initial guess of root finding algorithm of 'fzero'
+                           1:numel(x1));%,'UniformOutput',false);
+
+            [LowerThetas,fval,exitflag,output] ...
+             = arrayfun(@(indx) ...
+                           fzero(@(arg) fun(arg,x1(indx)), [pi,2*pi],options), ... % obj.th(indx) is an initial guess of root finding algorithm of 'fzero'
+                           1:numel(x1));%,'UniformOutput',false);
+            
+            obj.BodyMatchUp     = obj.Submarine.Derivatives(UpperThetas).*cos(UpperThetas);
+            obj.BodyMatchLow    = obj.Submarine.Derivatives(LowerThetas).*cos(LowerThetas);
+        
+        
         end
         
         function [curv,ds_curv,dsds_curv] = curvature(obj,theta)
