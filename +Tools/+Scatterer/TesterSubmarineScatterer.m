@@ -263,7 +263,7 @@ classdef TesterSubmarineScatterer < Tools.Scatterer.SingleScatterer
             
             
             %now we add direction to dn (delta n)
-            sgn = sign(obj.r - r0);
+            sgn = sign(obj.r - r0);            
             obj.dn = obj.dn.*sgn;
                         
         end

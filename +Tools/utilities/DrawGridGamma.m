@@ -98,7 +98,7 @@ end
 
   mesh(X,Y,ones(size(X)));
 
-hold
+hold on
 tPhi=0:0.001:2*pi;
 s=obj.Submarine.Derivatives(tPhi);
 
@@ -118,13 +118,22 @@ h=gca;
 
 hold off
 
-for m=1:25
-    line([s(m).*cos(obj.nrml_th(m)),obj.r(m).*cos(obj.th(m))], ...
-        [s(m).*sin(obj.nrml_th(m)),obj.r(m).*sin(obj.th(m))]);
+for m=1:numel(obj.dn)%25
+    if obj.dn(m) >= 0
+        line(   [s(m).*cos(obj.nrml_th(m)),obj.r(m).*cos(obj.th(m))], ...
+                [s(m).*sin(obj.nrml_th(m)),obj.r(m).*sin(obj.th(m))],...
+                'Color','r');
+%            fprintf('+');
+    else
+        line([  s(m).*cos(obj.nrml_th(m)),obj.r(m).*cos(obj.th(m))], ...
+                [s(m).*sin(obj.nrml_th(m)),obj.r(m).*sin(obj.th(m))],...
+                'Color','b');
+ %           fprintf('-');
+    end
 %      line([s(m).*cos(obj.nrml_th(m)),0], ...
 %         [s(m).*sin(obj.nrml_th(m)),0],'Color','r');
 end
-
+%fprintf('\n');
 %axis([-2,2,-2.2,2.2])
 axis equal
  view(0,-90)

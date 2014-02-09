@@ -1,0 +1,51 @@
+working conditions test
+
+k=1       N=65       Min |n|=4.7749e-04     Max |n|=8.3809e-02     err=1.931370e-08      rate=NaN  err_thOnScat=-2.7672590375822e+00 2.7672590375822e+00-3.7433361600758e-01 3.7433361600758e-01          err_th=-2.7672590375822e+00 2.7672590375822e+00-3.7433361600758e-01 3.7433361600758e-01     err_r=1.8802011195614e+001.8802011195614e+001.8802011195614e+001.8802011195614e+00     err_dist=8.0201119561416e-028.0201119561416e-028.0201119561416e-028.0201119561416e-02     
+k=1       N=129      Min |n|=4.7749e-04     Max |n|=4.3038e-02     err=5.902143e-10      rate=5.03 err_thOnScat=-3.6473481426441e-01 3.6473481426441e-01          err_th=-3.6473481426441e-01 3.6473481426441e-01     err_r=1.8397732536919e+001.8397732536919e+00     err_dist=3.9773253691879e-023.9773253691879e-02     
+k=1       N=257      Min |n|=1.3292e-04     Max |n|=2.1699e-02     err=1.744420e-11      rate=5.08 err_thOnScat=-2.7818169585320e+00 2.7818169585320e+00          err_th=-2.7818169585320e+00 2.7818169585320e+00     err_r=1.8196250042935e+001.8196250042935e+00     err_dist=1.9625004293447e-021.9625004293447e-02     
+k=1       N=513      Min |n|=8.2057e-05     Max |n|=1.0900e-02     err=1.883006e-12      rate=3.21 err_thOnScat=-7.1474672300963e-01 7.1474672300963e-01          err_th=-7.1474672300963e-01 7.1474672300963e-01     err_r=1.7998786037623e+001.7998786037623e+00     err_dist=-1.2139624021430e-04-1.2139624021430e-04     
+k=1       N=1025     Min |n|=1.5258e-06     Max |n|=5.4830e-03     err=1.310235e-10      rate=-6.12 err_thOnScat=-6.4219902619581e-01 6.4219902619581e-01          err_th=-6.4219902619581e-01 6.4219902619581e-01     err_r=1.8000015258783e+001.8000015258783e+00     err_dist=1.5260418789973e-061.5260418789973e-06     
+
+
+
+pure test
+ExpansionTester0
+k=1       Angle=pi*0.750    n=1/1         err=1.465857e-03      rate=NaN       an-en=-8.881784e-16      !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/2         err=4.597856e-05      rate=4.99      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/4         err=1.438167e-06      rate=5.00      an-en=1.776357e-15      !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/8         err=4.495315e-08      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/16        err=1.404868e-09      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/32        err=4.390270e-11      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/64        err=1.372026e-12      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/128       err=8.306257e-14      rate=4.05      an-en=-5.684342e-14      !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/256       err=1.351785e-15      rate=5.94      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/512       err=2.288783e-16      rate=2.56      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.750    n=1/1024      err=3.214077e-13      rate=-10.46      an-en=-4.547474e-13      !circle! ath-eth=000000 
+
+k=1       Angle=pi*0.625    n=1/1         err=6.829459e-05      rate=NaN       an-en=-8.881784e-16      !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/2         err=2.136532e-06      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/4         err=6.678481e-08      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/8         err=2.087167e-09      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/16        err=6.522220e-11      rate=5.00      an-en=7.105427e-15      !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/32        err=2.038141e-12      rate=5.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/64        err=5.271210e-14      rate=5.27      an-en=2.842171e-14      !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/128       err=1.820901e-15      rate=4.86      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/256       err=1.110223e-16      rate=4.04      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/512       err=1.570092e-16      rate=-0.50      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.625    n=1/1024      err=1.737522e-13      rate=-10.11      an-en=-4.547474e-13      !circle! ath-eth=000000 
+
+k=1       Angle=pi*0.500    n=1/1         err=2.465190e-32      rate=NaN       an-en=-8.881784e-16      !circle! ath-eth=000000 
+k=1       Angle=pi*0.500    n=1/2         err=2.465190e-32      rate=0.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.500    n=1/4         err=2.465190e-32      rate=0.00      an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.500    n=1/8         err=0.000000e+00      rate=Inf       an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.500    n=1/16        err=0.000000e+00      rate=NaN       an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.500    n=1/32        err=0.000000e+00      rate=NaN       an-en=000000        !circle! ath-eth=000000 
+k=1       Angle=pi*0.500    n=1/64        err=1.750285e-30      rate=-Inf      an-en=2.842171e-14      !circle! ath-eth=000000 
+k=1       Angle=pi*0.500    n=1/128       err=3.475918e-30      rate=-0.99      an-en=-5.684342e-14      !circle! ath-eth=000000 
+k=1       Angle=pi*0.500   
+
+
+-- 
+Best regards,
+Michael Medvinsky
+http://www.math.utah.edu/~mmedvin

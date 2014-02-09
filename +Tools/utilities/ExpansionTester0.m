@@ -3,7 +3,7 @@ x1=-3;xn=3;
 y1=-3;yn=3;%=-0.7;yn=0.7;%
 Lx=xn-x1;Ly=yn-y1;
 
-k=1;
+% k=1;
 ScatType = 'submarine'; 
 
 kolobok=0;
@@ -56,12 +56,12 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     
     
            
-    TestParams.dn = 1./[1,2,4,8,16,32,64,128,256,512,1024];
+    TestParams.dn = 1./[1,2,4,8,16,32,64,128,256,512,1024];%1./[-8,-4,-2,-1,1,2,4,8];%
 
+	for k=1;%100%[0.5,1,5,10]
 	
-	
-    for n =-8:2:8
-	      TestParams.Angle = pi/n;
+    for  n =3/4:-1/8:1/4 %n=[2,3,4,8];%-9:2:9 %
+	      TestParams.Angle = pi*n;
     
     Scatterer   = Tools.Scatterer.TesterSubmarineScatterer(Grid,ScattererAddParams,TestParams); %Tools.Scatterer.SubmarineScatterer(Grid,ScattererAddParams);
     Submarine   = Scatterer.Submarine;
@@ -149,8 +149,18 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
     else
         xi = u + Scatterer.dn.*un;% + ((obj.dn.^2)/2).*u_nn + obj.dn.^3./6.*u_nnn + obj.dn.^4./24.*u_nnnn;
     end
-        
+    
+    
+    % the following x,y are input test locations of grid gamma
     TstX = Scatterer.r.*cos(Scatterer.th);
+    TstY = Scatterer.r.*sin(Scatterer.th);
+    
+    % the following x,y are result of finding the normal to the body from
+    % the prefious x,y's, we want to verify if they appears to be the same
+    % as in the input...
+    dtds    = sqrt(r.^2+rt.^2);
+    NrmlX = x + TestParams.dn.*yt./dtds;
+    NrmlY = y - TestParams.dn.*xt./dtds;
 		
     exact = exp(1i*k*TstX);
     
@@ -160,9 +170,31 @@ ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25)
 	
 	Conv = [NaN;Conv];
 	for j=1:numel(TestParams.dn)
-		%fprintf('Angle=pi/%-6.0d\tn=1/%-6.0d \t err=%-12.6e \t rate=%-10.2f \n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j));
-		fprintf('Angle=pi/%-3.0d\tn=1/%-4.0d \t err=%-10.6e \t rate=%-4.2f \t an=%-15.10f \t en=%-15.10f\n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j),Scatterer.dn(j), TestParams.dn(j));
+		%fprintf('Angle=pi/%-6.0d\tn=1/%-6.0d \t err=%-12.6e \t rate=%-10.2f \n',pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j));        
+%         fprintf('Angle=pi/%-3.0d\tn=1/%-4.0d \t err=%-10.6e \t rate=%-4.2f \t an=%-15.10f \t en=%-15.10f\n',...
+%                pi/TestParams.Angle,1/TestParams.dn(j),err(j),Conv(j),Scatterer.dn(j), TestParams.dn(j));
+ 		fprintf('k=%-3.0d\t Angle=pi*%5.3f\tn=1/%-4.0d \t err=%-10.6e \t rate=%-4.2f \t an-en=%-8.6d \t !circle! ath-eth=%-8.6d, |x-nx|=%-8.6d, |y-ny|=%-8.6d\n',...
+                             k,TestParams.Angle/pi,1/TestParams.dn(j),err(j),Conv(j),...
+                             Scatterer.dn(j)- TestParams.dn(j), Scatterer.th(j) - Scatterer.nrml_th(j),...
+                             abs(TstX(j)-NrmlX(j)),...
+                             abs(TstY(j)-NrmlY(j))...
+                         );
 	end
 	
 	fprintf('\n');
     end
+    end
+    
+    
+%     [r0, dr] = obj.Submarine.Derivatives(TestParams.Angle);
+%     
+%     x0=r0.*cos(TestParams.Angle);
+%     y0=r0.*sin(TestParams.Angle);
+%     
+%     dtds    = sqrt(r0.^2+dr.^2);
+%     dx0ds = (dr.*cos(obj.TestParams.Angle) - r0.*sin(obj.TestParams.Angle))./dtds;
+%     dy0ds = (dr.*sin(obj.TestParams.Angle) + r0.*cos(obj.TestParams.Angle))./dtds;
+%     
+%     x = x0 + obj.TestParams.dn.*dy0ds;
+%     y = y0 - obj.TestParams.dn.*dx0ds;
+    
