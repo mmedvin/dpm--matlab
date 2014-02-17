@@ -6,7 +6,7 @@ ebinf=[];etinf=[];
 
 
 
-ExParams.B  = 10^-3;
+ExParams.B  = 10^3;
 ExParams.C  = 0.1;
 ExParams.r0 = 1/2;
 %ExParams.r  = ExParams.r0;
@@ -21,7 +21,7 @@ ExParams.r0 = 1/2;
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g,5);%(@sin,@sin,1);%(f,dfdn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
 	for n=1:4 %run different grids
@@ -55,20 +55,43 @@ ExParams.r0 = 1/2;
 		%------------------------------------------------------------------
 	if 1
 		IntQ = IntPrb.Q;
-		ExtQ = ExtPrb.Q;		
-	
-		rhs = zeros(numel(IntPrb.GridGamma) + numel(ExtPrb.GridGamma),1);
-		rhs(1:numel(IntPrb.GridGamma),1)	= (-IntPrb.TrGF -IntPrb.Qf);
-		rhs(numel(IntPrb.GridGamma)+1:end,1)= (-ExtPrb.TrGF -ExtPrb.Qf);
-	
-		cn = [ IntQ ; ExtQ ] \ rhs;
+		ExtQ = ExtPrb.Q;	
+		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
+		Eye = speye(Basis.NBss);%speye(numel(IntPrb.GridGamma),Basis.NBss);
+		Zeros2=spalloc(Basis.NBss,Basis.NBss,0);
+		
+		%rhs = zeros(numel(IntPrb.GridGamma) + numel(ExtPrb.GridGamma),1);
+		nGG = numel(IntPrb.GridGamma);
+		rhs = zeros(2*nGG + Basis.NBss,1);
+		%rhs = zeros(3*nGG,1);
+		rhs(1:nGG)	= (-IntPrb.TrGF -IntPrb.Qf);
+		rhs(nGG+1:2*nGG)= (-ExtPrb.TrGF -ExtPrb.Qf);
+		
+		IC = - (ExParams.C + 2*(ExParams.r0^2).*(1 - ExParams.B + ExParams.r0.^2))./(ExParams.B.*ExParams.r0);
+		
+		ICc = fft(IC*ones(Basis.NBss,1));
+		%ICc = fft(-IC*ones(nGG,1));
+		ICc = fftshift(ICc);
+		ICc = ICc/Basis.NBss;  %normalization
+			
+		rhs(2*nGG+1:end)= ICc;
+		%rhs(2*nGG+1:end)=[];
+		
+		%cn = [ IntQ ; ExtQ ] \ rhs;
+ 		cn = [IntPrb.Q0,IntPrb.Q1,Zeros;   ExtPrb.Q0,Zeros,ExtPrb.Q1; Zeros2, Eye, -Eye]\rhs;
+		%cn = [IntPrb.Q0,IntPrb.Q1,Zeros;   ExtPrb.Q0,Zeros,ExtPrb.Q1; Zeros, IntPrb.Q1, -ExtPrb.Q1]\rhs;
+		Intcn=cn(1:2*Basis.NBss);
+		Extcn=[cn(1:Basis.NBss); cn(2*Basis.NBss+1:end)]; 
+		%Intcn=cn;
+		%Extcn=cn;
+		
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*cn + IntPrb.Wf(IntPrb.GridGamma);
+		Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*Intcn + IntPrb.Wf(IntPrb.GridGamma);
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
-		Extxi(ExtPrb.GridGamma) = (ExtPrb.W(ExtPrb.GridGamma,:)*cn  + ExtPrb.Wf(ExtPrb.GridGamma));
+		Extxi(ExtPrb.GridGamma) = (ExtPrb.W(ExtPrb.GridGamma,:)*Extcn  + ExtPrb.Wf(ExtPrb.GridGamma));
 		Extu = ExtPrb.P_Omega(Extxi);
 	else
 		%exterior
