@@ -202,7 +202,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 % XInt(IntPrb.Scatterer.Mm)=NaN;
                 %YInt(IntPrb.Scatterer.Mm)=NaN;
                 
-                filename = sprintf('TFElpsAR%dRing%d%dkin%dkex%dgrd%d',fix(10*a/b),fix(10*r0),fix(10*r1),IntWaveNumberAddParams,ExtWaveNumberAddParams,Nr);
+                filename = sprintf('TFElpsAR%dRing%d%dkin%dkex%dgrd%d',fix(10*a/b),fix(10*r0),fix(10*r1),IntWaveNumberAddParams.k,ExtWaveNumberAddParams.k,Nr);
                 ExScat = ExtPrb.Scatterer;
                 IntScat = IntPrb.Scatterer;
                 save(filename,'filename','a','b','XInt','XExt','YInt','YExt','tIntu','tExtu','Extu','Intu','Nm','Np','PlrGrid','CrtsGrid','ExScat','IntScat');
