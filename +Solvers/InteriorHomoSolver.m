@@ -11,7 +11,7 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
             obj = obj@Solvers.SuperHomoSolver( ...
                 BasisIndices,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
             
-            if  numel(obj.WaveNumber.k)>1
+            if  numel(obj.Coeffs.k)>1
                 GridK = Tools.Grid.CartesianGrid( ...
                     obj.Grid.x1 - obj.Grid.dx , ...
                     obj.Grid.xn + obj.Grid.dx , ...
@@ -23,10 +23,10 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
                 [X,Y] = GridK.mesh();
                 
                 ScattK = struct('r',abs(X+1i.*Y));%ScattererClsHandle(GridK,obj.ScattererAddParams);
-                WNPlr= Tools.WaveNumber.WaveNumberPolarR(ScattK,WaveNumberAddParams);
+                WNPlr= Tools.Coeffs.WaveNumberPolarR(ScattK,WaveNumberAddParams);
                 obj.k = sparse(WNPlr.k);
             else
-                obj.k = obj.WaveNumber.k.*ones(obj.Grid.Size+2);
+                obj.k = obj.Coeffs.k.*ones(obj.Grid.Size+2);
             end
             
             obj.HlmSemA();
@@ -40,7 +40,7 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
             rhs(obj.Scatterer.Mp)= obj.Lu(xi_gamma(:),obj.Scatterer.Mp);
             GLW = obj.Gf(rhs(:));
             
-            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
+            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Np));
             u(obj.Scatterer.Np)=xi_gamma(obj.Scatterer.Np) - GLW(obj.Scatterer.Np).';                        
         end
     end

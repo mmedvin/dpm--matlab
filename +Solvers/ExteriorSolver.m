@@ -11,11 +11,11 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
     
     methods
         function obj = ExteriorSolver( ...
-                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams)                      
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams)                      
             obj = obj@Solvers.SuperHomoSolver( ...
-                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams);
             
-            obj.k=obj.WaveNumber.k;
+            obj.k=obj.Coeffs.k;
             
             obj.CreateDirectOperatorA1();
             obj.CreateSolverA2();
@@ -33,7 +33,7 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
         
         function u = P_Omega(obj,xi_gamma,Uinc)
             
-            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,length(obj.Scatterer.Nm));
+            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Nm));
             
             if ~exist('Uinc','var')
                 Uinc=zeros(size(obj.w0));
@@ -101,8 +101,8 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
                
                 [obj.w0(obj.GridGamma),obj.w1(obj.GridGamma)] = obj.ExpandedBasis(obj.Basis.Indices(j)) ;
                 
-                obj.W0(obj.GridGamma,j) = obj.w0(obj.GridGamma);
-                obj.W1(obj.GridGamma,j) = obj.w1(obj.GridGamma);
+                obj.myW0(obj.GridGamma,j) = obj.w0(obj.GridGamma);
+                obj.myW1(obj.GridGamma,j) = obj.w1(obj.GridGamma);
                 
 %                 GLW0 = obj.Solve(obj.w0);
 %                 GLW1 = obj.Solve(obj.w1);

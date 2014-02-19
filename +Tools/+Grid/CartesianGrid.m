@@ -4,6 +4,7 @@ classdef CartesianGrid < Tools.Grid.Grids
         Y;        
         Z;
         R;
+		Theta;
     end
     
     methods
@@ -30,6 +31,10 @@ classdef CartesianGrid < Tools.Grid.Grids
         
         function r = get.R(obj)
             r = abs(obj.Z());
+		end
+		
+		function r = get.Theta(obj)
+            r = angle(obj.Z());
         end
      
         function x = get.X(obj)

@@ -87,7 +87,7 @@ rat=4/5;
             Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         end
       
-        WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
+        WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
         WaveNumberAddParams = struct('k',k,'r0',NHR);
                 
         for n=1:5 %run different grids

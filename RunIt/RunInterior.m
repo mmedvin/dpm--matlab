@@ -37,7 +37,7 @@ p=3;%3;
     %BasisIndices        = -M:M;
     
     Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-    WaveNumberClsHandle = @Tools.WaveNumber.WaveNumberElliptical;
+    WaveNumberClsHandle = @Tools.Coeffs.WaveNumberElliptical;
     WaveNumberAddParams = struct('k',k0,'r0',NHR);
     ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Internal
     ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
@@ -130,7 +130,7 @@ end
 
 function e = Exact(FocDist,eta,phi,k0,r0)
 
-    k = Tools.WaveNumber.WaveNumberElliptical.kkn(FocDist,eta,phi,k0,r0);
+    k = Tools.Coeffs.WaveNumberElliptical.kkn(FocDist,eta,phi,k0,r0);
 
     x = FocDist*cosh(eta).*cos(phi);
     e = exp(1i.*k.*x); 
@@ -138,7 +138,7 @@ end
 
 function dne = detaExact(FocDist,eta,phi,k0,r0)
 
-    [k,kn] = Tools.WaveNumber.WaveNumberElliptical.kkn(FocDist,eta,phi,k0,r0);
+    [k,kn] = Tools.Coeffs.WaveNumberElliptical.kkn(FocDist,eta,phi,k0,r0);
     
     e = Exact(FocDist,eta,phi,k0,r0);
     dne = 1i.*FocDist.*cos(phi).*(kn.*cosh(eta)+k.*sinh(eta)).*e;
