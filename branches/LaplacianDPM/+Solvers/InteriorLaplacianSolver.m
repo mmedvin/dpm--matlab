@@ -67,24 +67,12 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
 		end
 		
 		function res = BF(obj)
-			
 			ScattererForSource = obj.Scatterer;
 			
 			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
 			
 			res = obj.Bf(HS.Source);
-% 			Src  = HS.Source;
-% 			res = Src;
- 			res(obj.Scatterer.Outside())=0;
-% 			
-% 			res(1:end,1)	= Src(1:end,1);
-%             res(1,1:end)	= Src(1,1:end);
-%             res(1:end,end)	= Src(1:end,end);
-%             res(end,1:end)	= Src(end,1:end);
-% 			res = res(:);
-			
+			res(obj.Scatterer.Outside())=0;			
 		end
-		
-    end
-        
+	end
 end

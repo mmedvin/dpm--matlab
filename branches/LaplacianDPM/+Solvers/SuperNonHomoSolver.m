@@ -14,6 +14,9 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
          SourceHandle;
 		 SourceParams;
          myQf;
+		 myWf;
+		 myGF;
+		 myTrGF;
      end
      
      
@@ -27,15 +30,34 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 qf=obj.myQf;
 			 
 		 end
-         
-		 function q = get.Qall(obj)
-            q=[obj.Q,obj.myQf];
+		 
+		 function wf = get.Wf(obj)
+			 if obj.IsReadyQnW == false
+				 obj.calc_QnW();
+			 end
+			 
+			 wf=obj.myWf;
+			 
 		 end
 		 
-		 function w = get.Wall(obj)
-			 w=[obj.W,obj.Wf(:)];
+		 function res = get.TrGF(obj)
+			 if obj.IsReadyQnW == false
+				 obj.calc_QnW();
+			 end
+			 
+			 res=obj.myTrGF;
+			 
 		 end
 		 
+		 function res = get.GF(obj)
+			 if obj.IsReadyQnW == false
+				 obj.calc_QnW();
+			 end
+			 
+			 res=obj.myGF;
+			 
+		 end
+         		 
          function obj = SuperNonHomoSolver( ...
              Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,SourceHandle,SourceParams)
              
@@ -52,8 +74,8 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
             % obj.Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.WaveNumberClsHandle,obj.WaveNumberAddParams);
                           
              obj.rhsf=spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
-             obj.GF = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
-             obj.Wf = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.GridGamma));
+             obj.myGF = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
+             obj.myWf = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.GridGamma));
 
              
              
@@ -69,7 +91,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
          
          function Rhs(obj)
              Rhs@Solvers.SuperHomoSolver(obj);
-             tmp =obj.Lu(obj.Wf(:));
+             tmp =obj.Lu(obj.myWf(:));
              obj.rhsf(obj.Scatterer.Mp) = tmp(obj.Scatterer.Mp,:);
          end
          
@@ -78,14 +100,14 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
                           
              GLW = obj.Gf([obj.rhs0,obj.rhs1,obj.rhsf(:),obj.BF]);
              
-             obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   )		 , obj.W0 );
-             obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss ), obj.W1 );
+             obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   )		 , obj.myW0 );
+             obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss ), obj.myW1 );
 			 
-			 obj.myQf = obj.Qcol( GLW(:,2*obj.Basis.NBss + 1 )				 , obj.Wf(:) );
+			 obj.myQf = obj.Qcol( GLW(:,2*obj.Basis.NBss + 1 )				 , obj.myWf(:) );
              
-            %obj.GF(obj.Scatterer.Np)  = GLW(obj.Scatterer.Np          ,2*obj.Basis.NBss + 2);
-			obj.GF  = GLW(:         ,2*obj.Basis.NBss + 2);
-            obj.TrGF                = GLW(obj.Scatterer.GridGamma   ,2*obj.Basis.NBss + 2);
+            %obj.myGF(obj.Scatterer.Np)  = GLW(obj.Scatterer.Np          ,2*obj.Basis.NBss + 2);
+			obj.myGF  = GLW(:         ,2*obj.Basis.NBss + 2);
+            obj.myTrGF                = GLW(obj.Scatterer.GridGamma   ,2*obj.Basis.NBss + 2);
             
             obj.IsReadyQnW = true;
          end
@@ -99,7 +121,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
            
            Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
            
-             obj.Wf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);             
+             obj.myWf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);             
          end
                   
         
