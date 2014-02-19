@@ -101,8 +101,8 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
                
                 [obj.w0(obj.GridGamma),obj.w1(obj.GridGamma)] = obj.ExpandedBasis(obj.Basis.Indices(j)) ;
                 
-                obj.W0(obj.GridGamma,j) = obj.w0(obj.GridGamma);
-                obj.W1(obj.GridGamma,j) = obj.w1(obj.GridGamma);
+                obj.myW0(obj.GridGamma,j) = obj.w0(obj.GridGamma);
+                obj.myW1(obj.GridGamma,j) = obj.w1(obj.GridGamma);
                 
 %                 GLW0 = obj.Solve(obj.w0);
 %                 GLW1 = obj.Solve(obj.w1);

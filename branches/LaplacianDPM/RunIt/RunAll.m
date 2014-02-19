@@ -1,3 +1,4 @@
+RunLaplacian;
 RunExterior;
 RunInteriorHomo;
 RunInterior;

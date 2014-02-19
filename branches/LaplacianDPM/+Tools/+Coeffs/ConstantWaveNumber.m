@@ -4,7 +4,7 @@ classdef ConstantWaveNumber < Tools.Coeffs.AbstractCoeffs
     end
     
     methods(Static = true)
-        function [k,kr] = kkr(~,~,~)
+        function [k,kr] = kkr(~,~,k0)
             k=k0;
             kr=0;
         end
