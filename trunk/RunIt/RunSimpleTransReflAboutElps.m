@@ -63,7 +63,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
            
             %BasisIndices        = -M:M;
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;
+            WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
                                    
             IntScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Interior
             ExtScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Exterior

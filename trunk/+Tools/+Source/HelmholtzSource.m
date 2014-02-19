@@ -51,7 +51,7 @@ classdef HelmholtzSource < Tools.Source.SuperHelmholtzSource
             
         end
             
-        function obj = HelmholtzSource(Scatterer, WaveNumberHndl,WaveNumberAddParams)%(Exact)%(FocalDist,eta,phi,k0,r0)
+        function obj = HelmholtzSource(Scatterer, WaveNumberHndl,WaveNumberAddParams,~)%(Exact)%(FocalDist,eta,phi,k0,r0)
                 obj.Scatterer = Scatterer;
                 obj.WaveNumberHndl = WaveNumberHndl;
                 obj.WaveNumberAddParams = WaveNumberAddParams;

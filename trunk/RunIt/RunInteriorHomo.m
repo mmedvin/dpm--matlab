@@ -56,7 +56,7 @@ p=4;%3;
 	% polar wavenumber isn't designed to work with ellipse scatterer
 	% polar/elliptical wavenumber works with polar scatterer in general, but the problem here become inhomoginious, 
 	% so generally to speak it is wrong place to use it here, mainly because of compariseon to exact here
-    WaveNumberClsHandle = @Tools.WaveNumber.ConstantWaveNumber;%WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
+    WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;%WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
     WaveNumberAddParams = struct('k',k,'r0',NHR);
    
     if strcmpi(ScatType,'ellipse')

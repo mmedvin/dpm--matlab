@@ -29,8 +29,16 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
             FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
                             'Indices',  -M:M, ...
                             'cn0',cn0,'cn1',cn1,'M',M,'AddParams',[],'NBss', 2*M+1);
-        end
+		end
         
+		function Coefs = FftCoefs(vec, siz)
+			if ~exist('siz','var'),siz = numel(vec);end
+			
+			Coefs = fft(vec);
+            Coefs = fftshift(Coefs);
+            Coefs = Coefs/siz;  %normalization        
+		end
+		
         function [cn0,cn1,M] = FourierCoeffNew(f,dfdr,err)
             M0=300;
             M1 = 2*M0+1;
@@ -42,13 +50,15 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
             dfth  = dfdr(th);
             
             %calc coeff
-            cn0 = fft(fth);
-            cn0 = fftshift(cn0);
-            cn0 = cn0/M1;  %normalization            
+			cn0 = Tools.Basis.FourierBasis.FftCoefs(fth,M1);
+            %cn0 = fft(fth);
+            %cn0 = fftshift(cn0);
+            %cn0 = cn0/M1;  %normalization            
             
-            cn1 = fft(dfth);
-            cn1 = fftshift(cn1);
-            cn1 = cn1/M1;  %normalization           
+            cn1 = Tools.Basis.FourierBasis.FftCoefs(dfth,M1);
+			%cn1 = fft(dfth);
+            %cn1 = fftshift(cn1);
+            %cn1 = cn1/M1;  %normalization           
             
             Ml = find(abs(cn0) > err,1,'last');
             Mf = find(abs(cn0) > err,1,'first');

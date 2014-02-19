@@ -10,24 +10,8 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
                 Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,Source)
             obj = obj@Solvers.SuperNonHomoSolver( ...
                 Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,Source);
-            
-            
-            
-            %             GridK =Tools.Grid.CartesianGrid( ...
-            %                 obj.Grid.x1 - obj.Grid.dx , ...
-            %                 obj.Grid.xn + obj.Grid.dx , ...
-            %                 obj.Grid.Nx + 2           , ...
-            %                 obj.Grid.y1 - obj.Grid.dy , ...
-            %                 obj.Grid.yn + obj.Grid.dy , ...
-            %                 obj.Grid.Ny + 2         ) ;
-            %
-            %             [X,Y] = GridK.mesh();
-            %
-            %             ScattK = struct('r',abs(X+1i.*Y),'r0',WaveNumberAddParams.r0);%ScattererClsHandle(GridK,obj.ScattererAddParams);
-            %             WNPlr=Tools.WaveNumber.WaveNumberPolarR(ScattK,WaveNumberAddParams.k0);
-            %             obj.k = sparse(WNPlr.k);
-            
-            if  numel(obj.WaveNumber.k)>1
+                        
+            if  numel(obj.Coeffs.k)>1
             GridK =Tools.Grid.CartesianGrid( ...
                 obj.Grid.x1 - obj.Grid.dx , ...
                 obj.Grid.xn + obj.Grid.dx , ...
@@ -39,7 +23,7 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
             [X,Y] = GridK.mesh();
             
             ScattK = struct('r',abs(X+1i.*Y));
-            WNPlr=Tools.WaveNumber.WaveNumberPolarR(ScattK,WaveNumberAddParams);
+            WNPlr=Tools.Coeffs.WaveNumberPolarR(ScattK,WaveNumberAddParams);
             obj.k = sparse(WNPlr.k);
             else
                 obj.k = obj.WaveNumber.k.*ones(obj.Grid.Size+2);
@@ -63,9 +47,9 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
             GLW = obj.Gf(rhs(:));
             
             
-            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
-            u(obj.Scatterer.Np)=xi_gamma(obj.Scatterer.Np) - GLW(obj.Scatterer.Np).';            
-            u=u + obj.GF;
+            u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Np));
+            u(obj.Scatterer.Np)=xi_gamma(obj.Scatterer.Np) - GLW(obj.Scatterer.Np).' + obj.GF(obj.Scatterer.Np).';            
+%             u=u + obj.GF;
         end
     end
     

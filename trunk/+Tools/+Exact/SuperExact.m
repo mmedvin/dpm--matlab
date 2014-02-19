@@ -1,12 +1,12 @@
 classdef SuperExact < Tools.Common.FunctionWithDerivatives
     properties
         Scatterer; 
-        WaveNumber;
+        Coeffs;
     end
     methods
-        function obj = SuperExact(Scatterer, WaveNumber)
+        function obj = SuperExact(Scatterer, Coeffs)
             obj.Scatterer  = Scatterer;
-            obj.WaveNumber = WaveNumber;
+            obj.Coeffs = Coeffs;
         end
     end
 end
