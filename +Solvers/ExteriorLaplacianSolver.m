@@ -29,16 +29,13 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
 
 		
 		function res = BF(obj)
-			 
+			
 			ScattererForSource = obj.Scatterer;
 			
-			 HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
-			 
-			 res = obj.Bf(HS.Source);
-			 res(obj.Scatterer.Inside())=0;
-			 
-		 end
-		
-    end
-        
+			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
+			
+			res = obj.Bf(HS.Source);
+			res(obj.Scatterer.Inside())=0;
+		end
+	end
 end

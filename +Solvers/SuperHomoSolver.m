@@ -35,6 +35,7 @@ classdef SuperHomoSolver < handle
         IsReadyQnW = false; % used to prevent multiple calculation of Q and W
         
         myQ0; myQ1; % see Q, Q0, Q1 above
+		myW0; myW1; % see W, W0, W1 above
         
         
         Grid;   %Link to Grid Class instance
@@ -114,10 +115,26 @@ classdef SuperHomoSolver < handle
                obj.calc_QnW();
             end            
             
-            w=[obj.W0,obj.W1];
-        end 
+            w=[obj.myW0,obj.myW1];
+		end 
         
-        
+       function w0 = get.W0(obj)           
+            if obj.IsReadyQnW == false
+               obj.calc_QnW();
+            end            
+            
+            w0=obj.myW0;
+	   end 
+
+	   function w1 = get.W1(obj)
+		   if obj.IsReadyQnW == false
+			   obj.calc_QnW();
+		   end
+		   
+		   w1=obj.myW1;
+	   end
+		
+		
         function GG = get.GridGamma(obj)
             GG = obj.Scatterer.GridGamma;
         end
@@ -158,8 +175,8 @@ classdef SuperHomoSolver < handle
             obj.Coeffs = CoeffsClsHandle(obj.Scatterer.TheScatterer,obj.CoeffsAddParams);
             
             tmp=spalloc( obj.Grid.Nx*obj.Grid.Ny,obj.Basis.NBss,numel(obj.GridGamma)*obj.Basis.NBss);
-            obj.W0= tmp; 
-            obj.W1=tmp; 
+            obj.myW0= tmp; 
+            obj.myW1=tmp; 
             obj.rhs0=tmp;
             obj.rhs1=tmp;            
         end        
@@ -169,8 +186,8 @@ classdef SuperHomoSolver < handle
     
          function Rhs(obj)
              obj.Expand();
-             obj.rhs0(obj.Scatterer.Mp,:) = obj.Lu(obj.W0,obj.Scatterer.Mp);
-             obj.rhs1(obj.Scatterer.Mp,:) = obj.Lu(obj.W1,obj.Scatterer.Mp);
+             obj.rhs0(obj.Scatterer.Mp,:) = obj.Lu(obj.myW0,obj.Scatterer.Mp);
+             obj.rhs1(obj.Scatterer.Mp,:) = obj.Lu(obj.myW1,obj.Scatterer.Mp);
          end
          
          function calc_QnW(obj)
@@ -178,15 +195,15 @@ classdef SuperHomoSolver < handle
              
              GLW = obj.Gf([obj.rhs0,obj.rhs1]);
              
-             obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   )			,obj.W0 );
-             obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss )	,obj.W1 );
+             obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   )			,obj.myW0 );
+             obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss )	,obj.myW1 );
              obj.IsReadyQnW = true;
          end
         
         function Expand(obj)
           [tmp1,tmp2] = arrayfun(@(n) obj.ExpandedBasis(n),obj.Basis.Indices,'UniformOutput',false);
-          obj.W0(obj.GridGamma,:) =  cell2mat(tmp1);
-          obj.W1(obj.GridGamma,:) =  cell2mat(tmp2);
+          obj.myW0(obj.GridGamma,:) =  cell2mat(tmp1);
+          obj.myW1(obj.GridGamma,:) =  cell2mat(tmp2);
         end
            
         function [xi0j,xi1j] = ExpandedBasis(obj,n)
