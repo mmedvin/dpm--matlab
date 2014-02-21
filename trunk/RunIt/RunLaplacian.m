@@ -38,7 +38,7 @@ ExParams.r0 = 1/2;
 		%------------------------------------------------------------------
 		InteriorCoeffsClsHandle = @Tools.Coeffs.LaplaceCoeffsPolar;
 		InteriorCoeffsClsAddParams = [];
-		InteriorSource              = @Tools.Source.LaplaceSourceInterior;
+		InteriorSource              = @Tools.Source.LaplaceSource_IIM346_Interior;
 		
 		IntPrb = Solvers.InteriorLaplacianSolver ...
 			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,InteriorSource,SourceParams);
@@ -46,7 +46,7 @@ ExParams.r0 = 1/2;
 		%------------------------------------------------------------------
 		ExteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
 		ExteriorCoeffsAddParams = struct('a',ExParams.B,'b',ExParams.B,'sigma',0);
-		ExteriorSource              = @Tools.Source.LaplaceSource;
+		ExteriorSource              = @Tools.Source.LaplaceSource_IIM346_Exterior;
 				
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
 			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams);
