@@ -1,4 +1,4 @@
-classdef LaplaceSourceInterior < Tools.Source.SuperSource
+classdef LaplaceSource_IIM346_Exterior < Tools.Source.SuperSource
     properties (Dependent = true)
         Source;%Fn;Ff;Fnn;Fff;    % WN;
     end
@@ -23,11 +23,8 @@ classdef LaplaceSourceInterior < Tools.Source.SuperSource
 				try
 					r = obj.Scatterer.R;
 				catch exception
-					if strcmp(exception.identifier,'MATLAB:nonExistentField')						
+					if strcmp(exception.identifier,'MATLAB:nonExistentField')
 						r = obj.Scatterer.r;
-						if size(r)==1
-							r = ones(size(obj.Scatterer.th)).*r;
-						end
 					else
 						rethrow(exception);
 					end
@@ -42,7 +39,7 @@ classdef LaplaceSourceInterior < Tools.Source.SuperSource
             
         end
             
-        function obj = LaplaceSourceInterior(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
+        function obj = LaplaceSource_IIM346_Exterior(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
 			obj.Scatterer = Scatterer;
 			obj.CoeffsClsrHndl = CoeffsClsrHndl;
 			obj.CoeffsParams = CoeffsParams;
@@ -60,11 +57,11 @@ classdef LaplaceSourceInterior < Tools.Source.SuperSource
 			
 			
 			
-			S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);
-            S(1:end,1)=	0;%Exact.u(1:end,1);
-            S(1,1:end)= 0;%Exact.u(1,1:end);
-            S(1:end,end)= 0;%Exact.u(1:end,end);
-            S(end,1:end)= 0; %Exact.u(end,1:end);
+			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
+            S(1:end,1)=	Exact.u(1:end,1);
+            S(1,1:end)= Exact.u(1,1:end);
+            S(1:end,end)= Exact.u(1:end,end);
+            S(end,1:end)= Exact.u(end,1:end);
 			
 			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
 										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ...  
