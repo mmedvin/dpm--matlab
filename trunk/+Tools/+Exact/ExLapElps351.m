@@ -1,4 +1,4 @@
-classdef ExLapCrclVarCoeffs < Tools.Exact.SuperExact
+classdef ExLapElps351 < Tools.Exact.SuperExact
 
     properties(Access = private)
         B; C;
@@ -14,7 +14,8 @@ classdef ExLapCrclVarCoeffs < Tools.Exact.SuperExact
         
     methods
         
-        function obj = ExLapCrclVarCoeffs(Scatterer, Coeffs)
+        function obj = ExLapElps351(Scatterer, Coeffs)
+			error('not inmplemented yet, only copy of something else as a start point')
             obj = obj@Tools.Exact.SuperExact(Scatterer, Coeffs);
             
             r0 = Coeffs.r0;

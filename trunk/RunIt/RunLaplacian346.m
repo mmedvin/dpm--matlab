@@ -1,4 +1,4 @@
-function RunLaplacian
+function RunLaplacian346
 x1=-1;xn=1;
 y1=-1;yn=1;
 Lx=xn-x1;Ly=yn-y1;

@@ -73,7 +73,7 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 			[F,Fn,~,Fnn] = obj.Derivatives();
 			
 % 			Coeffs	= obj.CoeffsClsrHndl(obj.Scatterer.TheScatterer,obj.CoeffsParams);
-			Exact	= Tools.Exact.ExLapCrclVarCoeffs(obj.Scatterer, obj.ExParams);
+			Exact	= Tools.Exact.ExLapElps351(obj.Scatterer, obj.ExParams);
 			
 			
 			
