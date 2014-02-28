@@ -36,23 +36,25 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 				
 				x=fd.*cosh(n).*cos(phi);
 				y=fd.*sinh(n).*sin(phi);
-				B = obj.ExParams.B;
+				B = obj.ExParams.Bout;
 				
-				x  = FocDist*cosh(eta).*cos(phi);
-                y  = FocDist*sinh(eta).*sin(phi);
-                xn = FocDist*sinh(eta).*cos(phi);
-                yn = FocDist*cosh(eta).*sin(phi);
-                xf = -FocDist*cosh(eta).*sin(phi);
-                yf = FocDist*sinh(eta).*cos(phi);
-
+				x  = fd*cosh(eta).*cos(phi);
+                y  = fd*sinh(eta).*sin(phi);
+                xn = fd*sinh(eta).*cos(phi);
+				xnn = x;
+                yn = fd*cosh(eta).*sin(phi);	
+				ynn=y;
+                xf =-fd*cosh(eta).*sin(phi);
+				xff=-x;
+                yf = fd*sinh(eta).*cos(phi);
+				yff=-y;
+								
+                F   = -2*B*sin(x).*cos(y);
 				
-				
-                F   = -2*B*Sin(x).*Cos(y);
-                
-                if nargout>1, Fn  = 16*r;  end
-                if nargout>2, Ff  = 0   ;  end
-                if nargout>3, Fnn = 16.*ones(size(r))  ;  end
-                if nargout>4, Fff = 0   ;  end
+                if nargout>1, Fn  =  -2*B*cos(x).*cos(y).*xn +  2*B*sin(x).*sin(y).*yn;  end
+                if nargout>2, Ff  =  -2*B*cos(x).*cos(y).*xf +  2*B*sin(x).*sin(y).*yf;  end
+                if nargout>3, Fnn = 2*B*(cos(x).*(2*sin(y).*xn.*yn - cos(y).*xnn) + sin(x).*(cos(y).*(xn.^2+yn.^2) + sin(y).*ynn));  end
+                if nargout>4, Fff = 2*B*(cos(x).*(2*sin(y).*xf.*yf - cos(y).*xff) + sin(x).*(cos(y).*(xf.^2+yf.^2) + sin(y).*yff));  end
             end
             
         end
