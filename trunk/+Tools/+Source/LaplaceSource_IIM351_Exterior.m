@@ -21,22 +21,18 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
                 Fff=0;
 			else
 				try
-					n = obj.Scatterer.Eta;
+					eta = obj.Scatterer.Eta;
 					phi = obj.Scatterer.Phi;
 					fd  = obj.Scatterer.FocalDistance;
 				catch exception
 					if strcmp(exception.identifier,'MATLAB:nonExistentField')
-						n  = obj.Scatterer.eta;
+						eta  = obj.Scatterer.eta;
 						phi = obj.Scatterer.phi;
 						fd  = obj.Scatterer.FocalDistance;						
 					else
 						rethrow(exception);
 					end
 				end
-				
-				x=fd.*cosh(n).*cos(phi);
-				y=fd.*sinh(n).*sin(phi);
-				B = obj.ExParams.Bout;
 				
 				x  = fd*cosh(eta).*cos(phi);
                 y  = fd*sinh(eta).*sin(phi);
@@ -48,7 +44,9 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 				xff=-x;
                 yf = fd*sinh(eta).*cos(phi);
 				yff=-y;
-								
+
+				coeffs = obj.CoeffsClsrHndl(obj.Scatterer,obj.CoeffsParams);
+				B = coeffs.Derivatives(obj,'a');
                 F   = -2*B*sin(x).*cos(y);
 				
                 if nargout>1, Fn  =  -2*B*cos(x).*cos(y).*xn +  2*B*sin(x).*sin(y).*yn;  end

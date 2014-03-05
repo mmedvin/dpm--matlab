@@ -1,22 +1,24 @@
 function RunLaplacian351
-	error('not inmplemented yet, only copy of something else as a start point')
-x1=-1;xn=1;
-y1=-1;yn=1;
-Lx=xn-x1;Ly=yn-y1;
-ebinf=[];etinf=[];
 
+    a=1;%2.5;
+    b=1/2;	
+	
+	x1=-1.2;xn=1.2;
+	y1=-0.3;yn=0.3;
+	Lx=xn-x1;Ly=yn-y1;
+	ebinf=[];etinf=[];
 
+    FocalDistance = sqrt(a^2-b^2);
+    Eta0 = acosh(a/FocalDistance);
 
-ExParams.B  = 10^3;
-ExParams.C  = 0.1;
-ExParams.r0 = 1/2;
+BIn = 1000;
+BOut = 1;
 
-    
 	BType		= 'Fourier';
     
-    f   =@(theta) ExtExact(ExParams,theta);
-	g   =@(theta) IntExact(ExParams,theta);
-    %dfdn=@(theta) drExact(ExParams,theta);
+    f   =@(phi) ExtExact(FocalDistance,Eta0,phi);
+	g   =@(phi) IntExact(FocalDistance,Eta0,phi);
+    
 
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
@@ -32,28 +34,35 @@ ExParams.r0 = 1/2;
 		
 		
 		Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-		SourceParams		= ExParams;
-		ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
-		ScattererAddParams  = struct('r0',ExParams.r0,'ExpansionType',33);
+		ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;
+		ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',33);
 
 		%------------------------------------------------------------------
-		InteriorCoeffsClsHandle = @Tools.Coeffs.LaplaceCoeffsPolar;
-		InteriorCoeffsClsAddParams = [];
-		InteriorSource              = @Tools.Source.LaplaceSource_IIM346_Interior;
+		InteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
+		InteriorCoeffsClsAddParams = struct('a',BIn,'b',BIn,'sigma',0);
 		
-		IntPrb = Solvers.InteriorLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,InteriorSource,SourceParams);
+		IntPrb = Solvers.InteriorHomoLaplacianSolver ...
+			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams);
 		
 		%------------------------------------------------------------------
 		ExteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
-		ExteriorCoeffsAddParams = struct('a',ExParams.B,'b',ExParams.B,'sigma',0);
-		ExteriorSource              = @Tools.Source.LaplaceSource_IIM346_Exterior;
+		ExteriorCoeffsAddParams = struct('a',BOut,'b',BOut,'sigma',0);
+		ExteriorSource          = @Tools.Source.LaplaceSource_IIM351_Exterior;
+		SourceParams			= [];
 				
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
 			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams);
 							
 		%------------------------------------------------------------------
 	if 1
+		
+		%x0 = FocalDist*cosh(Eta0).*cos(phi);
+		%y0 = FocalDist*sinh(Eta0).*sin(phi);
+		% [u_in] = x0^2 - y0^2 
+		% [u_out] = sin(x0).* cos(y0) 
+		% [ beta un_in] = 0
+		% [beta un_out] = - 2 b sin(x0).* cos(y0)
+		
 		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
 		Eye = speye(Basis.NBss);
 		Zeros2=spalloc(Basis.NBss,Basis.NBss,0);
@@ -153,19 +162,33 @@ ExtLinf=log2(Extetinf(1:end-1)./Extetinf(2:end))
 
 end
 	
-function e = ExtExact(Params,theta)
-    r  = Params.r0   ;
-	if size(r)==1
-		r = ones(size(theta)).*r;
-	end
-	e     = (1 - 1/8/Params.B - 1/Params.B)/4 + ( (r.^4)/2 + r.^2 )/Params.B + Params.C*log(2*r)/Params.B;
-end
+function e = IntExact(FocalDist,eta,phi)
+	x = FocalDist*cosh(eta).*cos(phi);
+	y = FocalDist*sinh(eta).*sin(phi);
 	
-function e = IntExact(Params,theta)
-	r = Params.r0;
-	if size(r)==1
-		r = ones(size(theta)).*r;
-	end
-	
-e = r.^2;
+	e = x.^2 - y.^2;	
 end
+
+function e = ExtExact(FocalDist,eta,phi)
+	x = FocalDist*cosh(eta).*cos(phi);
+	y = FocalDist*sinh(eta).*sin(phi);
+	
+	e = sin(x).*cos(y);
+end
+
+% function dnde = dndExact(FocalDist,eta,phi,Eta0)
+% 	x  = FocalDist*cosh(eta).*cos(phi);
+% 	y  = FocalDist*sinh(eta).*sin(phi);
+% 	xn = FocalDist*sinh(eta).*cos(phi);
+% 	yn = FocalDist*cosh(eta).*sin(phi);
+% 	
+% 	e = 2*x.*xn - 2.*y.*yn;
+% 	
+% 	if length(eta)==1 && eta > Eta0
+% 		e = cos(x).*cos(y).*xn -  sin(x).*sin(y).*yn;
+% 	else
+% 		e(eta > Eta0) = cos(x(eta > Eta0)).*cos(y(eta > Eta0)).*xn(eta > Eta0) -  sin(x(eta > Eta0)).*sin(y(eta > Eta0)).*yn(eta > Eta0);
+% 	end
+% 	
+% 	
+% end

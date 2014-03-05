@@ -26,7 +26,7 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
     end
     
     properties (Access = private)
-        
+        ExpansionType;
         AddParams;
     end
     
@@ -40,6 +40,11 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
             obj = obj@Tools.Scatterer.SingleScatterer(Grid);
             
             obj.AddParams = AddParams;
+			if isfield(AddParams,'ExpansionType')
+				obj.ExpansionType = AddParams.ExpansionType;
+			else
+				obj.ExpansionType = 25;
+			end
 %             obj.Eta0 = AddParams.Eta0;
 %             obj.FocalDistance = AddParams.FocalDistance;
             
@@ -78,23 +83,8 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
             O= obj.Eta > obj.Eta0;            
         end
         
-%         function S4S = get.ScattererForSource(obj)
-%             GridF = Grids( ...
-%                         obj.Grid.x1 - obj.Grid.dx/2 , ...
-%                         obj.Grid.xn + obj.Grid.dx/2 , ...
-%                         obj.Grid.Nx * 2 + 1         , ...
-%                         obj.Grid.y1 - obj.Grid.dy/2 , ...
-%                         obj.Grid.yn + obj.Grid.dy/2 , ...
-%                         obj.Grid.Ny * 2 + 1         ) ;
-%             
-%            % AddP = struct('Eta0',obj.Eta0,'FocalDistance',obj.FocalDistance);            
-%            % S4S = EllipticScatterer(GridF,AddP);
-%            S4S = EllipticScatterer(GridF,obj.AddParams);
-%         end
-        
-        function res = Expansion(obj,Xi0,Xi1,Source,WaveNumber)
-            
-           % [F,Fn,Ff,Fnn,Fff] = Source.Derivatives();
+		function res = Expansion5thOrdrHelm(obj,Xi0,Xi1,Source,WaveNumber)
+			 % [F,Fn,Ff,Fnn,Fff] = Source.Derivatives();
             [F,Fn,Ff,Fnn,Fff] = Source.Derivatives();
             
             [xi0,xi0f,xi0ff,xi0ffff] = Xi0.Derivatives();
@@ -115,7 +105,44 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
                 - 4*(h.*hn.*k.^2 + k.*kn.*h.^2).*xi1 - xinn.*(h.*k).^2;
             
             res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*xinn/2 + (obj.deta.^3).*xi3n/6 + (obj.deta.^4).*xi4n/24 ;
+
+		end
+        function res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,LapCoeffs)
+             [xi0,xi0f,xi0ff] = Xi0.Derivatives();
+             [xi1] = Xi1.Derivatives();
+             
+			 f = F.Derivatives();
+			 [a,an] = LapCoeffs.Derivatives('a');
+			 [b,bf] = LapCoeffs.Derivatives('b');
+			 sigma	= LapCoeffs.Derivatives('sigma');
+			 h2 = obj.MetricsAtScatterer.metrics().^2;
+
+			 unn = ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 )./a ;
+             
+             res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 ;
+             
+         end
+		function res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,LapCoeffs)
+             [xi0,xi0t,xi0tt,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+             [xi1,~,xi1tt,xi1tttt,~] = Xi1.Derivatives();
+             assert('tbd')
+             res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*xirr/2 + (obj.dr.^3).*xi3r/6 + (obj.dr.^4).*xi4r/24 ;
+         end
+		
+        function res = Expansion(obj,Xi0,Xi1,Source,Coeffs)
+			
+			switch obj.ExpansionType
+				case 25
+					res = Expansion5thOrdrHelm(obj,Xi0,Xi1,Source,Coeffs);
+				case 33
+					res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,Coeffs);
+				case 35
+					res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,Source,Coeffs);
+			end
+			
+			
             
+                      
         end
     end
     

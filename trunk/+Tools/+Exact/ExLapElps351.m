@@ -2,53 +2,75 @@ classdef ExLapElps351 < Tools.Exact.SuperExact
 
     properties(Access = private)
         B; C;
+		
+		FocalDistance;
+        Eta;
+        Phi;
+		Eta0;
+
     end
     
     properties%(Access = private)
-        u         = 0;
-        dudr      = 0; 
-        d2udr2    = 0;
-        dudtheta  = 0;
-        d2udtheta2 = 0;
-    end
+        u           = 0;
+        dudeta      = 0; 
+%         d2udeta2    = 0;
+%         dudphi      = 0;
+%         d2udphi2    = 0;
+	end
         
+	methods(Static = true)
+		
+		function e = Exact(FocalDist,eta,phi,Eta0)
+			x = FocalDist*cosh(eta).*cos(phi);
+			y = FocalDist*sinh(eta).*sin(phi);
+			
+			e = x.^2 - y.^2;
+			
+			if length(eta)==1 && eta > Eta0
+				e = sin(x).*cos(y);
+			else
+				e(eta > Eta0) = sin(x(eta > Eta0)).*cos(y(eta > Eta0));
+			end
+		end			
+	
+	function dnde = dndExact(FocalDist,eta,phi,Eta0)
+		x  = FocalDist*cosh(eta).*cos(phi);
+		y  = FocalDist*sinh(eta).*sin(phi);
+		xn = FocalDist*sinh(eta).*cos(phi);
+		yn = FocalDist*cosh(eta).*sin(phi);
+		
+		e = 2*x.*xn - 2.*y.*yn;
+		
+		if length(eta)==1 && eta > Eta0
+			e = cos(x).*cos(y).*xn -  sin(x).*sin(y).*yn;
+		else
+			e(eta > Eta0) = cos(x(eta > Eta0)).*cos(y(eta > Eta0)).*xn(eta > Eta0) -  sin(x(eta > Eta0)).*sin(y(eta > Eta0)).*yn(eta > Eta0);
+		end
+		
+		
+	end
+end
+	
     methods
         
-        function obj = ExLapElps351(Scatterer, Coeffs)
-			error('not inmplemented yet, only copy of something else as a start point')
+        function obj = ExLapElps351(Scatterer, Coeffs)		
             obj = obj@Tools.Exact.SuperExact(Scatterer, Coeffs);
             
-            r0 = Coeffs.r0;
-			r = Scatterer.R;
-            
-            obj.B = Coeffs.B;
-            obj.C = Coeffs.C;
-            
-            p   = r.^2;
-            pr  = 2*r;
-            prr = 2;
-            
-            if length(r)==1 && r>=r0
-                p   = (1 - 1/8/obj.B - 1/obj.B)/4 + ( (r.^4)/2 + r.^2 )/obj.B + obj.C*log(2*r)/obj.B; 
-
-                pr  = 2*( r.^3 + r )/obj.B + obj.C/obj.B./r; 
-                prr = 2*( 3*r.^2 + 1 )/obj.B - 2*obj.C/obj.B./r./r;
-            else
-                p(r>=r0)     = (1 - 1/8/obj.B - 1/obj.B)/4 + ( (r(r>=r0).^4)/2 + r(r>=r0).^2 )/obj.B + obj.C*log(2*r(r>=r0))/obj.B; 
-                pr(r>=r0)    = 2*( r(r>=r0).^3 + r(r>=r0) )/obj.B + obj.C/obj.B./r(r>=r0);
-                prr(r>=r0)   = 2*( 3*r(r>=r0).^2 + 1 )/obj.B - 2*obj.C/obj.B./(r(r>=r0).^2);
-            end
-            obj.u=p;
-            obj.dudr=pr;
-            obj.d2udr2=prr;
+			obj.FocalDistance   = Scatterer.FocalDistance;
+            obj.Eta         = Scatterer.Eta;
+            obj.Phi         = Scatterer.Phi;			
+            obj.Eta0 = Scatterer.Eta0;
+			
+			obj.u  = obj.Exact(obj.FocalDistance,obj.Eta,obj.Phi,obj.Eta0);
+			obj.dudeta = obj.dndExact(obj.FocalDistance,obj.Eta,obj.Phi,obj.Eta0);
         end
         
-        function [u,dudr,d2udr2,dudtheta,d2udtheta2] = Derivatives(obj)
+        function [u,dudeta,d2udeta2,dudphi,d2udphi2] = Derivatives(obj)
             u         = obj.u;            
-            dudr      = obj.dudr;            
-            d2udr2    = obj.d2udr2;                    
-            dudtheta  = obj.dudtheta;            
-            d2udtheta2= obj.d2udtheta2;
+            dudeta    = obj.dudeta;      
+			if nargout>0
+				error('higher derivative not implemented')
+			end
         end        
     end
     
