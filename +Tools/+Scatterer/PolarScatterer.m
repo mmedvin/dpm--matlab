@@ -186,17 +186,18 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
         
          function res = Expansion(obj,Xi0,Xi1,F,Coeffs)
              
-             if obj.ExpansionType==15 % need find better type
-                 res = Expansion5thOrdrHomoHelm(obj,Xi0,Xi1,F,Coeffs);
-             elseif obj.ExpansionType==17
-                 res = Expansion7thOrdrHomoHelm(obj,Xi0,Xi1,F,Coeffs);
-             elseif obj.ExpansionType==25
-                 res = Expansion5thOrdrHelm(obj,Xi0,Xi1,F,Coeffs);
-             elseif obj.ExpansionType==33
-                 res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,Coeffs);
-             elseif obj.ExpansionType==35
-                 res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,Coeffs);
-             end
+			 switch obj.ExpansionType
+				 case 15 
+					 res = Expansion5thOrdrHomoHelm(obj,Xi0,Xi1,F,Coeffs);
+				 case 17
+					 res = Expansion7thOrdrHomoHelm(obj,Xi0,Xi1,F,Coeffs);
+				 case 25
+					 res = Expansion5thOrdrHelm(obj,Xi0,Xi1,F,Coeffs);
+				 case 33
+					 res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,Coeffs);
+				 case 35
+					 res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,Coeffs);
+			 end
          end
     end
     
