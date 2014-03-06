@@ -3,16 +3,16 @@ function RunLaplacian351
     a=1;%2.5;
     b=1/2;	
 	
-	x1=-1.2;xn=1.2;
-	y1=-0.3;yn=0.3;
+	x1=-1.5;xn=1.5;
+	y1=-1.;yn=1.;
 	Lx=xn-x1;Ly=yn-y1;
 	ebinf=[];etinf=[];
 
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-BIn = 1000;
-BOut = 1;
+BIn = 1;
+BOut = 1000;
 
 	BType		= 'Fourier';
     
@@ -54,36 +54,45 @@ BOut = 1;
 			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams);
 							
 		%------------------------------------------------------------------
-	if 1
-		
-		%x0 = FocalDist*cosh(Eta0).*cos(phi);
-		%y0 = FocalDist*sinh(Eta0).*sin(phi);
-		% [u_in] = x0^2 - y0^2 
-		% [u_out] = sin(x0).* cos(y0) 
-		% [ beta un_in] = 0
-		% [beta un_out] = - 2 b sin(x0).* cos(y0)
-		
+	if 0
 		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
 		Eye = speye(Basis.NBss);
 		Zeros2=spalloc(Basis.NBss,Basis.NBss,0);
 		
 		nGG = numel(IntPrb.GridGamma);
-		rhs = zeros(2*nGG + Basis.NBss,1);
-		rhs(1:nGG)	= (-IntPrb.TrGF -IntPrb.Qf);
+		rhs = zeros(2*nGG + 2*Basis.NBss,1);
+		%rhs(1:nGG)	= (-IntPrb.TrGF -IntPrb.Qf);
 		rhs(nGG+1:2*nGG)= (-ExtPrb.TrGF -ExtPrb.Qf);
+
+		% [u_in] = x0^2 - y0^2 
+		% [u_out] = sin(x0).* cos(y0) 
+		% [ beta un_in] = 0
+		% [beta un_out] = - 2 b sin(x0).* cos(y0)
 		
-		IC = - (ExParams.C + 2*(ExParams.r0^2).*(1 - ExParams.B + ExParams.r0.^2))./(ExParams.B.*ExParams.r0);
-		ICc = Tools.Basis.FourierBasis.FftCoefs(IC*ones(Basis.NBss,1), Basis.NBss);
+		phi=linspace(0,2*pi, Basis.NBss);
+
+		x0 = FocalDistance*cosh(Eta0).*cos(phi);
+		y0 = FocalDistance*sinh(Eta0).*sin(phi);
 		
-		rhs(2*nGG+1:end)= ICc;
+		ICu = (x0.^2 - y0.^2) - sin(x0).* cos(y0);
+		ICuc = Tools.Basis.FourierBasis.FftCoefs(ICu, Basis.NBss);
 		
- 		cn = [IntPrb.Q0,IntPrb.Q1,Zeros;   ExtPrb.Q0,Zeros,ExtPrb.Q1; Zeros2, Eye, -Eye]\rhs;
+		ICun =  2*BOut* sin(x0).* cos(y0);
+		ICunc = Tools.Basis.FourierBasis.FftCoefs(ICun, Basis.NBss);
+		
+		rhs(2*nGG+1:2*nGG+Basis.NBss)= ICuc;
+		rhs(2*nGG+Basis.NBss+1:end)= ICunc;
+		
+ 		cn = [IntPrb.Q0,IntPrb.Q1,Zeros,Zeros;   
+			  Zeros,Zeros,ExtPrb.Q0,ExtPrb.Q1; 
+			  Eye, Zeros2, -Eye, Zeros2; 
+			  Zeros2, Eye, Zeros2, -Eye]\rhs;
 
 		Intcn=cn(1:2*Basis.NBss);
-		Extcn=[cn(1:Basis.NBss); cn(2*Basis.NBss+1:end)]; 
+		Extcn=[ cn(2*Basis.NBss+1:end)]; 
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*Intcn + IntPrb.Wf(IntPrb.GridGamma);
+		Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*Intcn;% + IntPrb.Wf(IntPrb.GridGamma);
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
@@ -102,12 +111,11 @@ BOut = 1;
 		
 		%interior
 
-		Intcn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 - IntPrb.TrGF - IntPrb.Qf)) ;
+		Intcn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 )) ;
     
         
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = ...
-			IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1 + IntPrb.Wf(IntPrb.GridGamma);
+		Intxi(IntPrb.GridGamma) = IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1;
     
 		Intu = IntPrb.P_Omega(Intxi);
 	end
@@ -135,15 +143,10 @@ BOut = 1;
 	%%%%%%%delete next row
      
 	 Intexact = zeros(size(Grid.R));
-     IntCmprExParams = ExParams;
-     IntCmprExParams.r0 = Grid.R(IntPrb.Scatterer.Np);
-	 
 	 Extexact = zeros(size(Grid.R));
-	 ExtCmprExParams = ExParams;
-     ExtCmprExParams.r0 = Grid.R(ExtPrb.Scatterer.Nm);
 		
-	Extexact(ExtPrb.Scatterer.Nm) = ExtExact(ExtCmprExParams,ExtPrb.Scatterer.Th(ExtPrb.Scatterer.Nm));
-	Intexact(IntPrb.Scatterer.Np) = IntExact(IntCmprExParams,IntPrb.Scatterer.Th(IntPrb.Scatterer.Np));
+	Extexact(ExtPrb.Scatterer.Nm) = ExtExact(FocalDistance,ExtPrb.Scatterer.Eta(ExtPrb.Scatterer.Nm),ExtPrb.Scatterer.Phi(ExtPrb.Scatterer.Nm));
+	Intexact(IntPrb.Scatterer.Np) = IntExact(FocalDistance,IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np));
 
     t2=toc;
     
@@ -153,7 +156,7 @@ BOut = 1;
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
      
-	fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t Intetinf=%d\t Extetinf=%d\t timeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(Intetinf(n)),full(Extetinf(n)),t1,t2-t1);
+	fprintf('Bin=%-5.2d,BOut=%-5.2d,M=%d,N=%-10dx%-10d\t Intetinf=%d\t Extetinf=%d\t timeA=%d\ttimeE=%d\n',BIn,BOut,Basis.M, Nx,Ny,full(Intetinf(n)),full(Extetinf(n)),t1,t2-t1);
 end
 
 IntLinf=log2(Intetinf(1:end-1)./Intetinf(2:end))

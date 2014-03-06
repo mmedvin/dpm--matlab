@@ -46,7 +46,7 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 				yff=-y;
 
 				coeffs = obj.CoeffsClsrHndl(obj.Scatterer,obj.CoeffsParams);
-				B = coeffs.Derivatives(obj,'a');
+				B = coeffs.Derivatives('a');
                 F   = -2*B*sin(x).*cos(y);
 				
                 if nargout>1, Fn  =  -2*B*cos(x).*cos(y).*xn +  2*B*sin(x).*sin(y).*yn;  end
@@ -82,8 +82,8 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
             S(end,1:end)= Exact.u(end,1:end);
 			
 			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
-										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ...  
-										+ (obj.Scatterer.dr.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
+										+ obj.Scatterer.deta.*Fn(obj.Scatterer.GridGamma) ...  
+										+ (obj.Scatterer.deta.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
 			
 			%%tmp = obj.Derivatives();
 			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);

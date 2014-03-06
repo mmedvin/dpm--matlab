@@ -135,7 +135,7 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
 				case 25
 					res = Expansion5thOrdrHelm(obj,Xi0,Xi1,Source,Coeffs);
 				case 33
-					res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,Coeffs);
+					res = Expansion3thOrdrLap(obj,Xi0,Xi1,Source,Coeffs);
 				case 35
 					res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,Source,Coeffs);
 			end

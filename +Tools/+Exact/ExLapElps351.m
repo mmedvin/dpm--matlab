@@ -39,12 +39,12 @@ classdef ExLapElps351 < Tools.Exact.SuperExact
 		xn = FocalDist*sinh(eta).*cos(phi);
 		yn = FocalDist*cosh(eta).*sin(phi);
 		
-		e = 2*x.*xn - 2.*y.*yn;
+		dnde = 2*x.*xn - 2.*y.*yn;
 		
 		if length(eta)==1 && eta > Eta0
-			e = cos(x).*cos(y).*xn -  sin(x).*sin(y).*yn;
+			dnde = cos(x).*cos(y).*xn -  sin(x).*sin(y).*yn;
 		else
-			e(eta > Eta0) = cos(x(eta > Eta0)).*cos(y(eta > Eta0)).*xn(eta > Eta0) -  sin(x(eta > Eta0)).*sin(y(eta > Eta0)).*yn(eta > Eta0);
+			dnde(eta > Eta0) = cos(x(eta > Eta0)).*cos(y(eta > Eta0)).*xn(eta > Eta0) -  sin(x(eta > Eta0)).*sin(y(eta > Eta0)).*yn(eta > Eta0);
 		end
 		
 		
