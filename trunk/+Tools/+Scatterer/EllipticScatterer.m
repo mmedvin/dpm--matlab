@@ -49,7 +49,12 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
 %             obj.FocalDistance = AddParams.FocalDistance;
             
             obj.MyGrid();
-            obj.SplitGrid();%(obj.Eta,obj.Eta0);
+			
+			if obj.ExpansionType == 33
+				obj.SecondOrderSplitGrid();
+			else
+				obj.SplitGrid();
+			end
             
             obj.GridGamma = intersect(obj.Np,obj.Nm)';
             
