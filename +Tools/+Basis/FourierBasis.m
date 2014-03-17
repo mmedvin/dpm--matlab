@@ -1,34 +1,36 @@
 classdef FourierBasis < Tools.Basis.BasisFunctionWD
     
     methods(Static)
-        function FBasis = BasisHelper(f,dfdr,err,~)%range)
-            %[cn0,cn1,M] = FourierBasis.FourierCoeff(f,dfdr);
-	if ~exist('err','var'),err = 10^(-10);end
-	if err < 1
-            [cn0,cn1,M] = Tools.Basis.FourierBasis.FourierCoeffNew(f,dfdr,err);
-	else
-		M=err;
-
-		M1 = 2*M+1;
-		th=linspace(0,2*pi,M1+1);
-		th=th(1:M1);	
-		fth   = f(th);
-            	dfth  = dfdr(th);
-            
-            %calc coeff
-            cn0 = fft(fth);
-            cn0 = fftshift(cn0);
-            cn0 = cn0(:)/M1;  %normalization  
-
-            cn1 = fft(dfth);
-            cn1 = fftshift(cn1);
-            cn1 = cn1(:)/M1;  %normalization           
-     
-	end
-            me = metaclass(Tools.Basis.FourierBasis);
-            FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
-                            'Indices',  -M:M, ...
-                            'cn0',cn0,'cn1',cn1,'M',M,'AddParams',[],'NBss', 2*M+1);
+		function FBasis = BasisHelper(f,dfdr,err,~)%range)
+			%[cn0,cn1,M] = FourierBasis.FourierCoeff(f,dfdr);
+			if ~exist('err','var'),err = 10^(-10);end
+			if err < 1
+				[cn0,cn1,M] = Tools.Basis.FourierBasis.FourierCoeffNew(f,dfdr,err);
+			else
+				M=err;
+				
+				M1 = 2*M+1;
+				th=linspace(0,2*pi,M1+1);
+				th=th(1:M1);
+				fth   = f(th);
+				dfth  = dfdr(th);
+				
+				%calc coeff
+				cn0 = Tools.Basis.FourierBasis.FftCoefs(fth,M1).';
+				%cn0 = fft(fth);
+				%cn0 = fftshift(cn0);
+				%cn0 = cn0(:)/M1;  %normalization
+				
+				cn1 = Tools.Basis.FourierBasis.FftCoefs(dfth,M1).';
+				%cn1 = fft(dfth);
+				%cn1 = fftshift(cn1);
+				%cn1 = cn1(:)/M1;  %normalization
+				
+			end
+			me = metaclass(Tools.Basis.FourierBasis);
+			FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
+							'Indices',  -M:M, ...
+							'cn0',cn0,'cn1',cn1,'M',M,'AddParams',[],'NBss', 2*M+1);
 		end
         
 		function Coefs = FftCoefs(vec, siz)

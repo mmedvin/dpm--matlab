@@ -3,8 +3,8 @@ function RunLaplacian351
     a=1;%2.5;
     b=1/2;	
 	
-	x1=-1.5;xn=1.5;
-	y1=-1.;yn=1.;
+	x1=-1.1;xn=1.1;
+	y1=-0.6;yn=0.6;
 	Lx=xn-x1;Ly=yn-y1;
 	ebinf=[];etinf=[];
 
@@ -18,6 +18,8 @@ BOut = 1000;
     
     f   =@(phi) ExtExact(FocalDistance,Eta0,phi);
 	g   =@(phi) IntExact(FocalDistance,Eta0,phi);
+	gn   =@(phi) dndIntExact(FocalDistance,Eta0,phi);
+	
     
 
 	if strcmpi(BType,'Chebyshev')
@@ -26,7 +28,7 @@ BOut = 1000;
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
-	for n=1:5 %run different grids
+	for n=1:6 %run different grids
 		tic
 		%build grid
 		p=3;%3;
@@ -54,7 +56,7 @@ BOut = 1000;
 			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams);
 							
 		%------------------------------------------------------------------
-	if 0
+	if 1
 		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
 		Eye = speye(Basis.NBss);
 		Zeros2=spalloc(Basis.NBss,Basis.NBss,0);
@@ -69,15 +71,20 @@ BOut = 1000;
 		% [ beta un_in] = 0
 		% [beta un_out] = - 2 b sin(x0).* cos(y0)
 		
-		phi=linspace(0,2*pi, Basis.NBss);
+		phi=linspace(0,2*pi, Basis.NBss+1);
+		phi = phi(1:Basis.NBss);
 
 		x0 = FocalDistance*cosh(Eta0).*cos(phi);
 		y0 = FocalDistance*sinh(Eta0).*sin(phi);
+		xn0 = FocalDistance*sinh(Eta0).*cos(phi);
+		yn0 = FocalDistance*cosh(Eta0).*sin(phi);
+		
 		
 		ICu = (x0.^2 - y0.^2) - sin(x0).* cos(y0);
 		ICuc = Tools.Basis.FourierBasis.FftCoefs(ICu, Basis.NBss);
 		
-		ICun =  2*BOut* sin(x0).* cos(y0);
+		ICun = 2*BIn*(x0.*xn0-y0.*yn0) - BOut*(cos(x0).* cos(y0).*xn0 - sin(x0).* sin(y0).*yn0);
+		%2*BOut* sin(x0).* cos(y0);
 		ICunc = Tools.Basis.FourierBasis.FftCoefs(ICun, Basis.NBss);
 		
 		rhs(2*nGG+1:2*nGG+Basis.NBss)= ICuc;
@@ -85,11 +92,11 @@ BOut = 1000;
 		
  		cn = [IntPrb.Q0,IntPrb.Q1,Zeros,Zeros;   
 			  Zeros,Zeros,ExtPrb.Q0,ExtPrb.Q1; 
-			  Eye, Zeros2, -Eye, Zeros2; 
-			  Zeros2, Eye, Zeros2, -Eye]\rhs;
+			  Eye,      Zeros2,   -Eye, Zeros2; 
+			  Zeros2, BIn*Eye, Zeros2, -BOut*Eye]\rhs;
 
 		Intcn=cn(1:2*Basis.NBss);
-		Extcn=[ cn(2*Basis.NBss+1:end)]; 
+		Extcn= cn(2*Basis.NBss+1:end); 
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
 		Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*Intcn;% + IntPrb.Wf(IntPrb.GridGamma);
@@ -111,11 +118,17 @@ BOut = 1000;
 		
 		%interior
 
-		Intcn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 )) ;
-    
-        
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1;
+		xiex = spalloc(Nx,Ny,length(IntPrb.GridGamma));
+		
+		% Neumann problem - not working need to add data for uniquiness
+		%Intcn0 =( IntPrb.Q0 \ ( -IntPrb.Q1*Basis.cn1 )) ;
+		%Intxi(IntPrb.GridGamma) = IntPrb.W0(IntPrb.GridGamma,:)*Intcn0 + IntPrb.W1(IntPrb.GridGamma,:)*Basis.cn1;
+		%xiex(IntPrb.GridGamma) = IntExact(FocalDistance,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi);
+
+		Intcn0 = Basis.cn1;
+ 		Intcn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Intcn0 )) ;    
+ 		Intxi(IntPrb.GridGamma) = IntPrb.W0(IntPrb.GridGamma,:)*Intcn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1;
     
 		Intu = IntPrb.P_Omega(Intxi);
 	end
@@ -145,9 +158,10 @@ BOut = 1000;
 	 Intexact = zeros(size(Grid.R));
 	 Extexact = zeros(size(Grid.R));
 		
-	Extexact(ExtPrb.Scatterer.Nm) = ExtExact(FocalDistance,ExtPrb.Scatterer.Eta(ExtPrb.Scatterer.Nm),ExtPrb.Scatterer.Phi(ExtPrb.Scatterer.Nm));
+	
 	Intexact(IntPrb.Scatterer.Np) = IntExact(FocalDistance,IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np));
-
+	Extexact(ExtPrb.Scatterer.Nm) = ExtExact(FocalDistance,ExtPrb.Scatterer.Eta(ExtPrb.Scatterer.Nm),ExtPrb.Scatterer.Phi(ExtPrb.Scatterer.Nm));
+	
     t2=toc;
     
     Intetinf(n) =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
@@ -170,6 +184,14 @@ function e = IntExact(FocalDist,eta,phi)
 	y = FocalDist*sinh(eta).*sin(phi);
 	
 	e = x.^2 - y.^2;	
+end
+function dnde = dndIntExact(FocalDist,eta,phi)
+	x  = FocalDist*cosh(eta).*cos(phi);
+	y  = FocalDist*sinh(eta).*sin(phi);
+	xn = FocalDist*sinh(eta).*cos(phi);
+	yn = FocalDist*cosh(eta).*sin(phi);
+	
+	dnde = 2*x.*xn - 2.*y.*yn;
 end
 
 function e = ExtExact(FocalDist,eta,phi)
