@@ -25,10 +25,18 @@ classdef LaplacianOp<Tools.DifferentialOps.SuperDiffOp
             if obj.BCinRhs                
 				dx2 = obj.Grid.dx.^2;
 				dy2 = obj.Grid.dy.^2;
-                Rhs(1:Nx,   1   ) = Rhs(1:Nx, 1    ) - obj.Coeffs.a(1:end-2 , 1       ).*Exact(2:end-1 , 1      )./dx2;%m
-                Rhs(1:Nx,   Ny  ) = Rhs(1:Nx, Ny   ) - obj.Coeffs.a(3:end   , Ny+1    ).*Exact(2:end-1 , end    )./dx2;%p
-                Rhs(1   ,  1:Ny ) = Rhs(1   , 1:Ny ) - obj.Coeffs.b(1       , 1:end-2 ).*Exact(1       , 2:end-1)./dy2; %m
-                Rhs(Nx  ,  1:Ny ) = Rhs(Nx  , 1:Ny ) - obj.Coeffs.b(Nx      , 3:end   ).*Exact(end     , 2:end-1)./dy2; %p
+                
+                a_iphalf_j = obj.Coeffs.a(2:2:end-1,3:2:end);
+                a_imhalf_j = obj.Coeffs.a(2:2:end-1,1:2:end-1);
+                
+                b_i_jphalf = obj.Coeffs.b(3:2:end,2:2:end-1);
+                b_i_jmhalf = obj.Coeffs.b(1:2:end-1,2:2:end-1);                
+                
+                
+                Rhs(1:Nx,   1   ) = Rhs(1:Nx, 1    ) - a_iphalf_j(:	, 1	).*Exact(2:end-1 , 1      )./dx2;%m
+                Rhs(1:Nx,   Ny  ) = Rhs(1:Nx, Ny   ) - a_imhalf_j(:	, Ny).*Exact(2:end-1 , end    )./dx2;%p
+                Rhs(1   ,  1:Ny ) = Rhs(1   , 1:Ny ) - b_i_jphalf(1	, : ).*Exact(1       , 2:end-1)./dy2; %m
+                Rhs(Nx  ,  1:Ny ) = Rhs(Nx  , 1:Ny ) - b_i_jmhalf(Nx, :	).*Exact(end     , 2:end-1)./dy2; %p
             else
                 Rhs(1:Nx,  1      ) = Exact(1:Nx,  1      );
                 Rhs(1:Nx,  Ny     ) = Exact(1:Nx,  Ny     );
@@ -82,14 +90,12 @@ classdef LaplacianOp<Tools.DifferentialOps.SuperDiffOp
                 Aijp1 = [0                      ,b_i_jphalf(1:end-1)    ].';
                 Aijm1 = [b_i_jmhalf(2:end)      ,0                      ].';
                 
+                Aijm1(cols:cols:rc)=0;
+                Aijp1(cols+1:cols:rc)=0;
+                
                 obj.A = spdiags([Aim1j,Aijm1,Aij,Aijp1,Aip1j],[-cols,-1,0,1,cols], rc,rc);
                 
-%                 Aim1j = diag(a_imhalf_j(cols+1:rc),-cols)./dx2;
-%                 Aip1j = diag(a_iphalf_j(1:rc-cols),cols)./dx2;
-%                 Aijm1 = diag(b_i_jphalf(2:end),-1)./dy2;
-%                 Aijp1 = diag(b_i_jmhalf(1:end-1),1)./dy2;
-%                 
-%                 obj.A = Aim1j+Aijm1+Aijp1+Aip1j + diag(Aij);
+
             end
             
         end
