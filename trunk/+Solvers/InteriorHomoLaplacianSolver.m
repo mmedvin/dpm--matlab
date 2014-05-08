@@ -27,8 +27,8 @@ classdef InteriorHomoLaplacianSolver < Solvers.SuperHomoSolver
                 obj.OpCoeffs = CoeffsAddParams;
             end
             
-            BCinRhs=0;
-            obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.OpCoeffs,BCinRhs);
+            BCinRhs=1;
+            obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.OpCoeffs,BCinRhs,1);
         end
 		
 		function u = P_Omega(obj,xi_gamma)

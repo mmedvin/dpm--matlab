@@ -7,16 +7,65 @@ classdef LaplacianOp<Tools.DifferentialOps.SuperDiffOp
         Coeffs;
         Grid;
         BCinRhs;
+		SolverType = 0;
+		MG;
     end
     
     methods (Access=public)
         
-        function obj = LaplacianOp(Grid, coeffs,BCinRhs)
+        function obj = LaplacianOp(Grid, coeffs,BCinRhs,SolverType)
             obj.Grid=Grid;
             obj.VerifyCoeffs(coeffs);
             obj.BCinRhs=BCinRhs;
             obj.LaplacianA();
-        end
+			
+			switch SolverType
+				case 1
+					obj.SolverType = 1;
+					
+					mg_param.nu1 = 5;            % number of pre smooths
+					mg_param.nu2 = 5;            % number of post smooths
+					mg_param.minlevel = 1;       % level of coarsest grid
+					mg_param.bx  = 5;            % block size x
+					mg_param.by  = 5;            % block size y
+					mg_param.sx  = 4;            % skip size x
+					mg_param.sy  = 4;            % skip size y
+					mg_param.cycleType = 'f';             % MG cycle type.  % the other choice is 'v'
+					mg_param.verbose = 0;
+					mg_param.maxIt = 100;
+					
+					if 1
+						mg_param.TOL = (Grid.dx*Grid.dy)^2;
+					else
+						mg_param.TOL = 1.e-10;
+					end
+					
+					nVoffset=-1;
+					
+					assert(Grid.Nx==Grid.Ny);
+					obj.MG = Tools.LASolvers.MultiGrid.ClassQinghaiMG(obj.A, Grid.Nx, 'p1',mg_param, nVoffset);
+				case 0
+					% do nothing
+				otherwise
+					error('SolverType is not recognized')
+			end
+				
+			end
+				
+		
+		
+			function res = Solve(obj,rhs)
+				switch obj.SolverType
+					case 0
+						% spparms('spumoni',1)
+						res = obj.A\rhs;
+						%spparms('spumoni',0)
+					case 1
+						
+						[res,resRel, nIters] = obj.MG.Solve(rhs);
+				end
+			end
+			
         function Rhs = AdjustRhs(obj,Rhs,Exact)
                        
             Nx = obj.Grid.Nx;
