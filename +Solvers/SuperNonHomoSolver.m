@@ -91,8 +91,9 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
          
          function Rhs(obj)
              Rhs@Solvers.SuperHomoSolver(obj);
-             tmp =obj.Lu(obj.myWf(:));
-             obj.rhsf(obj.Scatterer.Mp) = tmp(obj.Scatterer.Mp,:);
+             %tmp =obj.Lu(obj.myWf(:));
+             %obj.rhsf(obj.Scatterer.Mp) = tmp(obj.Scatterer.Mp,:);
+			 obj.rhsf(obj.Scatterer.Mp) = obj.Lu(obj.myWf(:),obj.Scatterer.Mp);
          end
          
          function calc_QnW(obj)

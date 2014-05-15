@@ -40,8 +40,11 @@ ExParams.r0 = 1/2;
 		InteriorCoeffsClsAddParams = [];
 		InteriorSource              = @Tools.Source.LaplaceSource_IIM346_Interior;
 		
+		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+		DiffOpParams = [];
+		
 		IntPrb = Solvers.InteriorLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,InteriorSource,SourceParams);
+			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,InteriorSource,SourceParams,DiffOp,DiffOpParams);
 		
 		%------------------------------------------------------------------
 		ExteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
@@ -49,7 +52,7 @@ ExParams.r0 = 1/2;
 		ExteriorSource              = @Tools.Source.LaplaceSource_IIM346_Exterior;
 				
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
-			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams);
+			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams,DiffOp,DiffOpParams);
 							
 		%------------------------------------------------------------------
 	if 1

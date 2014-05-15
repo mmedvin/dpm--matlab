@@ -2,33 +2,41 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
    
     properties(Access = protected, AbortSet = true)
         Op;
-        OpCoeffs;
+        %OpCoeffs;
     end
     
     methods
         function obj = InteriorLaplacianSolver( ...
-                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams)
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams,DiffOp,DiffOpParams)
             obj = obj@Solvers.SuperNonHomoSolver( ...
-                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams);
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams);
             
-            if  numel(obj.Coeffs.a) + numel(obj.Coeffs.b) + numel(obj.Coeffs.sigma)>3
-                GridK = Tools.Grid.CartesianGrid( ...
-                    obj.Grid.x1 - obj.Grid.dx/2 , ...
-                    obj.Grid.xn + obj.Grid.dx/2 , ...
-                    2*obj.Grid.Nx + 1           , ...
-                    obj.Grid.y1 - obj.Grid.dy/2 , ...
-                    obj.Grid.yn + obj.Grid.dy/2 , ...
-                    2*obj.Grid.Ny + 1         ) ;
+%             if  numel(obj.Coeffs.a) + numel(obj.Coeffs.b) + numel(obj.Coeffs.sigma)>3
+%                 GridK = Tools.Grid.CartesianGrid( ...
+%                     obj.Grid.x1 - obj.Grid.dx/2 , ...
+%                     obj.Grid.xn + obj.Grid.dx/2 , ...
+%                     2*obj.Grid.Nx + 1           , ...
+%                     obj.Grid.y1 - obj.Grid.dy/2 , ...
+%                     obj.Grid.yn + obj.Grid.dy/2 , ...
+%                     2*obj.Grid.Ny + 1         ) ;
+%                                 
+%                 ScattK = struct('r',GridK.R);
+% 				obj.OpCoeffs=Tools.Coeffs.LaplaceCoeffsPolar(ScattK,CoeffsParams);
+% 				
+%             else
+%                 obj.OpCoeffs = CoeffsParams;
+%             end
                                 
-                ScattK = struct('r',GridK.R);
-				obj.OpCoeffs=Tools.Coeffs.LaplaceCoeffsPolar(ScattK,CoeffsAddParams);
+            %BCinRhs=0;
+            %obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.OpCoeffs,BCinRhs);
 				
-            else
-                obj.OpCoeffs = CoeffsAddParams;
-            end
+			OpParams = struct(...
+				'Grid',Grid, ...
+				'CoeffsHandle',CoeffsHandle,... @Tools.Coeffs.LaplaceCoeffsPolar,...
+				'CoeffsParams',CoeffsParams,...
+				'Params',DiffOpParams);
             
-            BCinRhs=1;
-            obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.OpCoeffs,BCinRhs,1);
+			obj.Op = DiffOp(OpParams);
         end
 		
 		function u = P_Omega(obj,xi_gamma)
@@ -47,14 +55,17 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
       
         function f = Lu(obj,u,msk)
             if exist('msk','var');
-                f = obj.Op.A(msk,:)*u;
+				%f = obj.Op.A(msk,:)*u;
+				f = obj.Op.ApplyOp(u,msk);
             else
-                f = obj.Op.A*u;
+				%f = obj.Op.A*u;
+				f = obj.Op.ApplyOp(u);
              end
         end
         
         function u = Gf(obj,f)
-           u = obj.Op.A\f;           
+			%u = obj.Op.A\f;
+			u = obj.Op.Solve(f);
         end
                 
         function Qj = Qcol(obj,GLW,~)
