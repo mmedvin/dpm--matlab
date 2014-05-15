@@ -33,17 +33,21 @@ ExParams.r0 = 1/4;
 		
 		Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 		
-		CoeffsClsHandle = @Tools.Coeffs.LaplaceCoeffsPolar;
-		CoeffsClsAddParams = [];
+		CoeffsHandle = @Tools.Coeffs.LaplaceCoeffsPolar;
+		CoeffsParams = [];
 		
-		ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
-		ScattererAddParams  = struct('r0',ExParams.r0,'ExpansionType',33);
+		ScattererHandle  = @Tools.Scatterer.PolarScatterer;
+		ScattererParams  = struct('r0',ExParams.r0,'ExpansionType',33);
 		
-		Source              = @Tools.Source.LaplaceSourceInterior;
+		Source              = @Tools.Source.LaplaceSource_IIM346_Interior;
 		SourceParams		= ExParams;
 		
+		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+		DiffOpParams = [];
+		
 		IntPrb = Solvers.InteriorLaplacianSolver ...
-			(Basis,Grid,CoeffsClsHandle,CoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams);
+			(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams,DiffOp,DiffOpParams);
 		
     Q0 = IntPrb.Q0;
     Q1 = IntPrb.Q1;

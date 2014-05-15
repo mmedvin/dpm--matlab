@@ -20,7 +20,7 @@ function RunLapExterior
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,10);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
 	end
 	
 	for n=1:5 %run different grids
@@ -37,11 +37,15 @@ function RunLapExterior
 		ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
 		ScattererAddParams  = struct('r0',ExParams.r0,'ExpansionType',33);
 		
-		Source              = @Tools.Source.LaplaceSource;
+		Source              = @Tools.Source.LaplaceSource_IIM346_Exterior;
 		SourceParams		= ExParams;
 		
+		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+		DiffOpParams = [];
+		
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
-			(Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams);
+			(Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams,DiffOp,DiffOpParams);
 		
 		Q0 = ExtPrb.Q0;
 		Q1 = ExtPrb.Q1;
@@ -80,7 +84,9 @@ function RunLapExterior
 		
 		t2=toc;
 		
-		etinf(n) =norm(exact(:)-u(:),inf);
+		tmp = exact(2:end-1,2:end-1)-u(2:end-1,2:end-1);
+		%tmp = exact-u;
+		etinf(n) =norm(tmp(:),inf);
 		fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
 		
 	end
