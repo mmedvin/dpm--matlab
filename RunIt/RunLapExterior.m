@@ -42,7 +42,11 @@ function RunLapExterior
 		
 		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-		DiffOpParams = [];
+		Boundaries.R = [	sqrt(Grid.x(1)^2+ Grid.y(2:end-1).^2).' , sqrt(Grid.x(end)^2+ Grid.y(2:end-1).^2).',  ...
+							sqrt(Grid.x(2:end-1).^2+ Grid.y(1).^2).', sqrt(Grid.x(2:end-1).^2+ Grid.y(end).^2).' ];
+		
+		Ex	= Tools.Exact.ExLapCrclVarCoeffs346(Boundaries, SourceParams);		
+		DiffOpParams = struct('BC_x1', Ex.u(:,1).','BC_xn', Ex.u(:,2).','BC_y1',Ex.u(:,3),'BC_yn',Ex.u(:,4));
 		
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
 			(Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,Source,SourceParams,DiffOp,DiffOpParams);

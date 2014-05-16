@@ -30,13 +30,12 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
             %BCinRhs=0;
             %obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.OpCoeffs,BCinRhs);
 				
-			OpParams = struct(...
-				'Grid',Grid, ...
-				'CoeffsHandle',CoeffsHandle,... @Tools.Coeffs.LaplaceCoeffsPolar,...
-				'CoeffsParams',CoeffsParams,...
-				'Params',DiffOpParams);
+			DiffOpParams.Grid=Grid;
+			DiffOpParams.CoeffsHandle=CoeffsHandle;
+			DiffOpParams.CoeffsParams =CoeffsParams;
             
-			obj.Op = DiffOp(OpParams);
+							
+			obj.Op = DiffOp(DiffOpParams);
         end
 		
 		function u = P_Omega(obj,xi_gamma)
@@ -74,7 +73,7 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
         
 		function rhs = Bf(obj,F)
 			rhs = F(:);
-			% do nothing, required for compact scheme only 
+			% do nothing 
 		end
 		
 		function res = BF(obj)

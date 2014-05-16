@@ -8,6 +8,7 @@ classdef LaplacianOpBCinMat<Tools.DifferentialOps.SuperLaplacianOp
 			obj.ApplyBC();
         end
 		function Rhs = AdjustRhs(obj,Rhs,Exact)
+			if exist('Exact','var')
 			
 			Nx = obj.Grid.Nx;
 			Ny = obj.Grid.Ny;
@@ -16,7 +17,7 @@ classdef LaplacianOpBCinMat<Tools.DifferentialOps.SuperLaplacianOp
 			Rhs(1:Nx,  Ny     ) = Exact(1:Nx,  Ny     );
 			Rhs(1   ,  1: Ny  ) = Exact(1   ,  1:Ny   );
 			Rhs(Nx  ,  1: Ny  ) = Exact(Nx  ,  1:Ny   );
-			
+			end
 		end
     end
     methods (Access=protected)
