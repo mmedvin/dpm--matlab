@@ -3,8 +3,8 @@ function RunLaplacian351
     a=1;%2.5;
     b=1/2;	
 	
-	x1=-1.1;xn=1.1;
-	y1=-0.6;yn=0.6;
+	x1=-1.3;xn=1.3;
+	y1=-0.8;yn=0.8;
 	Lx=xn-x1;Ly=yn-y1;
 	ebinf=[];etinf=[];
 
@@ -25,7 +25,7 @@ BOut = 1000;
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(gn,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
 	for n=1:4 %run different grids
@@ -36,12 +36,12 @@ BOut = 1000;
 		
 		
 		Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-		ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;
-		ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',33);
+		ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
+		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',33);
 
 		%------------------------------------------------------------------
-		InteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
-		InteriorCoeffsClsAddParams = struct('a',BIn,'b',BIn,'sigma',0);
+		InteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
+		InteriorCoeffsParams = struct('a',BIn,'b',BIn,'sigma',0);
 		
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
 		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
@@ -51,11 +51,11 @@ BOut = 1000;
 		%						'BC_y1',(Grid.x(2:end-1).^2 - Grid.y(1).^2).','BC_yn',(Grid.x(2:end-1).^2 - Grid.y(end).^2).' );
 		
 		IntPrb = Solvers.InteriorHomoLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,DiffOp,DiffOpParams);
+			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,DiffOp,DiffOpParams);
 		
 		%------------------------------------------------------------------
-		ExteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
-		ExteriorCoeffsAddParams = struct('a',BOut,'b',BOut,'sigma',0);
+		ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
+		ExteriorCoeffsParams = struct('a',BOut,'b',BOut,'sigma',0);
 		ExteriorSource          = @Tools.Source.LaplaceSource_IIM351_Exterior;
 		SourceParams			= [];
 				
@@ -64,10 +64,10 @@ BOut = 1000;
 							  'BC_y1',(sin(Grid.x(2:end-1)).*cos(Grid.y(1))).','BC_yn',(sin(Grid.x(2:end-1)).*cos(Grid.y(end))).');
 		
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
-			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams,DiffOp,DiffOpParams);
+			(Basis,Grid,ExteriorCoeffsHandle,ExteriorCoeffsParams,ScattererHandle,ScattererParams,ExteriorSource,SourceParams,DiffOp,DiffOpParams);
 							
 		%------------------------------------------------------------------
-	if 1
+	if 0
 		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
 		Eye = speye(Basis.NBss);
 		Zeros2=spalloc(Basis.NBss,Basis.NBss,0);
@@ -120,19 +120,26 @@ BOut = 1000;
 		Extu(ExtPrb.Scatterer.Nm) = tmp(ExtPrb.Scatterer.Nm);
 	else
 		%exterior
-		Extcn1 =( ExtPrb.Q1 \ ( -ExtPrb.Q0*Basis.cn0 - ExtPrb.TrGF - ExtPrb.Qf)) ;
 		
+		EQ0 = ExtPrb.Q0;
+		EQ1 = ExtPrb.Q1;
+		ETrGF = ExtPrb.TrGF;
+		EQf = ExtPrb.Qf;
+		Extcn1 =( EQ1 \ ( -EQ0*Basis.cn0 -ETrGF - EQf)) ;
 		
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
 		Extxi(ExtPrb.GridGamma) = ...
 			ExtPrb.W0(ExtPrb.GridGamma,:)*Basis.cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*Extcn1 + ExtPrb.Wf(ExtPrb.GridGamma);
+		
+		xiex  = ExtExact(FocalDistance,ExtPrb.Scatterer.eta,ExtPrb.Scatterer.phi);
+		Extxi(ExtPrb.GridGamma) = xiex; %debig
 		
 		Extu = ExtPrb.P_Omega(Extxi); 
 		
 		%interior
 
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		xiex = spalloc(Nx,Ny,length(IntPrb.GridGamma));
+		%xiex = spalloc(Nx,Ny,length(IntPrb.GridGamma));
 		
 		% Neumann problem - not working need to add data for uniquiness
 		%Intcn0 =( IntPrb.Q0 \ ( -IntPrb.Q1*Basis.cn1 )) ;
@@ -140,9 +147,14 @@ BOut = 1000;
 		%xiex(IntPrb.GridGamma) = IntExact(FocalDistance,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi);
 
 		Intcn0 = Basis.cn1;
- 		Intcn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Intcn0 )) ;    
+		IQ0 = IntPrb.Q0;
+		IQ1 = IntPrb.Q1;
+ 		Intcn1 =( IQ1 \ ( -IQ0*Intcn0 )) ;    
  		Intxi(IntPrb.GridGamma) = IntPrb.W0(IntPrb.GridGamma,:)*Intcn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1;
     
+		xiex  = IntExact(FocalDistance,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi);
+		Intxi(ExtPrb.GridGamma) = xiex; %debig
+		
 		Intu = IntPrb.P_Omega(Intxi);
 	end
 % 		u=zeros(size(Grid.R));
