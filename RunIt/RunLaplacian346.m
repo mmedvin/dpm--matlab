@@ -81,7 +81,12 @@ ExParams.r0 = 1/2;
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
 		Extxi(ExtPrb.GridGamma) = (ExtPrb.W(ExtPrb.GridGamma,:)*Extcn  + ExtPrb.Wf(ExtPrb.GridGamma));
-		Extu = ExtPrb.P_Omega(Extxi);
+
+		Extu = spalloc(Nx,Ny,numel(ExtPrb.Scatterer.Nm));
+		tmp = ExtPrb.P_Omega(Extxi);
+		Extu(ExtPrb.Scatterer.Nm) = tmp(ExtPrb.Scatterer.Nm);
+		
+		
 	else
 		%exterior
 		Extcn1 =( ExtPrb.Q1 \ ( -ExtPrb.Q0*Basis.cn0 - ExtPrb.TrGF - ExtPrb.Qf)) ;
@@ -141,7 +146,9 @@ ExParams.r0 = 1/2;
     t2=toc;
     
     Intetinf(n) =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
-	Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
+	%Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
+	tmp=Extexact(2:end-1,2:end-1)-Extu(2:end-1,2:end-1);
+	Extetinf(n) =norm(tmp(:),inf);
 	
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);

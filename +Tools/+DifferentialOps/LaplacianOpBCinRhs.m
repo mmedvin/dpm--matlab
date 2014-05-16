@@ -74,9 +74,9 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 				BC_y1 = Exact;
 			end
 			
-			Rhs(2:end-1	, 1			) = Rhs(2:end-1	, 1			) - a_iphalf_j.*BC_y1./dx2;%m
+			Rhs(2:end-1	, 2			) = Rhs(2:end-1	, 2			) - a_iphalf_j.*BC_y1./dx2;%m
 			Rhs(2:end-1	, end-1		) = Rhs(2:end-1	, end-1		) - a_imhalf_j.*BC_yn./dx2;%p
-			Rhs(1		,  2:end-1	) = Rhs(1		, 2:end-1	) - b_i_jphalf.*BC_x1./dy2; %m
+			Rhs(2		,  2:end-1	) = Rhs(2		, 2:end-1	) - b_i_jphalf.*BC_x1./dy2; %m
 			Rhs(end-1	,  2:end-1	) = Rhs(end-1	, 2:end-1	) - b_i_jmhalf.*BC_xn./dy2; %p
 
 			
