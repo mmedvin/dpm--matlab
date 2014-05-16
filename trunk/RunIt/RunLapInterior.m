@@ -44,7 +44,7 @@ ExParams.r0 = 1/4;
 		
 		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-		DiffOpParams = [];
+		DiffOpParams = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0);
 		
 		IntPrb = Solvers.InteriorLaplacianSolver ...
 			(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams,DiffOp,DiffOpParams);

@@ -28,7 +28,7 @@ BOut = 1000;
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
-	for n=1:6 %run different grids
+	for n=1:4 %run different grids
 		tic
 		%build grid
 		p=3;%3;
@@ -43,8 +43,15 @@ BOut = 1000;
 		InteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
 		InteriorCoeffsClsAddParams = struct('a',BIn,'b',BIn,'sigma',0);
 		
+		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+		DiffOpParams = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0);
+		%x.^2 - y.^2
+		%DiffOpParams = struct(	'BC_x1',Grid.x(1).^2 - Grid.y(2:end-1).^2 ,'BC_xn', Grid.x(end).^2 - Grid.y(2:end-1).^2,...
+		%						'BC_y1',(Grid.x(2:end-1).^2 - Grid.y(1).^2).','BC_yn',(Grid.x(2:end-1).^2 - Grid.y(end).^2).' );
+		
 		IntPrb = Solvers.InteriorHomoLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams);
+			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,DiffOp,DiffOpParams);
 		
 		%------------------------------------------------------------------
 		ExteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
@@ -52,8 +59,12 @@ BOut = 1000;
 		ExteriorSource          = @Tools.Source.LaplaceSource_IIM351_Exterior;
 		SourceParams			= [];
 				
+		% 		 sin(Grid.x(2:end-1)).*cos(Grid.y(end))
+		DiffOpParams = struct('BC_x1', sin(Grid.x(1)).*cos(Grid.y(2:end-1)),'BC_xn',  sin(Grid.x(end)).*cos(Grid.y(2:end-1)),...
+							  'BC_y1',(sin(Grid.x(2:end-1)).*cos(Grid.y(1))).','BC_yn',(sin(Grid.x(2:end-1)).*cos(Grid.y(end))).');
+		
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
-			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams);
+			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams,DiffOp,DiffOpParams);
 							
 		%------------------------------------------------------------------
 	if 1
@@ -104,7 +115,9 @@ BOut = 1000;
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
 		Extxi(ExtPrb.GridGamma) = (ExtPrb.W(ExtPrb.GridGamma,:)*Extcn  + ExtPrb.Wf(ExtPrb.GridGamma));
-		Extu = ExtPrb.P_Omega(Extxi);
+		Extu =  spalloc(Nx,Ny,length(ExtPrb.GridGamma));
+		tmp = ExtPrb.P_Omega(Extxi);
+		Extu(ExtPrb.Scatterer.Nm) = tmp(ExtPrb.Scatterer.Nm);
 	else
 		%exterior
 		Extcn1 =( ExtPrb.Q1 \ ( -ExtPrb.Q0*Basis.cn0 - ExtPrb.TrGF - ExtPrb.Qf)) ;
@@ -165,7 +178,9 @@ BOut = 1000;
     t2=toc;
     
     Intetinf(n) =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
-	Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
+	%Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
+	tmp = Extexact(2:end-1,2:end-1)-Extu(2:end-1,2:end-1);
+	Extetinf(n) =norm(tmp(:),inf);
 	
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);

@@ -4,6 +4,11 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		Inside;
 		nx;
 		ny;
+		
+		BC_x1=0;
+		BC_xn=0;
+		BC_y1=0;
+		BC_yn=0;
 	end
     methods (Access=public)
         
@@ -23,8 +28,10 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			obj.Inside = sub2ind(size(EGrid.X),I,J);
 			obj.Inside = obj.Inside(:);
 			
-			%obj.Boundaries = [ 1:obj.ny,1:obj.nx:rc,obj.ny:obj.nx:rc, rc-obj.ny+1:rc];
-			%obj.ApplyBC();
+			obj.BC_x1 = ParamsStruct.BC_x1;
+			obj.BC_xn = ParamsStruct.BC_xn;
+			obj.BC_y1 = ParamsStruct.BC_y1;
+			obj.BC_yn = ParamsStruct.BC_yn;
 		end
 		
 				function b = ApplyOp(obj,x,mask)
@@ -64,20 +71,20 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			b_i_jmhalf = obj.Coeffs.b(end-1,2:2:end-1);
 			
 			
-			if nargin == 3
-				BC_y1 = Exact(2:end-1 , 1      );
-				BC_yn = Exact(2:end-1 , end    );
-				BC_x1 = Exact(1       , 2:end-1);
-				BC_xn = Exact(end     , 2:end-1);
-				
-			elseif nargin == 6
-				BC_y1 = Exact;
-			end
+% 			if nargin == 3
+% 				BC_y1 = Exact(2:end-1 , 1      );
+% 				BC_yn = Exact(2:end-1 , end    );
+% 				BC_x1 = Exact(1       , 2:end-1);
+% 				BC_xn = Exact(end     , 2:end-1);
+% 				
+% 			elseif nargin == 6
+% 				BC_y1 = Exact;
+% 			end
 			
-			Rhs(2:end-1	, 2			) = Rhs(2:end-1	, 2			) - a_iphalf_j.*BC_y1./dx2;%m
-			Rhs(2:end-1	, end-1		) = Rhs(2:end-1	, end-1		) - a_imhalf_j.*BC_yn./dx2;%p
-			Rhs(2		,  2:end-1	) = Rhs(2		, 2:end-1	) - b_i_jphalf.*BC_x1./dy2; %m
-			Rhs(end-1	,  2:end-1	) = Rhs(end-1	, 2:end-1	) - b_i_jmhalf.*BC_xn./dy2; %p
+			Rhs(2:end-1	, 2			) = Rhs(2:end-1	, 2			) - a_iphalf_j.* obj.BC_y1./dx2;%m
+			Rhs(2:end-1	, end-1		) = Rhs(2:end-1	, end-1		) - a_imhalf_j.* obj.BC_yn./dx2;%p
+			Rhs(2		,  2:end-1	) = Rhs(2		, 2:end-1	) - b_i_jphalf.* obj.BC_x1./dy2; %m
+			Rhs(end-1	,  2:end-1	) = Rhs(end-1	, 2:end-1	) - b_i_jmhalf.* obj.BC_xn./dy2; %p
 
 			
 			%old
