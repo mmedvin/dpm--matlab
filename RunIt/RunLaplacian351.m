@@ -3,8 +3,9 @@ function RunLaplacian351
     a=1;%2.5;
     b=1/2;	
 	
-	x1=-1.3;xn=1.3;
-	y1=-0.8;yn=0.8;
+	x1=-1.1;xn=1.1;
+	y1=-0.7;yn=0.7;
+	%y1=-1.3;yn=1.3;
 	Lx=xn-x1;Ly=yn-y1;
 	ebinf=[];etinf=[];
 
@@ -25,7 +26,7 @@ BOut = 1000;
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(gn,g);%(@sin,@sin,1);%(f,dfdn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
 	for n=1:4 %run different grids
@@ -45,13 +46,13 @@ BOut = 1000;
 		
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
 		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
-		DiffOpParams = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0);
+		DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0);
 		%x.^2 - y.^2
 		%DiffOpParams = struct(	'BC_x1',Grid.x(1).^2 - Grid.y(2:end-1).^2 ,'BC_xn', Grid.x(end).^2 - Grid.y(2:end-1).^2,...
 		%						'BC_y1',(Grid.x(2:end-1).^2 - Grid.y(1).^2).','BC_yn',(Grid.x(2:end-1).^2 - Grid.y(end).^2).' );
 		
 		IntPrb = Solvers.InteriorHomoLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,DiffOp,DiffOpParams);
+			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,DiffOp,DiffOpParamsInt);
 		
 		%------------------------------------------------------------------
 		ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
@@ -60,14 +61,14 @@ BOut = 1000;
 		SourceParams			= [];
 				
 		% 		 sin(Grid.x(2:end-1)).*cos(Grid.y(end))
-		DiffOpParams = struct('BC_x1', sin(Grid.x(1)).*cos(Grid.y(2:end-1)),'BC_xn',  sin(Grid.x(end)).*cos(Grid.y(2:end-1)),...
-							  'BC_y1',(sin(Grid.x(2:end-1)).*cos(Grid.y(1))).','BC_yn',(sin(Grid.x(2:end-1)).*cos(Grid.y(end))).');
+		DiffOpParamsExt = struct('BC_y1', sin(Grid.x(1)).*cos(Grid.y(2:end-1)).','BC_yn',  sin(Grid.x(end)).*cos(Grid.y(2:end-1)).',...
+							  'BC_x1',(sin(Grid.x(2:end-1)).*cos(Grid.y(1))),'BC_xn',(sin(Grid.x(2:end-1)).*cos(Grid.y(end))));
 		
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
-			(Basis,Grid,ExteriorCoeffsHandle,ExteriorCoeffsParams,ScattererHandle,ScattererParams,ExteriorSource,SourceParams,DiffOp,DiffOpParams);
+			(Basis,Grid,ExteriorCoeffsHandle,ExteriorCoeffsParams,ScattererHandle,ScattererParams,ExteriorSource,SourceParams,DiffOp,DiffOpParamsExt);
 							
 		%------------------------------------------------------------------
-	if 0
+	if 1
 		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
 		Eye = speye(Basis.NBss);
 		Zeros2=spalloc(Basis.NBss,Basis.NBss,0);
