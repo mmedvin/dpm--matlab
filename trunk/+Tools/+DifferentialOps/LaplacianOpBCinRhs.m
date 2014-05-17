@@ -25,7 +25,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			rc = obj.nx*obj.ny;
 			
 			[I,J]=meshgrid(2:obj.nx-1,2:obj.ny-1);
-			obj.Inside = sub2ind(size(EGrid.X),I,J);
+			obj.Inside = sub2ind(size(EGrid.X),J,I);
 			obj.Inside = obj.Inside(:);
 			
 			obj.BC_x1 = ParamsStruct.BC_x1;
