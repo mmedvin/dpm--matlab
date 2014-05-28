@@ -7,9 +7,9 @@ classdef InteriorHomoLaplacianSolver < Solvers.SuperHomoSolver
     
     methods
         function obj = InteriorHomoLaplacianSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,DiffOp,DiffOpParams)
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParams)
             obj = obj@Solvers.SuperHomoSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams);
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs);
             
 %             if  numel(obj.Coeffs.a) + numel(obj.Coeffs.b) + numel(obj.Coeffs.sigma)>3
 %                 GridK = Tools.Grid.CartesianGrid( ...

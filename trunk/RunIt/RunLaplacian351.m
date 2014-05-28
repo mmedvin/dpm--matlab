@@ -7,15 +7,21 @@ function RunLaplacian351
 	y1=-0.7;yn=0.7;
 	%y1=-1.3;yn=1.3;
 	Lx=xn-x1;Ly=yn-y1;
-	ebinf=[];etinf=[];
+	%ebinf=[];etinf=[];
+    ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;
+    
 
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-BIn = 1;
-BOut = 1000;
+    BIn = 1000;
+    BOut = 1;
 
 	BType		= 'Fourier';
+    
+    LinearSolverType = 1;
+    if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
+    
     
     f   =@(phi) ExtExact(FocalDistance,Eta0,phi);
 	g   =@(phi) IntExact(FocalDistance,Eta0,phi);
@@ -29,6 +35,9 @@ BOut = 1000;
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
+    fprintf('Problem 3.51, M=%d, LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, LinearSolverType, BIn, BOut);
+    
+    
 	for n=1:4 %run different grids
 		tic
 		%build grid
@@ -46,13 +55,13 @@ BOut = 1000;
 		
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
 		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
-		DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0);
+		DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType);
 		%x.^2 - y.^2
 		%DiffOpParams = struct(	'BC_x1',Grid.x(1).^2 - Grid.y(2:end-1).^2 ,'BC_xn', Grid.x(end).^2 - Grid.y(2:end-1).^2,...
 		%						'BC_y1',(Grid.x(2:end-1).^2 - Grid.y(1).^2).','BC_yn',(Grid.x(2:end-1).^2 - Grid.y(end).^2).' );
 		
 		IntPrb = Solvers.InteriorHomoLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,DiffOp,DiffOpParamsInt);
+			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParamsInt);
 		
 		%------------------------------------------------------------------
 		ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
@@ -62,10 +71,10 @@ BOut = 1000;
 				
 		% 		 sin(Grid.x(2:end-1)).*cos(Grid.y(end))
 		DiffOpParamsExt = struct('BC_y1', sin(Grid.x(1)).*cos(Grid.y(2:end-1)).','BC_yn',  sin(Grid.x(end)).*cos(Grid.y(2:end-1)).',...
-							  'BC_x1',(sin(Grid.x(2:end-1)).*cos(Grid.y(1))),'BC_xn',(sin(Grid.x(2:end-1)).*cos(Grid.y(end))));
+							  'BC_x1',(sin(Grid.x(2:end-1)).*cos(Grid.y(1))),'BC_xn',(sin(Grid.x(2:end-1)).*cos(Grid.y(end))), 'LinearSolverType', LinearSolverType);
 		
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
-			(Basis,Grid,ExteriorCoeffsHandle,ExteriorCoeffsParams,ScattererHandle,ScattererParams,ExteriorSource,SourceParams,DiffOp,DiffOpParamsExt);
+			(Basis,Grid,ExteriorCoeffsHandle,ExteriorCoeffsParams,ScattererHandle,ScattererParams,CollectRhs,ExteriorSource,SourceParams,DiffOp,DiffOpParamsExt);
 							
 		%------------------------------------------------------------------
 	if 1
@@ -188,22 +197,26 @@ BOut = 1000;
 	Intexact(IntPrb.Scatterer.Np) = IntExact(FocalDistance,IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np));
 	Extexact(ExtPrb.Scatterer.Nm) = ExtExact(FocalDistance,ExtPrb.Scatterer.Eta(ExtPrb.Scatterer.Nm),ExtPrb.Scatterer.Phi(ExtPrb.Scatterer.Nm));
 	
-    t2=toc;
-    
-    Intetinf(n) =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
+    ErrInt =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
 	%Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
 	tmp = Extexact(2:end-1,2:end-1)-Extu(2:end-1,2:end-1);
-	Extetinf(n) =norm(tmp(:),inf);
+	ErrExt =norm(tmp(:),inf);
 	
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
      
-	fprintf('Bin=%-5.2d,BOut=%-5.2d,M=%d,N=%-10dx%-10d\t Intetinf=%d\t Extetinf=%d\t timeA=%d\ttimeE=%d\n',BIn,BOut,Basis.M, Nx,Ny,full(Intetinf(n)),full(Extetinf(n)),t1,t2-t1);
+    ErrTot = max(ErrInt,ErrExt);
+    
+    fprintf('N=%-10dx%-10d\t ErrInt=%d\t rate=%-5.2f ErrExt=%d\t rate=%-5.2f,\t ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
+                    Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),t1);
+    
+    ErrIntPre = ErrInt;
+    ErrExtPre = ErrExt;
+    ErrTotPre = ErrTot;
+    
 end
 
-IntLinf=log2(Intetinf(1:end-1)./Intetinf(2:end))
-ExtLinf=log2(Extetinf(1:end-1)./Extetinf(2:end))
-% Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
+
 
 end
 	

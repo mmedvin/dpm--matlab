@@ -87,10 +87,10 @@ rat=4/5;
             Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         end
       
-        WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
-        WaveNumberAddParams = struct('k',k,'r0',NHR);
+        WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
+        WaveNumberParams = struct('k',k,'r0',NHR);
                 
-        for n=1:5 %run different grids
+        for n=1:4 %run different grids
             tic
             %build grid
             
@@ -100,18 +100,20 @@ rat=4/5;
             Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
             
             if strcmpi(ScatType,'ellipse')
-                ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;               %External
-                ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
+                ScattererHandle  = @Tools.Scatterer.EllipticScatterer;               %External
+                ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
             elseif strcmpi(ScatType,'circle')
-                ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;                
-                ScattererAddParams  = struct('r0',R0,'ExpansionType',15);
+                ScattererHandle  = @Tools.Scatterer.PolarScatterer;                
+                ScattererParams  = struct('r0',R0,'ExpansionType',15);
             elseif strcmpi(ScatType,'submarine')
-                ScattererClsHandle  = @Tools.Scatterer.SubmarineScatterer;
-                ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
-            end
+                ScattererHandle  = @Tools.Scatterer.SubmarineScatterer;
+                ScattererParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
+			end
             
+			CollectRhs = 0;
+			
             ExtPrb =  Solvers.ExteriorSolver ...
-                (Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+                (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs);
             
             Q0 = ExtPrb.Q0;%(:,1:2*M+1);
             Q1 = ExtPrb.Q1;%(:,2*M+2:4*M+2);

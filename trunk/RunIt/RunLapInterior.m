@@ -15,7 +15,10 @@ ExParams.r0 = 1/4;
 
     
 	BType		= 'Fourier';
-    
+ 
+	LinearSolverType = 0;
+	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
+	
     f   =@(theta) Exact(ExParams,theta);
     dfdn=@(theta) drExact(ExParams,theta);
 
@@ -44,10 +47,10 @@ ExParams.r0 = 1/4;
 		
 		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-		DiffOpParams = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0);
+		DiffOpParams = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType);
 		
 		IntPrb = Solvers.InteriorLaplacianSolver ...
-			(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams,DiffOp,DiffOpParams);
+			(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams,DiffOp,DiffOpParams);
 		
     Q0 = IntPrb.Q0;
     Q1 = IntPrb.Q1;

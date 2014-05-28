@@ -2,8 +2,8 @@ function RunLaplacian346
 x1=-1;xn=1;
 y1=-1;yn=1;
 Lx=xn-x1;Ly=yn-y1;
-ebinf=[];etinf=[];
-
+%ebinf=[];etinf=[];
+	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;
 
 
 ExParams.B  = 10^(3);
@@ -12,6 +12,9 @@ ExParams.r0 = 1/2;
 
     
 	BType		= 'Fourier';
+	
+	LinearSolverType = 0;
+	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
     
     f   =@(theta) ExtExact(ExParams,theta);
 	g   =@(theta) IntExact(ExParams,theta);
@@ -23,6 +26,8 @@ ExParams.r0 = 1/2;
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
+	fprintf('Problem 3.46, M=%d, LinearSolverType = %d, r0=%-4.2f, C=%-6.3d,B=%-6.3d\n', Basis.M, LinearSolverType, ExParams.r0,ExParams.C,ExParams.B);
+	
 	for n=1:5 %run different grids
 		tic
 		%build grid
@@ -32,12 +37,12 @@ ExParams.r0 = 1/2;
 		
 		Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 		SourceParams		= ExParams;
-		ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
-		ScattererAddParams  = struct('r0',ExParams.r0,'ExpansionType',33);
+		ScattererHandle  = @Tools.Scatterer.PolarScatterer;
+		ScattererParams  = struct('r0',ExParams.r0,'ExpansionType',33);
 
 		%------------------------------------------------------------------
-		InteriorCoeffsClsHandle = @Tools.Coeffs.LaplaceCoeffsPolar;
-		InteriorCoeffsClsAddParams = [];
+		InteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsPolar;
+		InteriorCoeffsParams = [];
 		InteriorSource              = @Tools.Source.LaplaceSource_IIM346_Interior;
 		
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
@@ -50,18 +55,18 @@ ExParams.r0 = 1/2;
 		
 		
 		Exact	= Tools.Exact.ExLapCrclVarCoeffs346(Boundaries, SourceParams);		
-		DiffOpParams = struct('BC_x1', Exact.u(:,1).','BC_xn', Exact.u(:,2).','BC_y1',Exact.u(:,3),'BC_yn',Exact.u(:,4));
-		
+		DiffOpParams = struct('BC_x1', Exact.u(:,1).','BC_xn', Exact.u(:,2).','BC_y1',Exact.u(:,3),'BC_yn',Exact.u(:,4), 'LinearSolverType', LinearSolverType);
+				
 		IntPrb = Solvers.InteriorLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsClsHandle,InteriorCoeffsClsAddParams,ScattererClsHandle,ScattererAddParams,InteriorSource,SourceParams,DiffOp,DiffOpParams);
+			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,CollectRhs,InteriorSource,SourceParams,DiffOp,DiffOpParams);
 		
 		%------------------------------------------------------------------
-		ExteriorCoeffsClsHandle = @Tools.Coeffs.ConstLapCoeffs;
-		ExteriorCoeffsAddParams = struct('a',ExParams.B,'b',ExParams.B,'sigma',0);
+		ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
+		ExteriorCoeffsParams = struct('a',ExParams.B,'b',ExParams.B,'sigma',0);
 		ExteriorSource              = @Tools.Source.LaplaceSource_IIM346_Exterior;
 				
 		ExtPrb =  Solvers.ExteriorLaplacianSolver ...
-			(Basis,Grid,ExteriorCoeffsClsHandle,ExteriorCoeffsAddParams,ScattererClsHandle,ScattererAddParams,ExteriorSource,SourceParams,DiffOp,DiffOpParams);
+			(Basis,Grid,ExteriorCoeffsHandle,ExteriorCoeffsParams,ScattererHandle,ScattererParams,CollectRhs,ExteriorSource,SourceParams,DiffOp,DiffOpParams);
 							
 		%------------------------------------------------------------------
 	if 1
@@ -151,22 +156,28 @@ ExParams.r0 = 1/2;
 		
 	Extexact(ExtPrb.Scatterer.Nm) = ExtExact(ExtCmprExParams,ExtPrb.Scatterer.Th(ExtPrb.Scatterer.Nm));
 	Intexact(IntPrb.Scatterer.Np) = IntExact(IntCmprExParams,IntPrb.Scatterer.Th(IntPrb.Scatterer.Np));
-
-    t2=toc;
     
-    Intetinf(n) =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
-	%Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
+    ErrInt =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
+	%Extetinf =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
 	tmp=Extexact(2:end-1,2:end-1)-Extu(2:end-1,2:end-1);
-	Extetinf(n) =norm(tmp(:),inf);
+	ErrExt =norm(tmp(:),inf);
+	
+	ErrTot = max(ErrInt,ErrExt);
 	
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
      
-	fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t Intetinf=%d\t Extetinf=%d\t timeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(Intetinf(n)),full(Extetinf(n)),t1,t2-t1);
+	fprintf('N=%-10dx%-10d\t ErrInt=%d\t rate=%-5.2f ErrExt=%d\t rate=%-5.2f,\t ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
+		Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),t1);
+	
+	ErrIntPre = ErrInt;
+	ErrExtPre = ErrExt;
+	ErrTotPre = ErrTot;
+	
 end
 
-IntLinf=log2(Intetinf(1:end-1)./Intetinf(2:end))
-ExtLinf=log2(Extetinf(1:end-1)./Extetinf(2:end))
+%IntLinf=log2(Intetinf(1:end-1)./Intetinf(2:end))
+%ExtLinf=log2(Extetinf(1:end-1)./Extetinf(2:end))
 % Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
 
 end
