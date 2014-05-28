@@ -19,7 +19,7 @@ function RunLaplacian351
 
 	BType		= 'Fourier';
     
-    LinearSolverType = 1;
+    LinearSolverType = 0;
     if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
     
     
@@ -38,7 +38,7 @@ function RunLaplacian351
     fprintf('Problem 3.51, M=%d, LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, LinearSolverType, BIn, BOut);
     
     
-	for n=1:4 %run different grids
+	for n=1:5 %run different grids
 		tic
 		%build grid
 		p=3;%3;
