@@ -6,14 +6,14 @@ Lx=xn-x1;Ly=yn-y1;
 	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;
 
 
-ExParams.B  = 10^(3);
+ExParams.B  = 10^(-3);
 ExParams.C  = 0.1;
 ExParams.r0 = 1/2;
 
     
 	BType		= 'Fourier';
 	
-	LinearSolverType = 0;
+	LinearSolverType = 2;
 	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
     
     f   =@(theta) ExtExact(ExParams,theta);

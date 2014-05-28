@@ -14,7 +14,11 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		BC_yn=0;
 		
 		
-		MGHandle
+		MGHandle;
+		iluL;
+		iluU;
+		tollerance = 1e-12; %default value, may be changed in some iterative solvers
+		gmresRestarts;
 	end
     methods (Access=public)
         
@@ -51,14 +55,14 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						mg_param.by  = 5;            % block size y
 						mg_param.sx  = 4;            % skip size x
 						mg_param.sy  = 4;            % skip size y
-						mg_param.cycleType = 'f';    % MG cycle type.  % the other choice is 'v'
+						mg_param.cycleType = 'v';    % MG cycle type.  % the other choice is 'v', 'f'
 						mg_param.verbose = 0;
 						mg_param.maxIt = 100;
 						
 						if 1
 							mg_param.TOL = (EGrid.dx*EGrid.dy)^2;
 						else
-							mg_param.TOL = 1.e-10;
+							mg_param.TOL = obj.tollerance; %1.e-10;
 						end
 						
 						nVoffset=-1;
@@ -66,7 +70,14 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						assert(ParamsStruct.Grid.Nx==ParamsStruct.Grid.Ny);
 						obj.MGHandle = Tools.LASolvers.MultiGrid.ClassQinghaiMG(obj.A, ParamsStruct.Grid.Nx, 'p1',mg_param, nVoffset);
 					case 2 % GMRES
-						%nothing
+						
+						obj.tollerance =  (obj.Grid.dx*obj.Grid.dy)^2;
+						obj.gmresRestarts = 2*fix(sqrt(obj.Grid.Nx*obj.Grid.Ny));
+						
+						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','nofill','droptol',obj.tollerance));%preconditioner
+						[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance^2));%preconditioner
+						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
+						
 					otherwise
 						%nothing
 				end
@@ -96,6 +107,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						[u(obj.Inside),resRel, nIters] = obj.MGHandle.Solve(f(obj.Inside));
 					case 2 % GMRES
 						assert(size(f,2)==1);
+						[u(obj.Inside), flag] = gmres(obj.A ,f(obj.Inside), [], obj.tollerance, 100,obj.iluL,obj.iluU);
 					otherwise
 						%u(obj.Inside,j) = obj.A\f(obj.Inside,j);
 						u(obj.Inside,:) = obj.A\f(obj.Inside,:);
