@@ -70,8 +70,10 @@ p=4;%3;
         ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
     end
 
+    CollectRhs = 1;
+    
     IntPrb =  Solvers.InteriorHomoSolver ... 
-        (Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+        (Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs);
     
     Q0 = IntPrb.Q0;%(:,1:2*M+1);
     Q1 = IntPrb.Q1;%(:,2*M+2:4*M+2);

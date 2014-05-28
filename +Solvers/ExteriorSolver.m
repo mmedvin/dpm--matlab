@@ -4,16 +4,16 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
         A1;
         A2;
         k;
-        w0;
-        w1;
-        f;
+  %      w0;
+  %      w1;
+  %      f;
     end
     
     methods
         function obj = ExteriorSolver( ...
-                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams)                      
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs)                      
             obj = obj@Solvers.SuperHomoSolver( ...
-                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams);
+                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs);
             
             obj.k=obj.Coeffs.k;
             
@@ -21,10 +21,10 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             obj.CreateSolverA2();
             
             Ngg = numel(obj.GridGamma);
-            obj.w0 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
-            obj.w1 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
+            %obj.w0 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
+            %obj.w1 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
             
-            obj.f=zeros(Grid.Nx,Grid.Ny);
+            %obj.f=zeros(Grid.Nx,Grid.Ny);
             
             obj.myQ0 = zeros(Ngg,obj.Basis.NBss);
             obj.myQ1 = zeros(Ngg,obj.Basis.NBss);
@@ -35,20 +35,27 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             
             u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Nm));
             
+			w = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.GridGamma));
+			
             if ~exist('Uinc','var')
-                Uinc=zeros(size(obj.w0));
+                %Uinc=zeros(obj.Grid.Nx,obj.Grid.Ny);%(size(obj.w0));
+				 Uinc=spalloc(obj.Grid.Nx,obj.Grid.Ny,0);
+				%do nothing
+			else
+				w(obj.GridGamma) = Uinc(obj.GridGamma);
             end
             
-            obj.w0(obj.GridGamma) = Uinc(obj.GridGamma);
+            %obj.w0(obj.GridGamma) = Uinc(obj.GridGamma);
             
-            GLW = obj.Solve(xi_gamma - obj.w0);
+            %GLW = obj.Solve(xi_gamma - obj.w0);
+			GLW = obj.Solve(xi_gamma - w);
             
             u(obj.Scatterer.Nm)=GLW(obj.Scatterer.Nm) + Uinc(obj.Scatterer.Nm);
         end
         
         function Qj = Qcol2(obj,w)
             
-            if numel(w)~= numel(obj.w0)
+            if numel(w) == numel(obj.GridGamma)%~= numel(obj.w0)
                 tmp = spalloc(obj.Grid.Nx,obj.Grid.Ny,length(obj.GridGamma));
                 tmp(obj.GridGamma)=w;
                 w=tmp;
@@ -67,7 +74,7 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             f = obj.A1*u;
             
             if exist('msk','var');
-                f = f(msk);            
+                f = f(msk,:);            
             end
 %             if exist('msk','var');
 %                 f = obj.A1(msk,:)*u;
@@ -90,33 +97,33 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
         end
         
         
-        function u = Solve(obj,x)            
-             obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
-             %obj.Truncate(f);
-             u = obj.Gf(obj.f);                        
-        end
+%         function u = Solve(obj,x)            
+%              obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
+%              %obj.Truncate(f);
+%              u = obj.Gf(obj.f);                        
+%         end
         
-        function calc_QnW(obj)
-            for j = 1:obj.Basis.NBss
-               
-                [obj.w0(obj.GridGamma),obj.w1(obj.GridGamma)] = obj.ExpandedBasis(obj.Basis.Indices(j)) ;
-                
-                obj.myW0(obj.GridGamma,j) = obj.w0(obj.GridGamma);
-                obj.myW1(obj.GridGamma,j) = obj.w1(obj.GridGamma);
-                
-%                 GLW0 = obj.Solve(obj.w0);
-%                 GLW1 = obj.Solve(obj.w1);
+%         function calc_QnW(obj)
+%             for j = 1:obj.Basis.NBss
+%                
+%                 [obj.w0(obj.GridGamma),obj.w1(obj.GridGamma)] = obj.ExpandedBasis(obj.Basis.Indices(j)) ;
 %                 
-%                 obj.myQ0(:,j) = obj.Qcol(GLW0,obj.w0);
-%                 obj.myQ1(:,j) = obj.Qcol(GLW1,obj.w1);
-
-                obj.myQ0(:,j) = obj.Qcol2(obj.w0);
-                obj.myQ1(:,j) = obj.Qcol2(obj.w1);
-
-
-            end
-            obj.IsReadyQnW = true;
-        end
+%                 obj.myW0(obj.GridGamma,j) = obj.w0(obj.GridGamma);
+%                 obj.myW1(obj.GridGamma,j) = obj.w1(obj.GridGamma);
+%                 
+% %                 GLW0 = obj.Solve(obj.w0);
+% %                 GLW1 = obj.Solve(obj.w1);
+% %                 
+% %                 obj.myQ0(:,j) = obj.Qcol(GLW0,obj.w0);
+% %                 obj.myQ1(:,j) = obj.Qcol(GLW1,obj.w1);
+% 
+%                 obj.myQ0(:,j) = obj.Qcol2(obj.w0);
+%                 obj.myQ1(:,j) = obj.Qcol2(obj.w1);
+% 
+% 
+%             end
+%             obj.IsReadyQnW = true;
+%         end
         
         
         

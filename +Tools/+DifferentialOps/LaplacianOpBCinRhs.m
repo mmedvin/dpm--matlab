@@ -1,6 +1,9 @@
 classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
     %LaplacianOp Creates 2nd order Matrix for variable coefficiant Laplacian
     properties
+		
+		LinearSolverType = 0;
+		
 		Inside;
 		nx;
 		ny;
@@ -9,6 +12,9 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		BC_xn=0;
 		BC_y1=0;
 		BC_yn=0;
+		
+		
+		MGHandle
 	end
     methods (Access=public)
         
@@ -22,7 +28,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			
 			obj.nx = EGrid.Nx;
 			obj.ny = EGrid.Ny;
-			rc = obj.nx*obj.ny;
+			
 			
 			[I,J]=meshgrid(2:obj.nx-1,2:obj.ny-1);
 			obj.Inside = sub2ind(size(EGrid.X),J,I);
@@ -32,6 +38,39 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			obj.BC_xn = ParamsStruct.BC_xn;
 			obj.BC_y1 = ParamsStruct.BC_y1;
 			obj.BC_yn = ParamsStruct.BC_yn;
+			
+			
+			obj.LinearSolverType = ParamsStruct.LinearSolverType;
+			
+			switch obj.LinearSolverType
+					case 1 % Multigrid of Qinghai
+						mg_param.nu1 = 3;            % number of pre smooths
+						mg_param.nu2 = 3;            % number of post smooths
+						mg_param.minlevel = 1;       % level of coarsest grid
+						mg_param.bx  = 5;            % block size x
+						mg_param.by  = 5;            % block size y
+						mg_param.sx  = 4;            % skip size x
+						mg_param.sy  = 4;            % skip size y
+						mg_param.cycleType = 'f';    % MG cycle type.  % the other choice is 'v'
+						mg_param.verbose = 0;
+						mg_param.maxIt = 100;
+						
+						if 1
+							mg_param.TOL = (EGrid.dx*EGrid.dy)^2;
+						else
+							mg_param.TOL = 1.e-10;
+						end
+						
+						nVoffset=-1;
+						
+						assert(ParamsStruct.Grid.Nx==ParamsStruct.Grid.Ny);
+						obj.MGHandle = Tools.LASolvers.MultiGrid.ClassQinghaiMG(obj.A, ParamsStruct.Grid.Nx, 'p1',mg_param, nVoffset);
+					case 2 % GMRES
+						%nothing
+					otherwise
+						%nothing
+				end
+			
 		end
 		
 				function b = ApplyOp(obj,x,mask)
@@ -49,9 +88,19 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		function u = Solve(obj,f)
 			u = zeros(size(f));
 			
-			for j=1:size(f,2)
-				u(obj.Inside,j) = obj.A\f(obj.Inside,j);
-			end
+			%for j=1:size(f,2)
+				switch obj.LinearSolverType
+					case 1 % Multigrid of Qinghai
+						assert(size(f,2)==1);
+						%[u(obj.Inside,j),resRel, nIters] = obj.MGHandle.Solve(f(obj.Inside,j));
+						[u(obj.Inside),resRel, nIters] = obj.MGHandle.Solve(f(obj.Inside));
+					case 2 % GMRES
+						assert(size(f,2)==1);
+					otherwise
+						%u(obj.Inside,j) = obj.A\f(obj.Inside,j);
+						u(obj.Inside,:) = obj.A\f(obj.Inside,:);
+				end
+			%end
         end
 		
 		

@@ -43,12 +43,10 @@ p=3;%3;
     ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
     Source              = @Tools.Source.HelmholtzSource;
     
-    
-%     (BasisIndices,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererC
-%     lsHandle,ScattererAddParams,Source)
+	CollectRhs=1;
     
     IntPrb = Solvers.InteriorSolver ... 
-        (Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,Source);%(k0,x1,xn,y1,yn,Nx,Ny,FocalDist,Eta0,M,NHR);
+        (Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs,Source);%(k0,x1,xn,y1,yn,Nx,Ny,FocalDist,Eta0,M,NHR);
     
     Q0 = IntPrb.Q0;%(:,1:2*M+1);
     Q1 = IntPrb.Q1;%(:,2*M+2:4*M+2);

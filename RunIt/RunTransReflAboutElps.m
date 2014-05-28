@@ -60,8 +60,10 @@ kex = [1];
             ExtScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Exterior
             ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance);
             
+			CollectRhs=0;
+			
             ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ExtScattererClsHandle,ScattererAddParams);
+                (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ExtScattererClsHandle,ScattererAddParams,CollectRhs);
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 
@@ -69,9 +71,9 @@ kex = [1];
             
 
             %IntWaveNumberAddParams = k+dk;           
-            
+            CollectRhs=1;
             IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,IntScattererClsHandle,ScattererAddParams);
+                (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,IntScattererClsHandle,ScattererAddParams,CollectRhs);
          
             if 1
                 IntQ = IntPrb.Q;

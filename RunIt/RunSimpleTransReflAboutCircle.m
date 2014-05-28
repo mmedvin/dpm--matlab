@@ -45,19 +45,22 @@ function RunSimpleTransReflAboutCircle
              Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
             
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
+            WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
             ExtWaveNumberAddParams = struct('k',k,'r0',NHR);                      
-            ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
-            ScattererAddParams  = struct('r0',R0,'ExpansionType',15);
+            ScattererHandle  = @Tools.Scatterer.PolarScatterer;
+            ScattererParams  = struct('r0',R0,'ExpansionType',15);
             
+			CollectRhs = 0;
+			
             ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+                (Basis,PlrGrid,WaveNumberHandle,ExtWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-            IntWaveNumberAddParams = struct('k',k+dk,'r0',NHR);             
+            IntWaveNumberParams = struct('k',k+dk,'r0',NHR);             
             
+			CollectRhs = 1;
             IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,ScattererClsHandle,ScattererAddParams);
+                (Basis,CrtsGrid,WaveNumberHandle,IntWaveNumberParams,ScattererHandle,ScattererParams,CollectRhs);
          
             if 1
                 ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %

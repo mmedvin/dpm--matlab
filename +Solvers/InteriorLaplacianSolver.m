@@ -7,9 +7,9 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
     
     methods
         function obj = InteriorLaplacianSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams,DiffOp,DiffOpParams)
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams,DiffOp,DiffOpParams)
             obj = obj@Solvers.SuperNonHomoSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams);
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams);
             
 %             if  numel(obj.Coeffs.a) + numel(obj.Coeffs.b) + numel(obj.Coeffs.sigma)>3
 %                 GridK = Tools.Grid.CartesianGrid( ...
@@ -79,7 +79,7 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
 		function res = BF(obj)
 			ScattererForSource = obj.Scatterer;
 			
-			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
+			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
 			
 			res = obj.Bf(HS.Source);
 			res(obj.Scatterer.Outside())=0;			

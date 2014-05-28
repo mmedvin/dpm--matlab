@@ -69,12 +69,15 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
             ExtScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Exterior
             ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance);
             
+			CollectRhs=0;
+			
             ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ExtScattererClsHandle,ScattererAddParams);
+                (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ExtScattererClsHandle,ScattererAddParams,CollectRhs);
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
+			CollectRhs=1;
             IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,IntScattererClsHandle,ScattererAddParams);
+                (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,IntScattererClsHandle,ScattererAddParams,CollectRhs);
          
             if 1
                 ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %

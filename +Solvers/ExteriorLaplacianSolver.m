@@ -9,9 +9,9 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
 	
     methods
         function obj = ExteriorLaplacianSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams,DiffOp,DiffOpParams)
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams,DiffOp,DiffOpParams)
             obj = obj@Solvers.InteriorLaplacianSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,Source,SourceParams,DiffOp,DiffOpParams);     
+                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams,DiffOp,DiffOpParams);     
 			
 % 			 Boundaries.R = [ sqrt(Grid.x(1)^2+ Grid.y(2:end-1).^2).' , ...
 %                                  sqrt(Grid.x(end)^2+ Grid.y(2:end-1).^2).',  ...
@@ -56,7 +56,7 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
 			
 			ScattererForSource = obj.Scatterer;
 			
-			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsClsHandle,obj.CoeffsAddParams,obj.SourceParams);
+			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
 			
 			res = obj.Bf(HS.Source);
 			res(obj.Scatterer.Inside())=0;
