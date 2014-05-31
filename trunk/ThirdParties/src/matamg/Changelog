@@ -1,0 +1,31 @@
+==============================================
+ MATAMG (v.0.1.4)                [2012.05.03]
+==============================================
+
+-------------------
+v.0.1.4
+-------------------
+- Support GNU Octave
+- Updated Contents.m
+- Added update.m
+-------------------
+v.0.1.2
+-------------------
+- Added aggresive first coloring scheme (aggcoarsening.m)
+- Added aggresive second coloring scheme (aggcoarsening.m)
+- Fixed bug in rbamgp.c
+- Changed OutFile to LogFile, and added Log and LogNum;
+- New amgbench.m
+- Added transpose of interpolation to amgdata.
+- Added aggressive coarsening and interpolation
+- Added aggressive coarsening and interpolation (A(2,1) A(2,2))
+- Fixed bug in rbamgp.c
+- Changed OutFile to LogFile, and added Log and LogNum;
+- Added length 2 strong connection (length2strong.m)
+- Fixed length2strong_mex to return neighborhood points (inbd and jnbd)(length2strong.m)
+- Added long range AMG interpolation (longrangeamgp.m)
+- Removed unnecessary computation caused by using MATLAB index in mex file.
+
+v.0.1.0(2010/12/01)
+-------------------
+- Initial release
