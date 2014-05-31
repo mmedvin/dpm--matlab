@@ -77,7 +77,22 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','nofill','droptol',obj.tollerance));%preconditioner
 						[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance^2));%preconditioner
 						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
-						
+					
+				case 3 %AMG_WU
+					
+					obj.tollerance =  (obj.Grid.dx*obj.Grid.dy)^2;
+					
+					Params.level=2;
+					Params.relax_it=1;%2;
+					Params.relaxation_parameter=1;%1
+					Params.post_smoothing=1;
+					Params.max_iter=100;
+					Params.tollerance=obj.tollerance;
+					Params.pc_type=2;
+					Params.connection_threshold=0.25;
+					
+					obj.MGHandle = Tools.LASolvers.MultiGrid.AMG_WU(obj.A,Params);
+					
 					otherwise
 						%nothing
 				end
@@ -108,6 +123,10 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					case 2 % GMRES
 						assert(size(f,2)==1);
 						[u(obj.Inside), flag] = gmres(obj.A ,f(obj.Inside), [], obj.tollerance, 100,obj.iluL,obj.iluU);
+						
+					case 3 %AMG_WU
+						assert(size(f,2)==1);
+						[u(obj.Inside),resd, nIters] = obj.MGHandle.Solve(f(obj.Inside));
 					otherwise
 						%u(obj.Inside,j) = obj.A\f(obj.Inside,j);
 						u(obj.Inside,:) = obj.A\f(obj.Inside,:);

@@ -13,7 +13,7 @@ ExParams.r0 = 1/2;
     
 	BType		= 'Fourier';
 	
-	LinearSolverType = 2;
+	LinearSolverType = 3;
 	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
     
     f   =@(theta) ExtExact(ExParams,theta);
@@ -28,7 +28,7 @@ ExParams.r0 = 1/2;
 
 	fprintf('Problem 3.46, M=%d, LinearSolverType = %d, r0=%-4.2f, C=%-6.3d,B=%-6.3d\n', Basis.M, LinearSolverType, ExParams.r0,ExParams.C,ExParams.B);
 	
-	for n=1:5 %run different grids
+	for n=1:3 %run different grids
 		tic
 		%build grid
 		p=3;%3;

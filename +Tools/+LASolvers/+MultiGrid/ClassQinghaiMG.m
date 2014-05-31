@@ -1,4 +1,4 @@
-classdef ClassQinghaiMG
+classdef ClassQinghaiMG < handle
     properties(Access = protected)
         % matrix;
         param;

@@ -1,0 +1,143 @@
+What is MGLab?
+
+    MGLab is a set of public domain Matlab functions that defines an 
+    interactive environment for experimenting with multigrid algorithms.  The 
+    package solves two-dimensional elliptic partial differential equations 
+    using finite differences and includes several built-in problems (Poisson
+    Helmholtz, discontinuous coefficient problems and non-self adjoint
+    problems).  A number of parameters controlling the V-cycle can be set
+    using a point and click mechanism.  The menu-based user interface also
+    allows a choice of several Krylov subspace accelerators (PCG, GMRES(k),
+    BiCG/STAB).  The package exploits Matlabs visualization and
+    sparse matrix features and has been structured to be extensible.
+
+-------------------------------------------------------------------------------
+
+MGLab Files
+
+    The Graphical User Interface
+ 
+        MGLab.m
+        show_params.m
+        set_defaults.m
+        run.m
+        multigrid_setup.m
+        menu_header.m
+        menu_item.m
+        version_info.m
+        Contents.m
+    
+    Global Variables
+    
+        include_globals.m
+        extract_globals.m
+        include_flags.m
+        include_figs.m
+    
+    Linear Systems
+    
+        get_matrix.m
+        sp_laplace.m
+        sp_cutsq2d.m
+        sp_convdiff.m
+        get_rhs.m
+    
+    Solvers
+    
+        solve.m
+        converged.m
+        vmg.m
+        fmg.m
+        pcg.m
+        pcgs.m
+        pbicgstab.m
+        pgmres.m
+        sor.m
+        get_SOR_omega.m
+    
+    Preconditioners
+    
+        precondition.m
+        precond_mg.m
+    
+    Results
+    
+        update_results.m
+    
+    Multigrid Routines: High Level
+    
+        mg_cycle.m
+        vmg_cycle.m
+        fmg_cycle.m
+        wmg_cycle.m
+        halfvmg_cycle.m
+    
+    Multigrid Routines: Middle Level
+    
+        smooth.m
+        residual.m
+        restrict.m
+        coarse_grid_solve.m
+        interpolate.m
+        sp_prolong.m
+    
+    Multigrid Routines: Low Level
+    
+        coarsest.m
+        max_level.m
+    
+    Demos
+    
+        demo_globals.m
+        demo1.m
+        demo1_run.m
+        demo2.m
+        demo2_run.m
+        demo2_Vcycle.m 
+        demo3.m
+        demo3_run.m
+        demo3_vmg.m
+        sint.m
+        sint2.m
+   
+-------------------------------------------------------------------------------
+
+Documentation
+ 
+    Thanks to Craig Douglas, a PostScript version of a short paper describing
+    MGLab is available from mgnet.  The paper can be retrieved by anonymous
+    ftp to
+                ftp.cerfacs.fr
+    or          casper.cs.yale.edu
+    in the directory
+                pub/mgnet/Conferences/CopperMtn95
+    The name of the file is
+                bordner_saied.ps.gz
+ 
+    To run MGLab, simply start up Matlab (Version 4.0 or later) and type
+    `MGLab'.  You may wish to include this directory in your Matlab path by
+    typing `path (path,pwd)' while in your MGLab directory.
+
+-------------------------------------------------------------------------------
+
+Future Releases
+ 
+    Comments about and suggestions for improvements of the code are welcome:
+    we plan to have future versions of MGLab that incorporate enhancements and
+    bug fixes.  To be put on a mailing list to be informed of new versions,
+    send email to James Bordner (bordner@cs.uiuc.edu).
+
+-------------------------------------------------------------------------------
+
+Revision History
+   
+       10 June 1995 V1.00beta: Initial release
+       20 June 1995 V1.0:      SOR solver added
+
+-------------------------------------------------------------------------------
+
+James Bordner (bordner@cs.uiuc.edu)
+Faisal Saied (saied@cs.uiuc.edu)
+University of Illinois at Urbana-Champaign
+Department of Computer Science
+20 June 1995
