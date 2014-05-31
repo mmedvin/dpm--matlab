@@ -19,6 +19,8 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		iluU;
 		tollerance = 1e-12; %default value, may be changed in some iterative solvers
 		gmresRestarts;
+        
+        AMG_MP_Options;
 	end
     methods (Access=public)
         
@@ -77,8 +79,23 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','nofill','droptol',obj.tollerance));%preconditioner
 						[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance^2));%preconditioner
 						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
+										
+                case 3 %MATAMG, aka AMG_MP
+                    
+                    obj.tollerance =  (obj.Grid.dx*obj.Grid.dy);%^2;
 					
-				case 3 %AMG_WU
+					Params.MaxCycle = 100;
+					Params.tollerance = obj.tollerance;
+                    Params.A = obj.A;
+					 obj.MGHandle = Tools.LASolvers.MultiGrid.MatAmgWrapper(Params);
+					
+                    %obj.AMG_MP_Options = amgset;
+                    %obj.AMG_MP_Options = amgset(obj.AMG_MP_Options,'PrintOnScreen','off', 'MaxCycle',200,'PreCond','pcg','TolAMG', obj.tollerance);%'IntpType','lramg');%, 'SaveCsn','off','SaveIntp','off','Log','off');
+					
+				
+				case 4 %AMG_WU
+					
+					error('wrong choice, this option doesn''t work well')
 					
 					obj.tollerance =  (obj.Grid.dx*obj.Grid.dy)^2;
 					
@@ -92,8 +109,8 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					Params.connection_threshold=0.25;
 					
 					obj.MGHandle = Tools.LASolvers.MultiGrid.AMG_WU(obj.A,Params);
-					
-					otherwise
+				
+				otherwise
 						%nothing
 				end
 			
@@ -124,9 +141,20 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						assert(size(f,2)==1);
 						[u(obj.Inside), flag] = gmres(obj.A ,f(obj.Inside), [], obj.tollerance, 100,obj.iluL,obj.iluU);
 						
-					case 3 %AMG_WU
+                    case 3 %MATAMG, aka AMG_MP
+                        
+						u(obj.Inside) = obj.MGHandle.Solve(f(obj.Inside));                
+						
+                      % u(obj.Inside)= amg(obj.A,u(obj.Inside),f(obj.Inside),obj.AMG_MP_Options);
+                                              
+%                        b=f(obj.Inside);
+%                        B=obj.A*u(obj.Inside);
+%                        assert(norm(b(:)-B(:),'inf')<1e-10);
+
+					case 4 %AMG_WU
 						assert(size(f,2)==1);
-						[u(obj.Inside),resd, nIters] = obj.MGHandle.Solve(f(obj.Inside));
+						[u(obj.Inside),resd, nIters] = obj.MGHandle.Solve(f(obj.Inside));                        
+
 					otherwise
 						%u(obj.Inside,j) = obj.A\f(obj.Inside,j);
 						u(obj.Inside,:) = obj.A\f(obj.Inside,:);

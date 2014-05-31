@@ -3,7 +3,7 @@ x1=-1;xn=1;
 y1=-1;yn=1;
 Lx=xn-x1;Ly=yn-y1;
 %ebinf=[];etinf=[];
-	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;
+	
 
 
 ExParams.B  = 10^(-3);
@@ -12,10 +12,7 @@ ExParams.r0 = 1/2;
 
     
 	BType		= 'Fourier';
-	
-	LinearSolverType = 3;
-	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
-    
+	    
     f   =@(theta) ExtExact(ExParams,theta);
 	g   =@(theta) IntExact(ExParams,theta);
     %dfdn=@(theta) drExact(ExParams,theta);
@@ -26,9 +23,15 @@ ExParams.r0 = 1/2;
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
+	
+for	LinearSolverType = 0:3
+	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
+
+	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;
+	
 	fprintf('Problem 3.46, M=%d, LinearSolverType = %d, r0=%-4.2f, C=%-6.3d,B=%-6.3d\n', Basis.M, LinearSolverType, ExParams.r0,ExParams.C,ExParams.B);
 	
-	for n=1:3 %run different grids
+	for n=1:5 %run different grids
 		tic
 		%build grid
 		p=3;%3;
@@ -175,7 +178,7 @@ ExParams.r0 = 1/2;
 	ErrTotPre = ErrTot;
 	
 end
-
+end
 %IntLinf=log2(Intetinf(1:end-1)./Intetinf(2:end))
 %ExtLinf=log2(Extetinf(1:end-1)./Extetinf(2:end))
 % Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
