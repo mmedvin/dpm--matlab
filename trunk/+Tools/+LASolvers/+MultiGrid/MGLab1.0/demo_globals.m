@@ -1,0 +1,3 @@
+
+global DEMO_INFO_FIG  DEMO_VAR1
+
