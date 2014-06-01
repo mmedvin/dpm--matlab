@@ -15,8 +15,11 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		
 		
 		MGHandle;
-		iluL;
-		iluU;
+		L;
+		U;
+		P;
+		Q;
+		R;
 		tollerance = 1e-12; %default value, may be changed in some iterative solvers
 		gmresRestarts;
         
@@ -77,7 +80,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						obj.gmresRestarts = 2*fix(sqrt(obj.Grid.Nx*obj.Grid.Ny));
 						
 						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','nofill','droptol',obj.tollerance));%preconditioner
-						[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance^2));%preconditioner
+						[obj.L,obj.U] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance^2));%preconditioner
 						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
 										
                 case 3 %MATAMG, aka AMG_MP
@@ -92,8 +95,11 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
                     %obj.AMG_MP_Options = amgset;
                     %obj.AMG_MP_Options = amgset(obj.AMG_MP_Options,'PrintOnScreen','off', 'MaxCycle',200,'PreCond','pcg','TolAMG', obj.tollerance);%'IntpType','lramg');%, 'SaveCsn','off','SaveIntp','off','Log','off');
 					
-				
-				case 4 %AMG_WU
+				case 4 %LU
+					[obj.L,obj.U,obj.P,obj.Q,obj.R] = lu(obj.A);					
+				case 5 %LU	
+					[obj.L,obj.U,obj.P,obj.Q] = lu(obj.A);
+				case 99 %AMG_WU
 					
 					error('wrong choice, this option doesn''t work well')
 					
@@ -139,7 +145,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						[u(obj.Inside),resRel, nIters] = obj.MGHandle.Solve(f(obj.Inside));
 					case 2 % GMRES
 						assert(size(f,2)==1);
-						[u(obj.Inside), flag] = gmres(obj.A ,f(obj.Inside), [], obj.tollerance, 100,obj.iluL,obj.iluU);
+						[u(obj.Inside), flag] = gmres(obj.A ,f(obj.Inside), [], obj.tollerance, 100,obj.L,obj.U);
 						
                     case 3 %MATAMG, aka AMG_MP
                         
@@ -147,11 +153,16 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						
                       % u(obj.Inside)= amg(obj.A,u(obj.Inside),f(obj.Inside),obj.AMG_MP_Options);
                                               
-%                        b=f(obj.Inside);
-%                        B=obj.A*u(obj.Inside);
-%                        assert(norm(b(:)-B(:),'inf')<1e-10);
+					  %                        b=f(obj.Inside);
+					  %                        B=obj.A*u(obj.Inside);
+					  %                        assert(norm(b(:)-B(:),'inf')<1e-10);
 
-					case 4 %AMG_WU
+					case 4
+						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(obj.R\f(obj.Inside)))));
+					case 5
+						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(f(obj.Inside)))));
+
+					case 99 %AMG_WU
 						assert(size(f,2)==1);
 						[u(obj.Inside),resd, nIters] = obj.MGHandle.Solve(f(obj.Inside));                        
 
