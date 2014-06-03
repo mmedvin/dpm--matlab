@@ -1,6 +1,11 @@
 classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
     %LaplacianOp Creates 2nd order Matrix for variable coefficiant Laplacian
-    properties
+   
+	properties (Constant)
+		GigaByte=2^30;
+	end
+	
+	properties
 		
 		LinearSolverType = 0;
 		
@@ -20,8 +25,8 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		P;
 		Q;
 		R;
-		tollerance = 1e-12; %default value, may be changed in some iterative solvers
-		gmresRestarts;
+		tollerance = 1e-10; %default value, may be changed in some iterative solvers
+		MaxIteration ;
         
         AMG_MP_Options;
 	end
@@ -52,10 +57,10 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			obj.LinearSolverType = ParamsStruct.LinearSolverType;
 			
 			switch obj.LinearSolverType
-					case 1 % Multigrid of Qinghai
+				case 1 % Multigrid of Qinghai
 						mg_param.nu1 = 3;            % number of pre smooths
 						mg_param.nu2 = 3;            % number of post smooths
-						mg_param.minlevel = 1;       % level of coarsest grid
+						mg_param.minlevel = 4;       % level of coarsest grid
 						mg_param.bx  = 5;            % block size x
 						mg_param.by  = 5;            % block size y
 						mg_param.sx  = 4;            % skip size x
@@ -65,7 +70,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						mg_param.maxIt = 100;
 						
 						if 1
-							mg_param.TOL = (EGrid.dx*EGrid.dy)^2;
+							mg_param.TOL = max((EGrid.dx*EGrid.dy)^2,obj.tollerance);
 						else
 							mg_param.TOL = obj.tollerance; %1.e-10;
 						end
@@ -74,16 +79,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						
 						assert(ParamsStruct.Grid.Nx==ParamsStruct.Grid.Ny);
 						obj.MGHandle = Tools.LASolvers.MultiGrid.ClassQinghaiMG(obj.A, ParamsStruct.Grid.Nx, 'p1',mg_param, nVoffset);
-					case 2 % GMRES
-						
-						obj.tollerance =  (obj.Grid.dx*obj.Grid.dy)^2;
-						obj.gmresRestarts = 2*fix(sqrt(obj.Grid.Nx*obj.Grid.Ny));
-						
-						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','nofill','droptol',obj.tollerance));%preconditioner
-						[obj.L,obj.U] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance^2));%preconditioner
-						%[obj.iluL,obj.iluU] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
-										
-                case 3 %MATAMG, aka AMG_MP
+				case 2 %MATAMG, aka AMG_MP
                     
                     obj.tollerance =  (obj.Grid.dx*obj.Grid.dy);%^2;
 					
@@ -95,10 +91,22 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
                     %obj.AMG_MP_Options = amgset;
                     %obj.AMG_MP_Options = amgset(obj.AMG_MP_Options,'PrintOnScreen','off', 'MaxCycle',200,'PreCond','pcg','TolAMG', obj.tollerance);%'IntpType','lramg');%, 'SaveCsn','off','SaveIntp','off','Log','off');
 					
-				case 4 %LU
+				case 3 %LU
 					[obj.L,obj.U,obj.P,obj.Q,obj.R] = lu(obj.A);					
-				case 5 %LU	
+				case 4 %LU	
 					[obj.L,obj.U,obj.P,obj.Q] = lu(obj.A);
+					
+				case 5 % GMRES
+					
+					obj.tollerance		=  max((obj.Grid.dx*obj.Grid.dy)^2,1e-8);
+					obj.MaxIteration	=	obj.Grid.Nx*obj.Grid.Ny;
+					
+					
+					%[obj.L,obj.U] = ilu(obj.A,struct('type','nofill'));%preconditioner
+					[obj.L,obj.U] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance));%preconditioner
+					%[obj.L,obj.U] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
+					
+
 				case 99 %AMG_WU
 					
 					error('wrong choice, this option doesn''t work well')
@@ -136,20 +144,18 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		
 		function u = Solve(obj,f)
 			u = zeros(size(f));
+			Rhs = f(obj.Inside);
 			
 			%for j=1:size(f,2)
 				switch obj.LinearSolverType
 					case 1 % Multigrid of Qinghai
-						assert(size(f,2)==1);
+						%assert(size(f,2)==1);
 						%[u(obj.Inside,j),resRel, nIters] = obj.MGHandle.Solve(f(obj.Inside,j));
-						[u(obj.Inside),resRel, nIters] = obj.MGHandle.Solve(f(obj.Inside));
-					case 2 % GMRES
-						assert(size(f,2)==1);
-						[u(obj.Inside), flag] = gmres(obj.A ,f(obj.Inside), [], obj.tollerance, 100,obj.L,obj.U);
-						
-                    case 3 %MATAMG, aka AMG_MP
+						[u(obj.Inside),resRel, nIters] = obj.MGHandle.Solve(Rhs);
+											
+                    case 2 %MATAMG, aka AMG_MP
                         
-						u(obj.Inside) = obj.MGHandle.Solve(f(obj.Inside));                
+						u(obj.Inside) = obj.MGHandle.Solve(Rhs);                
 						
                       % u(obj.Inside)= amg(obj.A,u(obj.Inside),f(obj.Inside),obj.AMG_MP_Options);
                                               
@@ -157,11 +163,34 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					  %                        B=obj.A*u(obj.Inside);
 					  %                        assert(norm(b(:)-B(:),'inf')<1e-10);
 
+					case 3
+						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(obj.R\Rhs))));
 					case 4
-						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(obj.R\f(obj.Inside)))));
-					case 5
-						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(f(obj.Inside)))));
+						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(Rhs))));
 
+					case 5 % GMRES
+						%assert(size(f,2)==1);
+						tic
+						InitialGuess = obj.U\(obj.L\Rhs);
+						%InitialGuess = rand(size(f(obj.Inside)));
+						
+						tol = max(obj.tollerance*norm(Rhs,2)*1e-8,1e-10);
+						tmp = obj.A;
+						s=whos('tmp');
+											
+						RestartAt = fix(obj.GigaByte/s.bytes); % the system should have at least 2gbyte, we want to restart on a half way
+						maxit = floor(obj.MaxIteration/RestartAt);
+						if  RestartAt<1, RestartAt=5; maxit = floor(obj.MaxIteration/RestartAt); end
+						if RestartAt> obj.Grid.Nx*obj.Grid.Ny, RestartAt = []; maxit = obj.MaxIteration; end %means no restart
+						
+						
+						
+						[u(obj.Inside), flag,relres,iter,resvec] = gmres(obj.A ,f(obj.Inside), RestartAt, tol,maxit,obj.L,obj.U);%, InitialGuess);
+												
+						t1=toc; 
+						if flag, %warning('gmres return with flag=%d \n',flag); 	
+							fprintf('gmres done with flag=%d,outer iter=%d, inner iter=%d, tol=%d, relres =%d time=%d \n',flag,iter(1),iter(2), tol, relres, t1);
+						end
 					case 99 %AMG_WU
 						assert(size(f,2)==1);
 						[u(obj.Inside),resd, nIters] = obj.MGHandle.Solve(f(obj.Inside));                        
