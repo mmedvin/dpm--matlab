@@ -72,8 +72,8 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
         end     
         
          function res = Expansion5thOrdrHomoHelm(obj,Xi0,Xi1,F,WaveNumber)
-             [xi0,xi0t,xi0tt,xi0tttt,xi0tttttt] = Xi0.Derivatives();
-             [xi1,~,xi1tt,xi1tttt,~] = Xi1.Derivatives();
+             [xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+             [xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
              
              dr2=obj.dr.^2;
              dr3=obj.dr.^3;
@@ -92,8 +92,8 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
          end
          
          function res = Expansion7thOrdrHomoHelm(obj,Xi0,Xi1,F,WaveNumber)
-             [xi0,xi0t,xi0tt,xi0tttt,xi0tttttt] = Xi0.Derivatives();
-             [xi1,~,xi1tt,xi1tttt,~] = Xi1.Derivatives();
+             [xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+             [xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
              
              %[k,kr,krr,k3r,k4r,k5r] = calc_k(k0,r,r0);
              [k,kr,krr,k3r] = WaveNumber.Derivatives();
@@ -126,8 +126,8 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
          end
          
          function res = Expansion5thOrdrHelm(obj,Xi0,Xi1,F,WaveNumber)
-             [xi0,xi0t,xi0tt,xi0tttt,xi0tttttt] = Xi0.Derivatives();
-             [xi1,~,xi1tt,xi1tttt,~] = Xi1.Derivatives();
+             [xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+             [xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
              
              [f,fr,frr,ftt] = F.Derivatives();
              [k,kr,krr,~,~,kt,ktt] = WaveNumber.Derivatives();
@@ -178,8 +178,8 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
          end
          
          function res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,LapCoeffs)
-             [xi0,xi0t,xi0tt,xi0tttt,xi0tttttt] = Xi0.Derivatives();
-             [xi1,~,xi1tt,xi1tttt,~] = Xi1.Derivatives();
+             [xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+             [xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
              assert('tbd')
              res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*xirr/2 + (obj.dr.^3).*xi3r/6 + (obj.dr.^4).*xi4r/24 ;
          end

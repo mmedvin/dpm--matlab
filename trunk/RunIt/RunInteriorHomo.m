@@ -19,7 +19,7 @@ FocalDist = sqrt(a^2-b^2);
 Eta0 = acosh(a/FocalDist);
 
 
-ScatType = 'ellipse'; %'ellipse' or 'circle' or 'submarine'
+ScatType = 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -27,15 +27,23 @@ if strcmpi(ScatType,'ellipse')
     ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist);
 elseif strcmpi(ScatType,'circle')
     ExParams  = struct('ScattererType','circle','r',R0);
-elseif strcmpi(ScatType,'submarine')
-    ExParams  = struct('ScattererType','submarine','ellipse',ellipse,'tower',tower);
+elseif strcmpi(ScatType,'StarShapedScatterer')
+    %struct('a',a,'b',b);
+    Parameterization.XHandle = Tools.Parametirzations.AcosBtWD(a,1);
+    Parameterization.YHandle = Tools.Parametirzations.AsinBtWD(b,1);
+    ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
 end
 
+fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
 
 for k = 5%[1,5,10,15,20,25]
     
     f   =@(th) Exact(th,k,ExParams);%(R0,th,k);
     dfdn=@(th) drExact(th,k,ExParams);%((R0,th,k);
+
+    if strcmpi(ScatType,'StarShapedellipse') || strcmpi(ScatType,'StarShapedScatterer') %temporary here
+        dfdn=@(th) drExact(th,k,ExParams)./FocalDist./sqrt(sinh(Eta0).^2 + sin(th).^2);
+    end
 
    if strcmpi(BType,'Chebyshev')
             Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
@@ -43,7 +51,7 @@ for k = 5%[1,5,10,15,20,25]
             Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
         end
 
-for n=1:4 %run different grids
+for n=1:3 %run different grids
 tic
 	%build grid
 % 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
@@ -65,9 +73,9 @@ p=4;%3;
     elseif strcmpi(ScatType,'circle')
         ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
         ScattererAddParams  = struct('r0',R0,'ExpansionType',25);
-    elseif strcmpi(ScatType,'submarine')
-        ScattererClsHandle  = @Tools.Scatterer.SubmarineScatterer;
-        ScattererAddParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
+    elseif strcmpi(ScatType,'StarShapedScatterer')
+        ScattererClsHandle  = @Tools.Scatterer.StarShapedScatterer;
+        ScattererAddParams  = ExParams;
     end
 
     CollectRhs = 1;
@@ -92,13 +100,12 @@ p=4;%3;
         ExParams2 =ExParams;
         ExParams2.r = IntPrb.Scatterer.r;
         xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
-    elseif strcmpi(ScatType,'submarine')
-        %ExParams  = struct('ScattererType','submarine','ellipse',ellipse,'tower',tower);
-%         xiex = Exact(IntPrb.Scatterer.th,k,ExParams);
-        ExParams2 =ExParams;
-        ExParams2.r = IntPrb.Scatterer.r;
-        xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
-
+    elseif strcmpi(ScatType,'StarShapedScatterer')
+        
+        ExParams2 = struct('ScattererType','StarShapedScatterer','r', IntPrb.Scatterer.r);        
+        
+        xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);
+        
     end
     
     %xiex = Exact(Eta(Split.GridGamma),phi,k0);
@@ -123,18 +130,12 @@ p=4;%3;
         ExParams3 =ExParams;
         ExParams3.r = IntPrb.Scatterer.R(IntPrb.Scatterer.Np);
         exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
-    elseif strcmpi(ScatType,'submarine')
-        %ExParams  = struct('ScattererType','submarine','ellipse',ellipse,'tower',tower);
-%         xiex = Exact(IntPrb.Scatterer.nrml_th,k,ExParams);
-
-%         ExParams3 =ExParams;
-%         ExParams3.r = IntPrb.Scatterer.R(IntPrb.Scatterer.Np);
-%         exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
-
-        ExParams3 =ExParams;
-        ExParams3.r = IntPrb.Scatterer.R(IntPrb.Scatterer.Np);
-        exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
-
+     elseif strcmpi(ScatType,'StarShapedScatterer')
+        
+        ExParams3 = struct('ScattererType','StarShapedScatterer','r',IntPrb.Scatterer.R(IntPrb.Scatterer.Np));
+        
+        exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k,ExParams3);        
+    
     end
    
     
@@ -165,13 +166,12 @@ if strcmpi(Params.ScattererType,'ellipse')
 elseif strcmpi(Params.ScattererType,'circle')
     x = Params.r .* cos(th);
     %         y = Params.r .* sin(th);
-elseif strcmpi(Params.ScattererType,'submarine')
-    e = (cos(th).^2/Params.ellipse.a^2 + sin(th).^2/Params.ellipse.b^2);
-    r = sqrt((1 + Params.tower.c*sin(th).^Params.tower.p) ./ e);
-    
-    x = r .* cos(th);
-    %         y = r .* sin(th);
-    
+elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+    try
+        x = Params.Parameterization.XHandle.Derivatives(th);
+    catch
+        x = Params.r.*cos(th);
+    end
 end
 
 %g = exp(1i.*k.*R.*cos(th));
@@ -186,19 +186,8 @@ if strcmpi(Params.ScattererType,'ellipse')
 elseif strcmpi(Params.ScattererType,'circle')
     dx = cos(th);
     %         dy = sin(th);
-elseif strcmpi(Params.ScattererType,'submarine')
-    e = (cos(th).^2/Params.ellipse.a^2 + sin(th).^2/Params.ellipse.b^2);
-    r = sqrt((1 + Params.tower.c*sin(th).^Params.tower.p) ./ e);
-    %         dr = Params.tower.c * Params.tower.p * cos(phi).*sin(phi).^(Params.tower.p-1)./e ...
-    %             - 2*(-1/Params.ellipse.a^2 + 1/Params.ellipse.b^2).*cos(phi).* sin(phi).*r.^2 ./e;
-    %         dr = dr/2/r;
-    de = (-1/Params.ellipse.a^2 + 1/Params.ellipse.b^2).* sin(2*th);
-    dg = Params.tower.c*Params.tower.p*cos(th).*sin(th).^(-1 + Params.tower.p);
-    dr = (dg - de.*r.^2)/2./r./e;
-    
-    dx = cos(th).*dr;
-    %         dy = sin(th).*dr;
-    
+elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+    [x,dx] = Params.Parameterization.XHandle.Derivatives(th);
 end
 
 e = Exact(th,k,Params);%(R,th,k);
