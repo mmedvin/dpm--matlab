@@ -24,7 +24,7 @@ ExParams.r0 = 1/2;
 	end
 
 	
-for	LinearSolverType = 0:5
+for	LinearSolverType = 1
 	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
 
 	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;

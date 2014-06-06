@@ -7,7 +7,7 @@ classdef MatAmgWrapper < handle
 		OldPath;
 		Options;
 		A;
-		fid
+		fid=-1;
 	end
 	
 	methods
@@ -43,7 +43,7 @@ classdef MatAmgWrapper < handle
 			obj.fid = fopen([obj.MyPath filesep 'matamg.semafore'],'w+');
 			instances = fread(obj.fid,[1,1]);
 			if isempty(instances)
-				instances = 1;
+				instances = 0;
 			end
 			
 			Instance = instances + 1;
@@ -53,17 +53,17 @@ classdef MatAmgWrapper < handle
 		
 		function delete(obj)
 			%destructor
-							
-			instances = fread(obj.fid,[1,1]);
-			if instances == 1 
-				fclose(obj.fid);
-				delete([obj.MyPath filesep 'matamg.semafore']);
-				rmpath(obj.MyPath);				
-			else
-				fwrite(obj.fid,instances - 1);
+			if obj.fid > 0
+				instances = fread(obj.fid,[1,1]);
+				if instances == 1
+					fclose(obj.fid);
+					delete([obj.MyPath filesep 'matamg.semafore']);
+					rmpath(obj.MyPath);
+				else
+					fwrite(obj.fid,instances - 1);
+					fclose(obj.fid);
+				end				
 			end
-			
-			
 		end
 		
 		function Result = Solve(obj,Rhs)
