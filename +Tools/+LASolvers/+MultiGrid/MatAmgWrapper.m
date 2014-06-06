@@ -13,8 +13,11 @@ classdef MatAmgWrapper < handle
 	methods
 		
 		function obj = MatAmgWrapper(Params)
-			obj.MyPath = [pwd filesep '..' filesep 'ThirdParties' filesep 'bin' filesep 'matamg' ];
-			
+			if isunix
+				obj.MyPath = [pwd filesep '..' filesep 'ThirdParties' filesep 'bin' filesep 'matamg' filesep 'Linux' ];
+			else
+				obj.MyPath = [pwd filesep '..' filesep 'ThirdParties' filesep 'bin' filesep 'matamg' ];
+			end
 			if ~exist([obj.MyPath filesep 'amg.m'],'file')
 				error('The path to the MATAMG doesn''t exists');
 			end
