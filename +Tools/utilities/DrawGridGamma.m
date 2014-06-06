@@ -1,6 +1,11 @@
 % use when stop on brake point in scatterer
 
 %% ellipse mode
+figure
+try
+    X=obj.Grid.X;
+    Y=obj.Grid.Y ;
+catch
 
  r = obj.Grid.r;
  th = [obj.Grid.theta,2*pi];
@@ -9,7 +14,7 @@
  X=R.*cos(Th);
  Y=R.*sin(Th);
   mesh(X,Y,ones(size(X)));
-
+end
 tPhi=0:0.001:2*pi;
 hold
 plot(obj.FocalDistance*cosh(obj.Eta0).*cos(tPhi),obj.FocalDistance*sinh(obj.Eta0).*sin(tPhi))
@@ -25,10 +30,15 @@ h=gca;
 
 hold off
 
-% for m=1:25
-%     line([obj.FocalDistance*cosh(obj.Eta0).*cos(obj.phi(m)),obj.FocalDistance*cosh(obj.eta(m)).*cos(obj.phi(m))], ...
-%         [obj.FocalDistance*sinh(obj.Eta0).*sin(obj.phi(m)),obj.FocalDistance*sinh(obj.eta(m)).*sin(obj.phi(m))]);
-% end
+for m=1:numel(obj.GridGamma)
+try
+         line([obj.XHandle.Derivatives(obj.nrml_t(m)),obj.FocalDistance*cosh(obj.eta(m)).*cos(obj.phi(m))], ...
+         [obj.YHandle.Derivatives(obj.nrml_t(m)),obj.FocalDistance*sinh(obj.eta(m)).*sin(obj.phi(m))]);
+catch
+    line([obj.FocalDistance*cosh(obj.Eta0).*cos(obj.phi(m)),obj.FocalDistance*cosh(obj.eta(m)).*cos(obj.phi(m))], ...
+         [obj.FocalDistance*sinh(obj.Eta0).*sin(obj.phi(m)),obj.FocalDistance*sinh(obj.eta(m)).*sin(obj.phi(m))]);
+end
+end
 
 
 axis equal
