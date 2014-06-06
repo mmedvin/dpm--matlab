@@ -19,9 +19,7 @@ function RunLaplacian351
 
 	BType		= 'Fourier';
     
-    LinearSolverType = 0;
-    if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
-    
+     
     
     f   =@(phi) ExtExact(FocalDistance,Eta0,phi);
 	g   =@(phi) IntExact(FocalDistance,Eta0,phi);
@@ -35,10 +33,14 @@ function RunLaplacian351
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
+for	   LinearSolverType = 1
+    if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
+
+	
     fprintf('Problem 3.51, M=%d, LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, LinearSolverType, BIn, BOut);
     
     
-	for n=1:5 %run different grids
+	for n=1:4 %run different grids
 		tic
 		%build grid
 		p=3;%3;
@@ -215,7 +217,7 @@ function RunLaplacian351
     ErrTotPre = ErrTot;
     
 end
-
+end
 
 
 end
