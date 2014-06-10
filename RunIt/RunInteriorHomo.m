@@ -3,8 +3,12 @@ function RunInteriorHomo
     
 %global R A x y x1 xn y1 yn dx dy cols rows NHR  ebinf etinf IntEta k0 k FocDist Eta%n 
 
-x1=-1.2;xn=1.2;
-y1=-1.2;yn=1.2;
+%x1=-1.2;xn=1.2;
+%y1=-1.2;yn=1.2;
+
+ x1=-1.7;xn=1.7;
+ y1=-1.7;yn=1.7;
+
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
 
@@ -13,11 +17,13 @@ NHR=1.6;
 
 a=1;%1.6;%2.5;
 b=1/2;%0.8;
-ellipse = struct('a',a,'b',b);
-tower = struct('c',0,'p',20);
+
 FocalDist = sqrt(a^2-b^2);
 Eta0 = acosh(a/FocalDist);
 
+
+%Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
 
 ScatType = 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
@@ -28,9 +34,8 @@ if strcmpi(ScatType,'ellipse')
 elseif strcmpi(ScatType,'circle')
     ExParams  = struct('ScattererType','circle','r',R0);
 elseif strcmpi(ScatType,'StarShapedScatterer')
-    %struct('a',a,'b',b);
-    Parameterization.XHandle = Tools.Parametirzations.AcosBtWD(a,1);
-    Parameterization.YHandle = Tools.Parametirzations.AsinBtWD(b,1);
+    %Parameterization.XHandle = Tools.Parametirzations.AcosBtWD(a,1);
+    %Parameterization.YHandle = Tools.Parametirzations.AsinBtWD(b,1);
     ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
 end
 
@@ -38,12 +43,10 @@ fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
 
 for k = 5%[1,5,10,15,20,25]
     
+    ErrPre = 0; ErrXiPre =0;
+    
     f   =@(th) Exact(th,k,ExParams);%(R0,th,k);
     dfdn=@(th) drExact(th,k,ExParams);%((R0,th,k);
-
-    if strcmpi(ScatType,'StarShapedellipse') || strcmpi(ScatType,'StarShapedScatterer') %temporary here
-        dfdn=@(th) drExact(th,k,ExParams)./FocalDist./sqrt(sinh(Eta0).^2 + sin(th).^2);
-    end
 
    if strcmpi(BType,'Chebyshev')
             Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
@@ -51,11 +54,11 @@ for k = 5%[1,5,10,15,20,25]
             Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
         end
 
-for n=1:3 %run different grids
+for n=1:5 %run different grids
 tic
 	%build grid
 % 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
-p=4;%3;
+p=5;%3;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
 	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
     	
@@ -109,7 +112,7 @@ p=4;%3;
     end
     
     %xiex = Exact(Eta(Split.GridGamma),phi,k0);
-    ebinf(n) =norm(xiex -xi(IntPrb.GridGamma),inf);
+    ErrXi =norm(xiex -xi(IntPrb.GridGamma),inf);
     
     u = IntPrb.P_Omega(xi);
     
@@ -140,11 +143,13 @@ p=4;%3;
    
     
     
-    t2=toc;
+    %t2=toc;
     
-    etinf(n) =norm(exact(:)-u(:),inf);
-    fprintf('k=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',k,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
-    
+    ErrTot =norm(exact(:)-u(:),inf);
+    fprintf('k=%d,M=%d,N=%-4dx%-4d\t ErrXi=%d\t rate=%-4.2f ErrTot=%d\t rate=%-4.2f timeA=%d\n',...
+        k,Basis.M, Nx,Ny,ErrXi,log2(ErrXiPre/ErrXi),ErrTot,log2(ErrPre/ErrTot),t1);
+    ErrPre = ErrTot;
+    ErrXiPre = ErrXi;
     
    % figure, plot(x,abs(u(fix(Ny/2),:)),'r+-',x,abs(exact(fix(Ny/2),:)),'bo');
 %     saveas(gcf,['inhomo_k=' num2str(k) 'N=' num2str(Nx) '.jpg'],'jpg');
@@ -152,8 +157,8 @@ p=4;%3;
 
 end
 
-Linf=log2(etinf(1:end-1)./etinf(2:end))
-Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
+%Linf=log2(etinf(1:end-1)./etinf(2:end))
+%Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
 end
 end
 
@@ -188,9 +193,18 @@ elseif strcmpi(Params.ScattererType,'circle')
     %         dy = sin(th);
 elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
     [x,dx] = Params.Parameterization.XHandle.Derivatives(th);
+    [y,dy] = Params.Parameterization.YHandle.Derivatives(th);
 end
 
 e = Exact(th,k,Params);%(R,th,k);
 %dne = 1i.*k.*cos(th).*e;
 dne = 1i.*k.*dx.*e;
+
+
+if strcmpi(Params.ScattererType,'StarShapedScatterer')
+    h = sqrt(dx.^2 + dy.^2);
+    dne = dne./h;
+end
+
+
 end

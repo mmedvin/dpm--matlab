@@ -64,7 +64,11 @@ classdef InteriorHomoLaplacianSolver < Solvers.SuperHomoSolver
         
         function u = Gf(obj,f)
 			%u = obj.Op.A\f;
+            if numel(f) == obj.Grid.Nx*obj.Grid.Ny
+                u = obj.Op.Solve(f(:));
+            else
 			u = obj.Op.Solve(f);
+        end
         end
                 
         function Qj = Qcol(obj,GLW,~)

@@ -122,10 +122,18 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
     methods(Access = protected)
         
         function g = FindMyZeros(obj,t,theta)
+
             x0 = obj.XHandle.Derivatives(t);
             y0 = obj.YHandle.Derivatives(t);
             
-            g = angle(x0+1i*y0) - theta;
+            arg = angle(x0+1i*y0);
+            if sign(arg) < sign(t)
+                arg = arg + 2*pi;
+            elseif sign(arg) > sign(t)
+                arg = arg - 2*pi;
+            end
+            
+            g = arg - theta;                
         end
         
         
