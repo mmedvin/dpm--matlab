@@ -233,7 +233,7 @@ classdef SuperHomoSolver < handle
          function u = Solve(obj,x)
              obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
              %obj.Truncate(f);
-             u = obj.Gf(obj.f(:));
+             u = obj.Gf(obj.f);%(:));
          end
          
          

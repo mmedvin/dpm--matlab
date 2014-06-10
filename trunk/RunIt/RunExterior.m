@@ -17,13 +17,16 @@ end
 
 etinf=[];     
 a=1.8;    B=a/2;
-r0=0.3; r1=2.2;
+%r0=0.3; r1=2.2;
+r0=0.8; r1=2.2;
 NHR=1.6;
+
+
 
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
 HankOrPlane = 'PlaneWave';% 'PlaneWave' or 'Hankel'
-ScatType = 'circle'; %'ellipse' or 'circle' or 'submarine'
+ScatType = 'StarShapedScatterer'; %'ellipse' or 'circle' or ''StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 HankelIndex = 3;
@@ -31,9 +34,10 @@ HankelType = 2;
 
 
 for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.5] [0.69,0.66,0.63]% 0.69%
-    ellipse = struct('a',a,'b',b);
-    tower = struct('c',4,'p',20);
-    
+	
+	%Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+	Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+	
     FocalDist = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDist);
     R0 =1;
@@ -52,8 +56,10 @@ for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.
         ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist, 'HankelIndex', HankelIndex,'HankelType',HankelType);
     elseif strcmpi(ScatType,'circle')
         ExParams  = struct('ScattererType','circle','r',R0, 'HankelIndex', HankelIndex,'HankelType',HankelType);
-    elseif strcmpi(ScatType,'submarine')       
-        ExParams  = struct('ScattererType','submarine','ellipse',ellipse,'tower',tower, 'HankelIndex', HankelIndex,'HankelType',HankelType);
+    elseif strcmpi(ScatType,'StarShapedScatterer')
+        %Parameterization.XHandle = Tools.Parametirzations.AcosBtWD(a,1);
+        %Parameterization.YHandle = Tools.Parametirzations.AsinBtWD(b,1);
+        ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
     end
     
 rat=4/5;
@@ -67,10 +73,10 @@ rat=4/5;
 
 %for k= 6.*[2^(-4*rat),2^(-3*rat),2^(-2*rat),2^(-rat),1,2^(rat),2^(2*rat),2^(3*rat),2^(4*rat)]
 
-    for k =5%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
+    for k =1%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
 %for n = 1:6
 %k=K(n);
-        for  IncAngD =5;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
+        for  IncAngD =0;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
     		IncAng = IncAngD*pi/180;   
 
         if strcmpi(HankOrPlane,'PlaneWave')                        
@@ -90,7 +96,7 @@ rat=4/5;
         WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
         WaveNumberParams = struct('k',k,'r0',NHR);
                 
-        for n=1:4 %run different grids
+        for n=1:6 %run different grids
             tic
             %build grid
             
@@ -105,9 +111,9 @@ rat=4/5;
             elseif strcmpi(ScatType,'circle')
                 ScattererHandle  = @Tools.Scatterer.PolarScatterer;                
                 ScattererParams  = struct('r0',R0,'ExpansionType',15);
-            elseif strcmpi(ScatType,'submarine')
-                ScattererHandle  = @Tools.Scatterer.SubmarineScatterer;
-                ScattererParams  = struct('ellipse',ellipse,'tower',tower,'ExpansionType',25);
+            elseif strcmpi(ScatType,'StarShapedScatterer')
+                ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
+                ScattererParams  = ExParams;
 			end
             
 			CollectRhs = 0;
@@ -238,12 +244,14 @@ function uinc = Uinc(Params,phi,IncAng,k)
     elseif strcmpi(Params.ScattererType,'circle')
         x = Params.r .* cos(phi);
         y = Params.r .* sin(phi);
-    elseif strcmpi(Params.ScattererType,'submarine')
-        e = (cos(phi).^2/Params.ellipse.a^2 + sin(phi).^2/Params.ellipse.b^2);
-        r = sqrt((1 + Params.tower.c*sin(phi).^Params.tower.p) ./ e);
-        
-        x = r .* cos(phi);
-        y = r .* sin(phi);
+    elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+        try
+            x = Params.Parameterization.XHandle.Derivatives(phi);
+            y = Params.Parameterization.YHandle.Derivatives(phi);
+        catch
+            x = Params.r.*cos(phi);
+            y = Params.r.*sin(phi);
+        end
 
     end
  
@@ -258,19 +266,9 @@ function duinc = detaUinc(Params,phi,IncAng,k)
     elseif strcmpi(Params.ScattererType,'circle')
         dx = cos(phi);
         dy = sin(phi);
-    elseif strcmpi(Params.ScattererType,'submarine')
-        e = (cos(phi).^2/Params.ellipse.a^2 + sin(phi).^2/Params.ellipse.b^2);
-        r = sqrt((1 + Params.tower.c*sin(phi).^Params.tower.p) ./ e);
-%         dr = Params.tower.c * Params.tower.p * cos(phi).*sin(phi).^(Params.tower.p-1)./e ...
-%             - 2*(-1/Params.ellipse.a^2 + 1/Params.ellipse.b^2).*cos(phi).* sin(phi).*r.^2 ./e;
-%         dr = dr/2/r;
-de = (-1/Params.ellipse.a^2 + 1/Params.ellipse.b^2).* sin(2*phi);
-dg = Params.tower.c*Params.tower.p*cos(phi).*sin(phi).^(-1 + Params.tower.p);
-dr = (dg - de.*r.^2)/2./r./e;
-
-        dx = cos(phi).*dr;
-        dy = sin(phi).*dr;
-        
+    elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+        [x,dx] = Params.Parameterization.XHandle.Derivatives(phi);
+        [y,dy] = Params.Parameterization.YHandle.Derivatives(phi);
     end
     
    
@@ -281,6 +279,11 @@ dr = (dg - de.*r.^2)/2./r./e;
  %   h = FocalDist*sqrt(sinh(eta).^2 + sin(phi).^2);
    % duinc = duinc./h;
 
+   if strcmpi(Params.ScattererType,'StarShapedScatterer')
+	   h = sqrt(dx.^2 + dy.^2);
+	   duinc = duinc./h;
+   end
+   
 end
 
 
