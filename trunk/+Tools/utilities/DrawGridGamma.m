@@ -1,5 +1,25 @@
 % use when stop on brake point in scatterer
 
+%% starshaped body mode
+figure
+	tPhi=0:0.001:2*pi;
+	plot(obj.XHandle.Derivatives(tPhi),obj.YHandle.Derivatives(tPhi))
+	hold
+	plot(obj.r.*cos(obj.th),obj.r.*sin(obj.th),'b.')
+	
+	axis equal
+	
+	h=gca;
+	set(h,'Color','none');
+	set(h,'Visible','off');
+	
+	hold off
+	
+	for m=1:numel(obj.GridGamma)
+		line([obj.XHandle.Derivatives(obj.nrml_t(m)),obj.r(m).*cos(obj.th(m))], ...
+					[obj.YHandle.Derivatives(obj.nrml_t(m)), obj.r(m).*sin(obj.th(m))]);
+	end
+
 %% ellipse mode
 figure
 try

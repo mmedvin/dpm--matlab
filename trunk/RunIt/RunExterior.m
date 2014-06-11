@@ -57,8 +57,6 @@ for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.
     elseif strcmpi(ScatType,'circle')
         ExParams  = struct('ScattererType','circle','r',R0, 'HankelIndex', HankelIndex,'HankelType',HankelType);
     elseif strcmpi(ScatType,'StarShapedScatterer')
-        %Parameterization.XHandle = Tools.Parametirzations.AcosBtWD(a,1);
-        %Parameterization.YHandle = Tools.Parametirzations.AsinBtWD(b,1);
         ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
     end
     
