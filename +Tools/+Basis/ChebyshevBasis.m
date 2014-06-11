@@ -109,11 +109,12 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
         function obj    = ChebyshevBasis(theta,n,Range)
             % theta should be in [a,b], so that x below is in [-1,1]
             if nargin == 0
-                obj.xi0     = 0;
-                obj.xi0t    = 0;
-                obj.xi0tt   = 0;
-                obj.xi0tttt = 0;
-                obj.xi0tttttt = 0;
+                obj.xi0			= 0;
+                obj.xi0t		= 0;
+                obj.xi0tt		= 0;
+				obj.xi0ttt		= 0;
+                obj.xi0tttt		= 0;
+                obj.xi0tttttt	= 0;
             else
                 eps_ = obj.epsilon * obj.use_epsilon;
                 x = (1-eps_)*(theta - Range.a) / (Range.b-Range.a) + (-1+eps_)*(theta - Range.b)/(Range.a-Range.b);
@@ -134,6 +135,7 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
                     
                     txi0t(indx) =         DerOfCheNearEnds(obj,x(indx),n,1);
                     txi0tt(indx) =        DerOfCheNearEnds(obj,x(indx),n,2);
+					txi0ttt(indx) =       DerOfCheNearEnds(obj,x(indx),n,3);
                     txi0tttt(indx) =      DerOfCheNearEnds(obj,x(indx),n,4);
                     txi0tttttt(indx) =    DerOfCheNearEnds(obj,x(indx),n,6);
                 end
@@ -155,6 +157,7 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
                 
                 obj.xi0t = txi0t*dxdtheta;
                 obj.xi0tt = txi0tt*(dxdtheta^2);
+				obj.xi0ttt = txi0ttt*(dxdtheta^3);
                 obj.xi0tttt = txi0tttt*(dxdtheta^4);
                 obj.xi0tttttt = txi0tttttt*(dxdtheta^6);
                 
@@ -183,12 +186,12 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
         end
         
         function [xi0,xi0f,xi0ff,xi0fff,xi0ffff,xi0ffffff] = Derivatives(obj)
-            xi0     = obj.xi0;
-            xi0f    = obj.xi0t;
-            xi0ff   = obj.xi0tt;
-			xi0fff   = obj.xi0ttt;
-            xi0ffff = obj.xi0tttt;
-            xi0ffffff = obj.xi0tttttt;
+            xi0			= obj.xi0;
+            xi0f		= obj.xi0t;
+            xi0ff		= obj.xi0tt;
+			xi0fff		= obj.xi0ttt;
+            xi0ffff		= obj.xi0tttt;
+            xi0ffffff	= obj.xi0tttttt;
         end
         
     end

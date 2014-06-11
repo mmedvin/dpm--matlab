@@ -127,9 +127,9 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             y0 = obj.YHandle.Derivatives(t);
             
             arg = angle(x0+1i*y0);
-            if sign(arg) < sign(t)
+            if sign(arg) < sign(t) && abs(theta) > pi/2
                 arg = arg + 2*pi;
-            elseif sign(arg) > sign(t)
+            elseif sign(arg) > sign(t) && abs(theta) > pi/2
                 arg = arg - 2*pi;
             end
             
@@ -169,10 +169,11 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
         function GridOnScatterer(obj)
             
             obj.r  = obj.R(obj.GridGamma);
-            obj.th = obj.Th(obj.GridGamma);
+            InitialGuess = obj.ScatParamToGridAng(obj.GridGamma); %  obj.th
+			obj.th = obj.Th(obj.GridGamma);
             
             x1 = obj.r.*cos(obj.th);
-            y1 = obj.r.*sin(obj.th);;
+            y1 = obj.r.*sin(obj.th);
             
             options = [];%optimset('TolX',10^-10);
             
@@ -180,7 +181,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
                 case 1 %regular choice
                     [obj.nrml_t,fval,exitflag,output] ...
                         = arrayfun(@(indx) ...
-                        fzero(@(arg) obj.DerivativeOfDistance(arg,x1(indx),y1(indx)), obj.th(indx),options), ... % obj.th(indx) is an initial guess of root finding algorithm of 'fzero'
+                        fzero(@(arg) obj.DerivativeOfDistance(arg,x1(indx),y1(indx)),InitialGuess(indx),options), ... 
                         1:numel(obj.th));%,'UniformOutput',false);
                     
                     obj.nrml_t = obj.nrml_t.';
@@ -192,8 +193,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
                     obj.nrml_t = obj.th;
                     
             end
-            
-            
+                         
             if 0
                 % a debug test
                 x0=r0.*cos(obj.nrml_t);

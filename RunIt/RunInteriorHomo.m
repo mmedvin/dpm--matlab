@@ -6,7 +6,7 @@ function RunInteriorHomo
 %x1=-1.2;xn=1.2;
 %y1=-1.2;yn=1.2;
 
- x1=-1.7;xn=1.7;
+ x1=-1.7;xn=1.2;
  y1=-1.7;yn=1.7;
 
 Lx=xn-x1;Ly=yn-y1;
@@ -41,24 +41,24 @@ end
 
 fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
 
-for k = 5%[1,5,10,15,20,25]
+for k = 1%[1,5,10,15,20,25]
     
     ErrPre = 0; ErrXiPre =0;
     
     f   =@(th) Exact(th,k,ExParams);%(R0,th,k);
     dfdn=@(th) drExact(th,k,ExParams);%((R0,th,k);
+	
+	if strcmpi(BType,'Chebyshev')
+		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
+	elseif strcmpi(BType,'Fourier')
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
+	end
 
-   if strcmpi(BType,'Chebyshev')
-            Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
-        elseif strcmpi(BType,'Fourier')
-            Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
-        end
-
-for n=1:5 %run different grids
+for n=1:4 %run different grids
 tic
 	%build grid
 % 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
-p=5;%3;
+p=4;%3;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
 	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
     	
@@ -202,8 +202,13 @@ dne = 1i.*k.*dx.*e;
 
 
 if strcmpi(Params.ScattererType,'StarShapedScatterer')
-    h = sqrt(dx.^2 + dy.^2);
-    dne = dne./h;
+   h = sqrt(dx.^2 + dy.^2);
+   % dne = dne./h;
+	
+	%fx dy + fy (-dx)
+	
+	dne  = (1i.*k.*e).*dy./h; %=fx dy, here fy=0
+	
 end
 
 
