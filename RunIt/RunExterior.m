@@ -36,7 +36,8 @@ HankelType = 2;
 for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.5] [0.69,0.66,0.63]% 0.69%
 	
 	%Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
-	Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+	%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+	Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',200));
 	
     FocalDist = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDist);
@@ -50,8 +51,9 @@ for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.
     end
     
     fprintf('%s problem, cmpr using %s, data is %s, scatterer is %s, Basis is %s, Hnkl_n=%d \n',Problem,str,HankOrPlane,ScatType,BType,HankelIndex);
-    fprintf('ExtrnlHomo problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d ,r0=%d,r1=%d\n',FocalDist, Eta0 , a,b,a/b,r0,r1);
-    
+	if strcmpi(ScatType,'ellipse')
+		fprintf('ExtrnlHomo problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d ,r0=%d,r1=%d\n',FocalDist, Eta0 , a,b,a/b,r0,r1);
+	end
     if strcmpi(ScatType,'ellipse')
         ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist, 'HankelIndex', HankelIndex,'HankelType',HankelType);
     elseif strcmpi(ScatType,'circle')
@@ -72,6 +74,9 @@ rat=4/5;
 %for k= 6.*[2^(-4*rat),2^(-3*rat),2^(-2*rat),2^(-rat),1,2^(rat),2^(2*rat),2^(3*rat),2^(4*rat)]
 
     for k =1%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
+		
+		ErrPre = 0; 
+		
 %for n = 1:6
 %k=K(n);
         for  IncAngD =0;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
@@ -94,11 +99,11 @@ rat=4/5;
         WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
         WaveNumberParams = struct('k',k,'r0',NHR);
                 
-        for n=1:6 %run different grids
+        for n=1:3 %run different grids
             tic
             %build grid
             
-            p=4;%1;
+            p=3;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
            
             Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
@@ -161,9 +166,14 @@ rat=4/5;
                 
                 tmp = u(1:2:end,1:2:end)-u1(1:2:end,1:2:end);
                 
-                etinf(n) =norm(tmp(:),inf);
-
-                fprintf('k=%d,M=%d,N=%-10dx%-10d\t etinf=%d\ttime=%d\n',k,Basis.M, Nr,Nth,full(etinf(n)),t);
+                %etinf(n) =norm(tmp(:),inf);
+				ErrTot = norm(tmp(:),inf);
+                %fprintf('k=%d,M=%d,N=%-10dx%-10d\t etinf=%d\ttime=%d\n',k,Basis.M, Nr,Nth,full(etinf(n)),t);
+				fprintf('k=%d,M=%d,N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t time=%d\n',k,Basis.M, Nr,Nth,ErrTot,log2(ErrPre/ErrTot),t);
+				
+				ErrPre = ErrTot;
+				
+				
  % fprintf('k=%-5.4f,pf=%-5.4f,pf=%-5.4f,IncAng=%d,M=%d,N=%-10dx%-10d\t etinf=%d\ttime=%d\t \n',k,  (k^5)* Grid.dx^4, (k^5) * Grid.dy^4,IncAngD,Basis.M, Nr,Nth,full(etinf(n)),t);
            
             end
@@ -224,7 +234,7 @@ rat=4/5;
          %     if n>1 && etinf(n)<5*10^-6, break, end  % to make polution test faster
         end
         
-        Linf=log2(etinf(1:end-1)./etinf(2:end))
+     %   Linf=log2(etinf(1:end-1)./etinf(2:end))
 %        Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
         end
         
