@@ -22,10 +22,10 @@ FocalDist = sqrt(a^2-b^2);
 Eta0 = acosh(a/FocalDist);
 
 
+%doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
 %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
 %Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
-%Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',200));
-Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
+Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',200));
 
 ScatType = 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
@@ -36,12 +36,11 @@ if strcmpi(ScatType,'ellipse')
 elseif strcmpi(ScatType,'circle')
     ExParams  = struct('ScattererType','circle','r',R0);
 elseif strcmpi(ScatType,'StarShapedScatterer')
-    %Parameterization.XHandle = Tools.Parametirzations.AcosBtWD(a,1);
-    %Parameterization.YHandle = Tools.Parametirzations.AsinBtWD(b,1);
     ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
 end
 
-fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
+%fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
+fprintf('Method:%s,\t  \n',ScatType);
 
 for k = 1%[1,5,10,15,20,25]
     
@@ -148,7 +147,7 @@ p=4;%3;
     %t2=toc;
     
     ErrTot =norm(exact(:)-u(:),inf);
-    fprintf('k=%d,M=%d,N=%-4dx%-4d\t ErrXi=%d\t rate=%-4.2f ErrTot=%d\t rate=%-4.2f timeA=%d\n',...
+    fprintf('k=%d,M=%d,N=%-4dx%-4d\t ErrXi=%d\t rate=%-5.2f ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
         k,Basis.M, Nx,Ny,ErrXi,log2(ErrXiPre/ErrXi),ErrTot,log2(ErrPre/ErrTot),t1);
     ErrPre = ErrTot;
     ErrXiPre = ErrXi;
