@@ -71,6 +71,11 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
         end
         end
                 
+        function u = GfSrc(obj,f)
+            u = obj.Op.Solve(f(:),0);
+        end
+
+        
         function Qj = Qcol(obj,GLW,~)
             Qj = -GLW(obj.GridGamma,:);
 		end

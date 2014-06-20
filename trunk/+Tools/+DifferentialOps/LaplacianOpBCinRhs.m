@@ -27,6 +27,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		R;
 		tollerance = 1e-10; %default value, may be changed in some iterative solvers
 		MaxIteration ;
+        RestartAt;
         
         AMG_MP_Options;
 	end
@@ -98,7 +99,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					
 				case 5 % GMRES
 					
-					obj.tollerance		=  max((obj.Grid.dx*obj.Grid.dy)^2,1e-8);
+					obj.tollerance		=  (obj.Grid.dx*obj.Grid.dy)^2; %max((obj.Grid.dx*obj.Grid.dy)^2,1e-8);
 					obj.MaxIteration	=	obj.Grid.Nx*obj.Grid.Ny;
 					
 					
@@ -106,6 +107,25 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					[obj.L,obj.U] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance));%preconditioner
 					%[obj.L,obj.U] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
 					
+                    tmp = obj.A;
+                    s=whos('tmp');
+                    
+                    obj.RestartAt = 2*fix(obj.GigaByte/s.bytes); % the system should have at least 2gbyte, we want to restart on a half way
+                    maxit = floor(obj.MaxIteration/obj.RestartAt);
+                    if  obj.RestartAt<1, obj.RestartAt=10; maxit = floor(obj.MaxIteration/obj.RestartAt); end
+                    if obj.RestartAt> obj.Grid.Nx*obj.Grid.Ny, obj.RestartAt = []; maxit = obj.MaxIteration; end %means no restart
+                    
+                    obj.MaxIteration = maxit;
+                
+                case 6
+                    
+                    obj.tollerance		=  (obj.Grid.dx*obj.Grid.dy)^2; %max((obj.Grid.dx*obj.Grid.dy)^2,1e-8);
+					obj.MaxIteration	=	sqrt(obj.Grid.Nx*obj.Grid.Ny);
+					
+					
+					%[obj.L,obj.U] = ilu(obj.A,struct('type','nofill'));%preconditioner
+					[obj.L,obj.U] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance));%preconditioner
+					%[obj.L,obj.U] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
 
 				case 99 %AMG_WU
 					
@@ -142,12 +162,16 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			end
 		end
 		
-		function u = Solve(obj,f)
+		function u = Solve(obj,f,SolverType)
 			u = zeros(size(f));
 			Rhs = f(obj.Inside);
 			
+            if ~exist('SolverType','var')
+                SolverType = obj.LinearSolverType;
+            end
+            
 			%for j=1:size(f,2)
-				switch obj.LinearSolverType
+				switch SolverType 
 					case 1 % Multigrid of Qinghai
 						%assert(size(f,2)==1);
 						%[u(obj.Inside,j),resRel, nIters] = obj.MGHandle.Solve(f(obj.Inside,j));
@@ -171,26 +195,22 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					case 5 % GMRES
 						%assert(size(f,2)==1);
 						tic
+                        
 						InitialGuess = obj.U\(obj.L\Rhs);
 						%InitialGuess = rand(size(f(obj.Inside)));
 						
-						tol = max(obj.tollerance*norm(Rhs,2)*1e-8,1e-10);
-						tmp = obj.A;
-						s=whos('tmp');
-											
-						RestartAt = fix(obj.GigaByte/s.bytes); % the system should have at least 2gbyte, we want to restart on a half way
-						maxit = floor(obj.MaxIteration/RestartAt);
-						if  RestartAt<1, RestartAt=5; maxit = floor(obj.MaxIteration/RestartAt); end
-						if RestartAt> obj.Grid.Nx*obj.Grid.Ny, RestartAt = []; maxit = obj.MaxIteration; end %means no restart
-						
-						
-						
-						[u(obj.Inside), flag,relres,iter,resvec] = gmres(obj.A ,f(obj.Inside), RestartAt, tol,maxit,obj.L,obj.U);%, InitialGuess);
+                        [u(obj.Inside), flag,relres,iter,resvec] = gmres(obj.A ,f(obj.Inside), obj.RestartAt, obj.tollerance,obj.MaxIteration,obj.L,obj.U,InitialGuess);
 												
 						t1=toc; 
 						if flag, %warning('gmres return with flag=%d \n',flag); 	
 							fprintf('gmres done with flag=%d,outer iter=%d, inner iter=%d, tol=%d, relres =%d time=%d \n',flag,iter(1),iter(2), tol, relres, t1);
 						end
+                        
+                    case 6
+                        InitialGuess = obj.U\(obj.L\Rhs);
+                        
+                        [u(obj.Inside),flag,relres] = bicgstab(obj.A,f(obj.Inside),obj.tollerance,obj.MaxIteration,obj.L,obj.U,InitialGuess);
+                        
 					case 99 %AMG_WU
 						assert(size(f,2)==1);
 						[u(obj.Inside),resd, nIters] = obj.MGHandle.Solve(f(obj.Inside));                        

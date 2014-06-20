@@ -114,13 +114,21 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
                  obj.CreateWf();
                  %obj.CreateRhsf();
                  
-                 GLW = obj.Solve(obj.myWf(:));
+                GLW = obj.SolveSrc(obj.myWf(:));
+                 
                  obj.myQf = obj.Qcol(GLW,obj.myWf(:));
                  
                  obj.myGF   = obj.Gf(obj.BF);
                  obj.myTrGF = obj.myGF(obj.Scatterer.GridGamma);
 			 end
 			 obj.IsReadyQnW = true;
+         end
+         
+         function u = SolveSrc(obj,x)
+             u = obj.Solve(x);
+%              obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
+%              %obj.Truncate(f);
+%              u = obj.Gf(obj.f);%(:));
          end
          
          function Expand(obj)
