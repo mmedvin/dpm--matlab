@@ -13,7 +13,7 @@ classdef MatAmgWrapper < handle
 	methods
 		
 		function obj = MatAmgWrapper(Params)
-			if isunix
+			if isunix && ~ismac
 				obj.MyPath = [pwd filesep '..' filesep 'ThirdParties' filesep 'bin' filesep 'matamg' filesep 'Linux' ];
 			else
 				obj.MyPath = [pwd filesep '..' filesep 'ThirdParties' filesep 'bin' filesep 'matamg' ];
