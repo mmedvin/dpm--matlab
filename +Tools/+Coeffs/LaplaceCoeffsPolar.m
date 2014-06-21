@@ -6,6 +6,7 @@ classdef LaplaceCoeffsPolar < Tools.Coeffs.AbstractCoeffs
 		
 		a; ar; arr; a3r; a4r; a5r;
 		b; bt; btt; b3t; b4t; b5t;
+		br;btr;
 		sigma; sigma_r; sigma_rr; sigma_3r; sigma_4r; sigma_5r;
 	end
 	
@@ -57,6 +58,8 @@ classdef LaplaceCoeffsPolar < Tools.Coeffs.AbstractCoeffs
 			
 			obj.b	= p; 
 			obj.bt	= 0; obj.btt = 0; obj.b3t = 0; obj.b4t = 0; obj.b5t = 0;
+			obj.br = pr;
+			obj.btr = 0;
 			
 			obj.sigma=0; obj.sigma_r=0; obj.sigma_rr=0; obj.sigma_3r=0; obj.sigma_4r=0; obj.sigma_5r=0;
 		end

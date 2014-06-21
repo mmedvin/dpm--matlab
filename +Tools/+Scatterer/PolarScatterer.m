@@ -155,25 +155,35 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
          
          function res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,LapCoeffs)
              [xi0,xi0t,xi0tt] = Xi0.Derivatives();
-             [xi1] = Xi1.Derivatives();
+             [xi1,xi1t,xi1tt] = Xi1.Derivatives();
              
-			 f = F.Derivatives();
-			 [a,ar] = LapCoeffs.Derivatives('a');
-			 [b,bt] = LapCoeffs.Derivatives('b');
+			 [f,fr,frr] = F.Derivatives();
+			 [a,ar,arr] = LapCoeffs.Derivatives('a');
+			 [b,bt] = LapCoeffs.Derivatives('b');			
 			 sigma	= LapCoeffs.Derivatives('sigma');
 			 
 			 urr = (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2))./a - xi1./obj.r0 ;
-             
-% 			 st = sin(obj.th);
-% 			 ct = cos(obj.th);
-%  			 st2=st.^2;
-%  			 ct2=ct.^2;
-% 			 sct=st.*ct;		 
 			 
-% 			urr = f + sigma.*xi0 - a./obj.r0 - a.*xi0tt./(obj.r0.^2) - ( ar +  st2.*(br - ar) + (sct./obj.r0).*(bt - at)).*xi1 ...
-% 				 - (at./(obj.r0.^2) + (ct2./(obj.r0.^2)).* (bt - at) + (ar + br).* (sct./obj.r0)).*xi0t;
-% 			 
-             res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*urr/2 ;
+			 % 			 %this is temporary part
+			 % 			 %assuming sigma constant or at least doesn't depends on r
+			 % 			 br = LapCoeffs.br;
+			 % 			 btr= LapCoeffs.btr;
+			 % 			 btrr= LapCoeffs.btrr;
+			 % 			 u3r = (fr + sigma.*xi1 - arr.*xi1 - ar.*urr -  (btr.*xi0t + bt.*xi1t + br.*xi0tt + b.*xi1tt)./(obj.r0.^2) + 2*(bt.*xi0t + b.*xi0tt)./(obj.r0.^3) )./a ...
+			 % 				 + (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2)).*ar./a./a ...
+			 % 				 - urr./obj.r0 + xi1./obj.r0.^2 ;
+			 %
+			 %
+			 % 			 u4r =   (frr + sigma.*urr - a3r.*xi1  - 2*arr.*urr - ar.*u3r ...
+			 % 					-(btrr.*xi0t + btr.*xi1t + btr.*xi1t +bt.*urrt
+			 % 				+ br.*xi0tt + b.*xi1tt)./(obj.r0.^2) +  2*(btr.*xi0t + bt.*xi1t + br.*xi0tt + b.*xi1tt)./(obj.r0.^3)
+			 %
+			 % 			 + 2*(bt.*xi0t + b.*xi0tt)./(obj.r0.^3) )./a ...
+			 % 				 + (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2)).*ar./a./a ...
+			 % 				 - urr./obj.r0 + xi1./obj.r0.^2 ;
+			 
+		 
+             res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*urr/2;% + (obj.dr.^3).*u3r/6;
              
          end
          
