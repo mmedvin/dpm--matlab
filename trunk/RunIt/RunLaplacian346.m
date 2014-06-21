@@ -24,14 +24,14 @@ ExParams.r0 = 1/2;
 	end
 
 	
-for	LinearSolverType = 1
+for	LinearSolverType = 0
 	if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
 
-	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;
+	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0; ErrUPre = 0; ErrUrPre = 0; ErrUrrPre = 0;
 	
 	fprintf('Problem 3.46, M=%d, LinearSolverType = %d, r0=%-4.2f, C=%-6.3d,B=%-6.3d\n', Basis.M, LinearSolverType, ExParams.r0,ExParams.C,ExParams.B);
 	
-	for n=1:4 %run different grids
+	for n=1:5 %run different grids
 		tic
 		%build grid
 		p=3;%3;
@@ -126,29 +126,51 @@ for	LinearSolverType = 1
     
 		Intu = IntPrb.P_Omega(Intxi);
 	end
-% 		u=zeros(size(Grid.R));
-% 		u(IntPrb.Np) = Intu(IntPrb.Np);
-% 		u(ExtPrb.Nm) = Extu(ExtPrb.Nm);
-
-% 		u(IntPrb.Scatterer.Mm) = Intu(IntPrb.Scatterer.Mm);
-% 		u(ExtPrb.Scatterer.Mp) = Extu(ExtPrb.Scatterer.Mp);
-		
-
-%	u(IntPrb.GridGamma) = (Intu(IntPrb.GridGamma) + Extu(IntPrb.GridGamma))/2;
-    %------------------------------------------------------------------
-    
+     
    t1=toc; 
 
-   %------------------------------------------------------------------
-    % Comparison
-    %------------------------------------------------------------------
+%------------------------------------------------------------------
+% Comparison
+%------------------------------------------------------------------
     
 	
-% 	Ex=Tools.Exact.ExLapCrclVarCoeffs(Grid, ExParams);
-% 	
-%     exact = Ex.u;
-	%%%%%%%delete next row
-     
+ 	Ex=Tools.Exact.ExLapCrclVarCoeffs346(Grid, ExParams);
+
+	u=Ex.u; %zeros(size(Grid.R));
+	%u(ExtPrb.Scatterer.Mm) = Extu(ExtPrb.Scatterer.Mm);
+	u(2:end-1,2:end-1) = Extu(2:end-1,2:end-1);
+	u(IntPrb.Scatterer.Mp) = Intu(IntPrb.Scatterer.Mp);
+	ErrU = norm(Ex.u(:) - u(:),inf);
+
+	dxdr = cos(Grid.Theta);
+	dydr = sin(Grid.Theta);
+	
+	[ux,uy] = gradient(u,Grid.dx,Grid.dy);
+	ur = Ex.dudr;
+	tmp = ux.*dxdr + uy.*dydr;
+	ur(2:end-1,2:end-1) = tmp(2:end-1,2:end-1); 
+	tmp = Ex.dudr - ur;
+	tmp(IntPrb.Scatterer.GridGamma) = 0;
+	ErrUr = norm(tmp(:),inf);
+	
+	%[urx,ury] = gradient(ur,Grid.dx,Grid.dy);
+	[uxx,uxy] = gradient(ux,Grid.dx,Grid.dy);
+	[uyx,uyy] = gradient(uy,Grid.dx,Grid.dy);
+	
+	tmp=uxx.*dxdr.^2 + 2*uxy.*dxdr.*dydr + uyy.*dydr.^2;
+	
+	urr = Ex.d2udr2;
+	%tmp = urx.*dxdr + ury.*dydr;
+	urr(3:end-2,3:end-2) = tmp(3:end-2,3:end-2); 
+	tmp = Ex.d2udr2 - urr;
+	tmp(IntPrb.Scatterer.GridGamma) = 0;
+	%ErrUrr  = norm(tmp(Grid.R<0.78 & Grid.R>0.73),inf);
+	%tmp( Grid.R>0.35  )=0;
+	tmp( Grid.R<0.7 )=0;
+	ErrUrr  = norm(tmp( :),inf);
+%------------------------------------------------------------------
+	
+	
 	 Intexact = zeros(size(Grid.R));
      IntCmprExParams = ExParams;
      IntCmprExParams.r0 = Grid.R(IntPrb.Scatterer.Np);
@@ -170,12 +192,15 @@ for	LinearSolverType = 1
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
      
-	fprintf('N=%-10dx%-10d\t ErrInt=%d\t rate=%-5.2f ErrExt=%d\t rate=%-5.2f,\t ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
-		Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),t1);
+	fprintf('N=%-6dx%-7d EInt=%-10.4d rt=%-6.2f EExt=%-10.4d rt=%-6.2f ETot=%d\t rt=%-6.2f EU=%d\t rt=%-6.2f EUr=%d\t rt=%-6.2f EUrr=%d\t rt=%-6.2f  timeA=%-6.2f\n',...
+		Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),ErrU,log2(ErrUPre/ErrU),ErrUr,log2(ErrUrPre/ErrUr),ErrUrr,log2(ErrUrrPre/ErrUrr),t1);
 	
 	ErrIntPre = ErrInt;
 	ErrExtPre = ErrExt;
 	ErrTotPre = ErrTot;
+	ErrUPre	  = ErrU;
+	ErrUrPre  = ErrUr;
+	ErrUrrPre  = ErrUrr;
 	
 end
 end

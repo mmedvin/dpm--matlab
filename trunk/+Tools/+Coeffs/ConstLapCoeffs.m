@@ -2,6 +2,8 @@ classdef ConstLapCoeffs < Tools.Coeffs.AbstractCoeffs
 	properties
 		a;
 		b;
+		br=0;
+		btr=0;
 		sigma;
 	end
 	

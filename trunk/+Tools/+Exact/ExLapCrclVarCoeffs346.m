@@ -25,7 +25,7 @@ classdef ExLapCrclVarCoeffs346 < Tools.Exact.SuperExact
             
             p   = r.^2;
             pr  = 2*r;
-            prr = 2;
+            prr = 2*ones(size(r));
             
             if length(r)==1 && r>r0
                 p   = (1 - 1/8/obj.B - 1/obj.B)/4 + ( (r.^4)/2 + r.^2 )/obj.B + obj.C*log(2*r)/obj.B; 
