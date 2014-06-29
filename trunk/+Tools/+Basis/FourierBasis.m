@@ -42,7 +42,7 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
 		end
 		
         function [cn0,cn1,M] = FourierCoeffNew(f,dfdr,err)
-            M0=300;
+            M0=1020;
             M1 = 2*M0+1;
             %th=linspace(-pi,pi,M1+1);
 	     th=linspace(0,2*pi,M1+1);

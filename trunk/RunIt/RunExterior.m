@@ -234,6 +234,7 @@ rat=4/5;
          %     if n>1 && etinf(n)<5*10^-6, break, end  % to make polution test faster
         end
         
+fprintf('\n');
      %   Linf=log2(etinf(1:end-1)./etinf(2:end))
 %        Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
         end
@@ -289,7 +290,7 @@ function duinc = detaUinc(Params,phi,IncAng,k)
 
    if strcmpi(Params.ScattererType,'StarShapedScatterer')
 	   h = sqrt(dx.^2 + dy.^2);
-	   duinc = duinc./h;
+	   duinc = 1i .* k .*  uinc .* (dy.*cos(IncAng) - dx.*sin(IncAng))./h;
    end
    
 end

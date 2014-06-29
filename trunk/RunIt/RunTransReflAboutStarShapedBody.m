@@ -5,13 +5,16 @@ function RunTransReflAboutStarShapedBody
     IntErr=[];ExtErr=[];
     
     a=1;%2.5;
-    b=0.8;
+    b=a/2;%0.8;
     
-    r0 = 0.7*b;
-    r1 = 1.8*a;
+    %r0 = 0.7*b;
+    %r1 = 1.8*a;
     
-    x1=-1.2;xn=1.2;
-    y1=-1;  yn=1;
+r0=0.3;
+r1=2.2;
+
+    x1=-2;xn=2;
+    y1=-2;  yn=2;
    
   %  R0 =0.7;
    
@@ -33,12 +36,13 @@ function RunTransReflAboutStarShapedBody
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
 %     fprintf('Solving %s defraction problem, comparing using grid convergance, data is PlaneWave, scatterer is circle\n',Problem);
      
-kin = [15];
-kex = [1];
+kin = [3,15,30];
+kex = [1 ,5, 10];
 
-    for ki = 1 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
+    for ki = 1:3
         
-        ErrPre = 0; 
+        ErrIntPre = 0; 
+        ErrExtPre = 0;
         
     ExtWaveNumberAddParams = struct('k',kex(ki),'r0',1.6);
     IntWaveNumberAddParams = struct('k',kin(ki),'r0',1.6);
@@ -51,7 +55,7 @@ kex = [1];
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kin(ki));
             
 
-        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,@sin);%dfdn);
+        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         %[cn0ex,cn1ex,M] = FourierCoeff(f1,dfdn);
     
         nmax=3;
@@ -170,14 +174,18 @@ kex = [1];
                 
                 
                 tmp = Extu(1:2:end,1:2:end)-Extu1(1:2:end,1:2:end);
-                ExtErr(n) =norm(tmp(:),inf);
+                ErrExt =norm(tmp(:),inf);
                 
                 tmp = Intu(1:2:end,1:2:end)-Intu1(1:2:end,1:2:end);
-                ErrTot =norm(tmp(:),inf);
+                ErrInt =norm(tmp(:),inf);
                 
                % fprintf('kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',k,k+dk,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
-               fprintf('k=%d,M=%d,N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t time=%d\n',k,Basis.M, Nr,Nth,ErrTot,log2(ErrPre/ErrTot),t);
-               ErrPre = ErrTot;
+               fprintf('kex=%d,kin=%d,M=%d,N=%-10dx%-10d\t ErrExt=%d\t rate=%-6.2f  ErrInt=%d\t rate=%-6.2f\t time=%d\n',...
+			kex(ki),kin(ki),Basis.M, Nr,Nth,ErrExt,log2(ErrExtPre/ErrExt),ErrInt,log2(ErrIntPre/ErrInt),t);
+
+       		ErrIntPre = ErrInt ; 
+        	ErrExtPre = ErrExt ;
+
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));
@@ -315,7 +323,8 @@ function duinc = detaUinc(Params,phi,IncAng,k)
 
    if strcmpi(Params.ScattererType,'StarShapedScatterer')
 	   h = sqrt(dx.^2 + dy.^2);
-	   duinc = duinc./h;
+duinc = 1i .* k .*  uinc .* (dy.*cos(IncAng) - dx.*sin(IncAng))./h;
+	   %duinc = duinc./h;
    end
    
 end

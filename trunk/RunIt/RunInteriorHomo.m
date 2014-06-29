@@ -160,6 +160,8 @@ p=4;%3;
 
 end
 
+fprintf('\n');
+
 %Linf=log2(etinf(1:end-1)./etinf(2:end))
 %Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
 end
