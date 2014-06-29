@@ -5,10 +5,9 @@ function RunLaplacian351
 	
 	x1=-1.1;xn=1.1;
 	y1=-0.7;yn=0.7;
-	%y1=-1.3;yn=1.3;
+	%y1=-1.1;yn=1.1;
 	Lx=xn-x1;Ly=yn-y1;
 	%ebinf=[];etinf=[];
-    ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0;
     
 
     FocalDistance = sqrt(a^2-b^2);
@@ -36,6 +35,7 @@ function RunLaplacian351
 for	   LinearSolverType = 1
     if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
 
+        ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0; ErrUPre = 0; ErrUrPre = 0; ErrUrrPre = 0;
 	
     fprintf('Problem 3.51, M=%d, LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, LinearSolverType, BIn, BOut);
     
@@ -186,11 +186,45 @@ for	   LinearSolverType = 1
     % Comparison
     %------------------------------------------------------------------
     
+     	Ex=Tools.Exact.ExLapElps351(IntPrb.Scatterer, InteriorCoeffsHandle);
 	
-% 	Ex=Tools.Exact.ExLapCrclVarCoeffs(Grid, ExParams);
-% 	
-%     exact = Ex.u;
-	%%%%%%%delete next row
+	u=Ex.u; %zeros(size(Grid.R));
+	%u(ExtPrb.Scatterer.Mm) = Extu(ExtPrb.Scatterer.Mm);
+	u(2:end-1,2:end-1) = Extu(2:end-1,2:end-1);
+	u(IntPrb.Scatterer.Mp) = Intu(IntPrb.Scatterer.Mp);
+	ErrU = norm(Ex.u(:) - u(:),inf);
+
+	%dxdr = cos(Grid.Theta);
+	%dydr = sin(Grid.Theta);
+    
+     dxdn = IntPrb.Scatterer.FocalDistance*sinh(IntPrb.Scatterer.Eta).*cos(IntPrb.Scatterer.Phi);
+     dydn = IntPrb.Scatterer.FocalDistance*cosh(IntPrb.Scatterer.Eta).*sin(IntPrb.Scatterer.Phi);
+    
+    
+    RD = Tools.Common.SecondDerivative(Grid.Nx,Grid.Ny,Grid.dx,Grid.dy,dxdn(:),dydn(:));
+	[Tdudeta,Td2udeta2] = RD.RadialDerivatives(u(:));
+    
+    Tdudeta  = reshape(Tdudeta,Grid.Nx,Grid.Ny);
+    Td2udeta2 = reshape(Td2udeta2,Grid.Nx,Grid.Ny);
+    
+	%[ux,uy] = gradient(u,Grid.dx,Grid.dy);
+	dudeta = Ex.dudeta;
+	%tmp = ux.*dxdr + uy.*dydr;
+	%ur(2:end-1,2:end-1) = tmp(2:end-1,2:end-1); 
+    dudeta(2:end-1,2:end-1) = Tdudeta(2:end-1,2:end-1); 
+	tmp = Ex.dudeta - dudeta;
+	tmp(IntPrb.Scatterer.GridGamma) = 0;
+	ErrUr = norm(tmp(:),inf);
+
+	d2udeta2 = Ex.d2udeta2;
+    d2udeta2(2:end-1,2:end-1) = Td2udeta2(2:end-1,2:end-1); 
+    
+	tmp = Ex.d2udeta2 - d2udeta2;
+	tmp(IntPrb.Scatterer.GridGamma) = 0;
+	
+	tmp( IntPrb.Scatterer.Eta > (Eta0-0.2)  &  IntPrb.Scatterer.Eta < (Eta0+0.2) )=0;
+	ErrUrr  = norm(tmp( :),inf);
+%------------------------------------------------------------------
      
 	 Intexact = zeros(size(Grid.R));
 	 Extexact = zeros(size(Grid.R));
@@ -209,12 +243,22 @@ for	   LinearSolverType = 1
      
     ErrTot = max(ErrInt,ErrExt);
     
-    fprintf('N=%-10dx%-10d\t ErrInt=%d\t rate=%-5.2f ErrExt=%d\t rate=%-5.2f,\t ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
-                    Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),t1);
+    %     fprintf('N=%-10dx%-10d\t ErrInt=%d\t rate=%-5.2f ErrExt=%d\t rate=%-5.2f,\t ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
+    %                     Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),t1);
+    %
+    %     ErrIntPre = ErrInt;
+    %     ErrExtPre = ErrExt;
+    %     ErrTotPre = ErrTot;
+    
+    fprintf('N=%-6dx%-7d EInt=%-10.4d rt=%-6.2f EExt=%-10.4d rt=%-6.2f ETot=%d\t rt=%-6.2f EU=%d\t rt=%-6.2f EUr=%d rt=%-6.2f EUrr=%d rt=%-6.2f  timeA=%-6.2f\n',...
+        Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),ErrU,log2(ErrUPre/ErrU),ErrUr,log2(ErrUrPre/ErrUr),ErrUrr,log2(ErrUrrPre/ErrUrr),t1);
     
     ErrIntPre = ErrInt;
     ErrExtPre = ErrExt;
     ErrTotPre = ErrTot;
+    ErrUPre	  = ErrU;
+    ErrUrPre  = ErrUr;
+    ErrUrrPre  = ErrUrr;
     
 end
 end
