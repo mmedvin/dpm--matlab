@@ -145,28 +145,28 @@ for	LinearSolverType = 0
 	dxdr = cos(Grid.Theta);
 	dydr = sin(Grid.Theta);
 	
-	[ux,uy] = gradient(u,Grid.dx,Grid.dy);
+    RD = Tools.Common.SecondDerivative(Grid.Nx,Grid.Ny,Grid.dx,Grid.dy,dxdr(:),dydr(:));
+	[Tur,Turr] = RD.RadialDerivatives(u(:));
+    
+    Tur  = reshape(Tur,Grid.Nx,Grid.Ny);
+    Turr = reshape(Turr,Grid.Nx,Grid.Ny);
+    
+	%[ux,uy] = gradient(u,Grid.dx,Grid.dy);
 	ur = Ex.dudr;
-	tmp = ux.*dxdr + uy.*dydr;
-	ur(2:end-1,2:end-1) = tmp(2:end-1,2:end-1); 
+	%tmp = ux.*dxdr + uy.*dydr;
+	%ur(2:end-1,2:end-1) = tmp(2:end-1,2:end-1); 
+    ur(2:end-1,2:end-1) = Tur(2:end-1,2:end-1); 
 	tmp = Ex.dudr - ur;
 	tmp(IntPrb.Scatterer.GridGamma) = 0;
 	ErrUr = norm(tmp(:),inf);
 	
-	%[urx,ury] = gradient(ur,Grid.dx,Grid.dy);
-	[uxx,uxy] = gradient(ux,Grid.dx,Grid.dy);
-	[uyx,uyy] = gradient(uy,Grid.dx,Grid.dy);
-	
-	tmp=uxx.*dxdr.^2 + 2*uxy.*dxdr.*dydr + uyy.*dydr.^2;
-	
 	urr = Ex.d2udr2;
-	%tmp = urx.*dxdr + ury.*dydr;
-	urr(3:end-2,3:end-2) = tmp(3:end-2,3:end-2); 
+    urr(3:end-2,3:end-2) = Turr(3:end-2,3:end-2); 
+    
 	tmp = Ex.d2udr2 - urr;
-	tmp(IntPrb.Scatterer.GridGamma) = 0;
-	%ErrUrr  = norm(tmp(Grid.R<0.78 & Grid.R>0.73),inf);
-	%tmp( Grid.R>0.35  )=0;
-	tmp( Grid.R<0.7 )=0;
+	%tmp(IntPrb.Scatterer.GridGamma) = 0;
+	
+	tmp( Grid.R>0.3  &  Grid.R<0.7 )=0;
 	ErrUrr  = norm(tmp( :),inf);
 %------------------------------------------------------------------
 	
@@ -192,7 +192,7 @@ for	LinearSolverType = 0
     %fprintf('b=%-5.2d,C=%-5.2d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',ExParams.B,ExParams.C,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     %fprintf('coeffs=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
      
-	fprintf('N=%-6dx%-7d EInt=%-10.4d rt=%-6.2f EExt=%-10.4d rt=%-6.2f ETot=%d\t rt=%-6.2f EU=%d\t rt=%-6.2f EUr=%d\t rt=%-6.2f EUrr=%d\t rt=%-6.2f  timeA=%-6.2f\n',...
+	fprintf('N=%-6dx%-7d EInt=%-10.4d rt=%-6.2f EExt=%-10.4d rt=%-6.2f ETot=%d\t rt=%-6.2f EU=%d\t rt=%-6.2f EUr=%d rt=%-6.2f EUrr=%d rt=%-6.2f  timeA=%-6.2f\n',...
 		Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),ErrU,log2(ErrUPre/ErrU),ErrUr,log2(ErrUrPre/ErrUr),ErrUrr,log2(ErrUrrPre/ErrUrr),t1);
 	
 	ErrIntPre = ErrInt;

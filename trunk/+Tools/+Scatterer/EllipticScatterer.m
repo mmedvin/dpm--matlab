@@ -114,17 +114,28 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
 		end
         function res = Expansion3thOrdrLap(obj,Xi0,Xi1,F,LapCoeffs)
              [xi0,xi0f,xi0ff] = Xi0.Derivatives();
-             [xi1] = Xi1.Derivatives();
+             [xi1,xi1f,xi1ff] = Xi1.Derivatives();
              
-			 f = F.Derivatives();
+			 [f,fn] = F.Derivatives();
 			 [a,an] = LapCoeffs.Derivatives('a');
 			 [b,bf] = LapCoeffs.Derivatives('b');
 			 sigma	= LapCoeffs.Derivatives('sigma');
-			 h2 = obj.MetricsAtScatterer.metrics().^2;
+             [h,hn] = obj.MetricsAtScatterer.metrics();
+             
+			 h2 = h.^2;
 
 			 unn = ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 )./a ;
              
-             res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 ;
+             %tmp part
+             %assumimg sigma is constant or doesn't depends on eliptical
+             %radius
+             bn = 0;
+             bfn = 0;
+             ann = 0;
+             unnn = ( (fn + sigma.*xi1).*h2 + (f + sigma.*xi0).*(2*h.*hn) -  bfn.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn )./a ...
+                  + ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*an./(a.^2);
+             
+             res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 ;%+ (obj.deta.^3).*unnn/6;
              
          end
 		function res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,LapCoeffs)
