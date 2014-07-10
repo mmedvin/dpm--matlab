@@ -1,4 +1,4 @@
-classdef MatAmgWrapper < handle
+classdef MatAmgWrapper < Tools.LASolvers.AbstractLA_Solver
 	%UNTITLED Summary of this class goes here
 	%   Detailed explanation goes here
 	

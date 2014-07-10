@@ -127,6 +127,20 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					[obj.L,obj.U] = ilu(obj.A,struct('type','ilutp','droptol',obj.tollerance));%preconditioner
 					%[obj.L,obj.U] = ilu(obj.A,struct('type','crout','droptol',obj.tollerance));%preconditioner
 
+                case 7 %RonMorganGmres
+                    
+                    params.MaxSubSpace  = 35;
+                    params.SavekEVs     = 15;
+                    
+                    params.rtol         = obj.Grid.dx^4;%(obj.Grid.dx*obj.Grid.dy)^(3/2); %1.e-8;
+                    params.rtolev       = 1.e-16;%obj.Grid.dx^4;%1.e-16;%obj.Grid.dx^6;%(obj.Grid.dx*obj.Grid.dy)^3;%1.e-16;
+                    params.cyclim       = 30;
+
+                    %[obj.L,obj.U,obj.P] = ilu(obj.A,struct('type','nofill'));%preconditioner
+                   % [obj.L,obj.U,obj.P] = ilu(obj.A,struct('type','ilutp','droptol',1.e-8));
+                    
+                    obj.MGHandle = Tools.LASolvers.GMRES.RonMorganGmres(obj.A,params);
+                    
 				case 99 %AMG_WU
 					
 					error('wrong choice, this option doesn''t work well')
@@ -210,6 +224,11 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
                         InitialGuess = obj.U\(obj.L\Rhs);
                         
                         [u(obj.Inside),flag,relres] = bicgstab(obj.A,f(obj.Inside),obj.tollerance,obj.MaxIteration,obj.L,obj.U,InitialGuess);
+                        
+                    case 7 %RonMorganGmres
+                        InitialGuess = zeros(size(Rhs));% obj.U\(obj.L\(obj.P*Rhs));
+                        u(obj.Inside) = obj.MGHandle.Solve( (f(obj.Inside)),InitialGuess );
+                        %u(obj.Inside,:) = obj.MGHandle.Solve( (f(obj.Inside,:)) );
                         
 					case 99 %AMG_WU
 						assert(size(f,2)==1);

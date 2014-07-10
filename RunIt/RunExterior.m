@@ -16,9 +16,10 @@ catch err
 end
 
 etinf=[];     
-a=1.8;    B=a/2;
-%r0=0.3; r1=2.2;
-r0=0.8; r1=2.2;
+a=1;%1.8;    
+B=a/2;
+r0=0.3; r1=2.2;
+%r0=0.8; r1=2.2;
 NHR=1.6;
 
 
@@ -35,9 +36,9 @@ HankelType = 2;
 
 for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.5] [0.69,0.66,0.63]% 0.69%
 	
-	%Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+	Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
 	%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
-	Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',200));
+	%Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',200));
 	
     FocalDist = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDist);
@@ -79,7 +80,7 @@ rat=4/5;
 		
 %for n = 1:6
 %k=K(n);
-        for  IncAngD =0;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
+        for  IncAngD =40;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
     		IncAng = IncAngD*pi/180;   
 
         if strcmpi(HankOrPlane,'PlaneWave')                        

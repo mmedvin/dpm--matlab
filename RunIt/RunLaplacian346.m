@@ -6,7 +6,7 @@ Lx=xn-x1;Ly=yn-y1;
 	
 
 
-ExParams.B  = 10^(-3);
+ExParams.B  = 10^(3);
 ExParams.C  = 0.1;
 ExParams.r0 = 1/2;
 
@@ -151,23 +151,32 @@ for	LinearSolverType = 0
     Tur  = reshape(Tur,Grid.Nx,Grid.Ny);
     Turr = reshape(Turr,Grid.Nx,Grid.Ny);
     
+    [Exur,Exurr] = RD.RadialDerivatives(Ex.u(:));
+    
+    Exur  = reshape(Exur,Grid.Nx,Grid.Ny);
+    Exurr = reshape(Exurr,Grid.Nx,Grid.Ny);
+    
 	%[ux,uy] = gradient(u,Grid.dx,Grid.dy);
-	ur = Ex.dudr;
+	ur = Exur;%Ex.dudr;
 	%tmp = ux.*dxdr + uy.*dydr;
 	%ur(2:end-1,2:end-1) = tmp(2:end-1,2:end-1); 
     ur(2:end-1,2:end-1) = Tur(2:end-1,2:end-1); 
-	tmp = Ex.dudr - ur;
+	%tmp = Ex.dudr - ur;
+    tmp = Exur - ur;
 	tmp(IntPrb.Scatterer.GridGamma) = 0;
 	ErrUr = norm(tmp(:),inf);
 	
-	urr = Ex.d2udr2;
-    urr(3:end-2,3:end-2) = Turr(3:end-2,3:end-2); 
+	urr = Exurr;%Ex.d2udr2;
+    %urr(3:end-4,3:end-4) = Turr(3:end-4,3:end-4); 
+    urr(2:end-1,2:end-1) = Turr(2:end-1,2:end-1); 
     
-	tmp = Ex.d2udr2 - urr;
-	%tmp(IntPrb.Scatterer.GridGamma) = 0;
+	%tmp = Ex.d2udr2 - urr;
+    tmp = Exurr - urr;
+	tmp(IntPrb.Scatterer.GridGamma) = 0;
 	
-	tmp( Grid.R>0.3  &  Grid.R<0.7 )=0;
-	ErrUrr  = norm(tmp( :),inf);
+	tmp( Grid.R>0.4  &  Grid.R<0.6 )=0;
+    %tmp( Grid.R>0.1)=0;
+	ErrUrr  = norm(tmp( :),2);
 %------------------------------------------------------------------
 	
 	
