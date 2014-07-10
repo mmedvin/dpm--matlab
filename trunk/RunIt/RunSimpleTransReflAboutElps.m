@@ -268,9 +268,9 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
 %                 tmp=abs([tIntu,tExtu]);
 %                fprintf('min=%d \t max=%d', full(min(tmp(:))), full(max(tmp(:))));
 %                 
-               saveas(figure(1),[filename 'abs.jpg'],'jpg')
-               saveas(figure(2),[filename 'real.jpg'],'jpg')
-               saveas(figure(3),[filename 'imag.jpg'],'jpg')
+              % saveas(figure(1),[filename 'abs.jpg'],'jpg')
+              % saveas(figure(2),[filename 'real.jpg'],'jpg')
+              % saveas(figure(3),[filename 'imag.jpg'],'jpg')
             end
             
             

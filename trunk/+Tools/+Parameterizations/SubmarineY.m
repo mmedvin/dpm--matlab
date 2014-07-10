@@ -3,19 +3,23 @@ classdef SubmarineY < Tools.Common.FunctionWithDerivatives
     %   Detailed explanation goes here
     
     properties
-        b;%c;p;d;e;
-        TowerWD
+        b;
+        c;p; %leave it for outside needs
+        %d;e;
+        TowerWD;
     end
     
     methods
         function obj = SubmarineY(Params)
             obj.b=Params.b;
-            %obj.c=Params.c;
-            %obj.p=Params.p;
+            
+            %leave the following for outside needs
+            obj.c=Params.c;
+            obj.p=Params.p;
             %obj.d=Params.d;
             %obj.e=Params.e;
             
-            obj.TowerWD = Tools.Parameterizations.SubmarineTowerPatch(Params.c,Params.p);
+            obj.TowerWD = Tools.Parameterizations.SubmarineTowerPatch(obj.c,obj.p);
         end
         function varargout = Derivatives(obj,t)
             nout = nargout;

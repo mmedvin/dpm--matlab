@@ -1,4 +1,4 @@
-classdef ClassQinghaiMG < handle
+classdef ClassQinghaiMG < Tools.LASolvers.AbstractLA_Solver
     properties(Access = protected)
         % matrix;
         param;

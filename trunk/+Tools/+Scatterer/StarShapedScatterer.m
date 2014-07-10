@@ -52,15 +52,28 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             obj.YHandle = Params.Parameterization.YHandle;
 
             obj.MyGrid();
-            obj.CreateScatParamToGridAng;
+            
+            HashInfo = obj.TryToLoad();
+            
+            if HashInfo.Loaded
+                
+                obj.ScatParamToGridAng      = HashInfo.ScatParamToGridAng;
+                obj.RAtScatParamToGridAng   = HashInfo.RAtScatParamToGridAng;
+                
+            else
+                obj.CreateScatParamToGridAng();                
+            end
+            
             obj.SplitGrid();
             obj.GridGamma = intersect(obj.Np,obj.Nm)';
             
-            obj.GridOnScatterer();            
+            obj.GridOnScatterer(HashInfo);            
+            
+            if ~HashInfo.Loaded
+                obj.Save(HashInfo,obj.ScatParamToGridAng, obj.RAtScatParamToGridAng, obj.nrml_t);
+            end
             
             obj.MetricsAtScatterer = Tools.Metrics.StarShapedParametricMetric(obj.XHandle, obj.YHandle);
-            
-            
             
         end
         
@@ -136,6 +149,82 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             g = arg - theta;                
         end
         
+        function HashInfo = hash_func(obj)
+            HashInfo.Loaded = 0;
+            HashInfo.X = obj.XHandle;
+            HashInfo.Y = obj.YHandle;
+            HashInfo.Xmeta = metaclass(HashInfo.X);
+            HashInfo.Ymeta = metaclass(HashInfo.Y);
+            
+            
+            HashInfo.HashVal = obj.Grid.x1*obj.Grid.xn*obj.Grid.Nx + obj.Grid.y1*obj.Grid.yn*obj.Grid.Ny;
+            for i = 1:numel(HashInfo.Xmeta.Properties)
+                
+                nm1 = HashInfo.Xmeta.Properties{i}.Name;
+                val1 = eval(['obj.XHandle.',nm1]);
+                if isobject(val1), continue,end
+                
+                for j = 1:numel(HashInfo.Ymeta.Properties)
+                    
+                    nm2 = HashInfo.Ymeta.Properties{j}.Name;
+                    val2 = eval(['obj.YHandle.',nm2]);
+                    
+                    if isobject(val2), continue,end
+                    
+                   HashInfo.HashVal = HashInfo.HashVal + (val1.^i) * (val2.^j);
+                end
+            end
+                        
+            HashInfo.HashVal = fix(HashInfo.HashVal *1e4);
+        end
+        
+        function Gstr = TypeOfGrid(obj)
+            m=metaclass(obj.Grid);
+            if isempty(strfind(m.Name, 'Polar')), 
+                Gstr = 'Cartesian'; 
+            else
+                Gstr = 'Polar'; 
+            end
+            %isempty(strfind(m.Name, 'Cartesian'))
+        end
+        
+        function HashInfo = TryToLoad(obj)
+            
+            HashInfo = obj.hash_func();
+            
+            path = [ pwd filesep 'SavedData' filesep 'StarShapedBody' filesep obj.TypeOfGrid filesep ,...
+                'h' num2str(HashInfo.HashVal),...
+                'x' num2str(obj.Grid.x1) '_' num2str(obj.Grid.xn) 'y' num2str(obj.Grid.y1) '_' num2str(obj.Grid.yn), ...
+                'g' num2str(obj.Grid.Nx) 'x' num2str(obj.Grid.Ny) '.mat'];
+             
+            if exist(path,'file')
+                S = load(path);
+                
+                HashInfo.ScatParamToGridAng = S.HashInfo.ScatParamToGridAng;
+                HashInfo.RAtScatParamToGridAng = S.HashInfo.RAtScatParamToGridAng;
+                HashInfo.nrml_t = S.HashInfo.nrml_t;
+                HashInfo.Loaded = true;
+                
+                %HashInfo.ScatParamToGridAng;
+                %HashInfo.RAtScatParamToGridAng;
+            end
+        end
+        
+        function Save(obj,HashInfo,ScatParamToGridAng, RAtScatParamToGridAng,nrml_t)            
+            HashInfo.ScatParamToGridAng     = ScatParamToGridAng;
+            HashInfo.RAtScatParamToGridAng  = RAtScatParamToGridAng;
+            HashInfo.nrml_t = nrml_t;
+            
+            path = [pwd filesep 'SavedData' filesep 'StarShapedBody' filesep obj.TypeOfGrid];
+            
+            if ~exist(path,'dir')
+                mkdir(path);
+            end
+            
+            save([ path  filesep 'h' num2str(HashInfo.HashVal),...
+                'x' num2str(obj.Grid.x1) '_' num2str(obj.Grid.xn) 'y' num2str(obj.Grid.y1) '_' num2str(obj.Grid.yn), ...
+                 'g' num2str(obj.Grid.Nx) 'x' num2str(obj.Grid.Ny) '.mat'] ,'HashInfo');
+        end
         
         function CreateScatParamToGridAng(obj)
                        
@@ -166,7 +255,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             dDist2dTheta  = (x0 - x1).*dx0dtheta + (y0-y1).*dy0dtheta;
         end
         
-        function GridOnScatterer(obj)
+        function GridOnScatterer(obj,HashInfo)
             
             obj.r  = obj.R(obj.GridGamma);
             InitialGuess = obj.ScatParamToGridAng(obj.GridGamma); %  obj.th
@@ -179,12 +268,16 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             
             switch obj.FZeroAlg
                 case 1 %regular choice
+                    if HashInfo.Loaded
+                        obj.nrml_t = HashInfo.nrml_t;
+                    else
                     [obj.nrml_t,fval,exitflag,output] ...
                         = arrayfun(@(indx) ...
                         fzero(@(arg) obj.DerivativeOfDistance(arg,x1(indx),y1(indx)),InitialGuess(indx),options), ... 
                         1:numel(obj.th));%,'UniformOutput',false);
                     
                     obj.nrml_t = obj.nrml_t.';
+                    end
                 case 2 %TBD
                 case 3
                     if ~strcmpi(obj.Shape,'circle')

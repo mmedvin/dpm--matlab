@@ -13,8 +13,8 @@ function RunLaplacian351
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-    BIn = 1000;
-    BOut = 1;
+    BIn = 1e3;
+    BOut = 1e-3;
 
 	BType		= 'Fourier';
     
@@ -32,7 +32,7 @@ function RunLaplacian351
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
 	end
 
-for	   LinearSolverType = 1
+for	   LinearSolverType = 0
     if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
 
         ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0; ErrUPre = 0; ErrUrPre = 0; ErrUrrPre = 0;
@@ -207,22 +207,30 @@ for	   LinearSolverType = 1
     Tdudeta  = reshape(Tdudeta,Grid.Nx,Grid.Ny);
     Td2udeta2 = reshape(Td2udeta2,Grid.Nx,Grid.Ny);
     
+    [Exdudeta,Exd2udeta2] = RD.RadialDerivatives(Ex.u(:));
+    
+    Exdudeta  = reshape(Exdudeta,Grid.Nx,Grid.Ny);
+    Exd2udeta2 = reshape(Exd2udeta2,Grid.Nx,Grid.Ny);
+    
+    
 	%[ux,uy] = gradient(u,Grid.dx,Grid.dy);
-	dudeta = Ex.dudeta;
+	dudeta = Exdudeta;%Ex.dudeta;
 	%tmp = ux.*dxdr + uy.*dydr;
 	%ur(2:end-1,2:end-1) = tmp(2:end-1,2:end-1); 
     dudeta(2:end-1,2:end-1) = Tdudeta(2:end-1,2:end-1); 
-	tmp = Ex.dudeta - dudeta;
+	%tmp = Ex.dudeta - dudeta;
+    tmp = Exdudeta - dudeta;
 	tmp(IntPrb.Scatterer.GridGamma) = 0;
 	ErrUr = norm(tmp(:),inf);
 
-	d2udeta2 = Ex.d2udeta2;
+	d2udeta2 = Exd2udeta2;%Ex.d2udeta2;
     d2udeta2(2:end-1,2:end-1) = Td2udeta2(2:end-1,2:end-1); 
     
-	tmp = Ex.d2udeta2 - d2udeta2;
+	%tmp = Ex.d2udeta2 - d2udeta2;
+    tmp = Exd2udeta2 - d2udeta2;
 	tmp(IntPrb.Scatterer.GridGamma) = 0;
 	
-	tmp( IntPrb.Scatterer.Eta > (Eta0-0.2)  &  IntPrb.Scatterer.Eta < (Eta0+0.2) )=0;
+	%tmp( IntPrb.Scatterer.Eta > (Eta0-0.2)  &  IntPrb.Scatterer.Eta < (Eta0+0.2) )=0;
 	ErrUrr  = norm(tmp( :),inf);
 %------------------------------------------------------------------
      

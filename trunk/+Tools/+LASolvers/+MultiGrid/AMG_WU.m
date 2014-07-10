@@ -1,4 +1,4 @@
-classdef AMG_WU < handle
+classdef AMG_WU < Tools.LASolvers.AbstractLA_Solver
 	%UNTITLED Summary of this class goes here
 	%   Detailed explanation goes here
 	
