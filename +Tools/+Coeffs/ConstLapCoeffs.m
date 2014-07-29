@@ -17,11 +17,11 @@ classdef ConstLapCoeffs < Tools.Coeffs.AbstractCoeffs
 	
 	methods
 		
-		function varargout = Derivatives(obj,WhichOne)
+		function varargout = Derivatives(obj,WhichOne,varargin)
 			switch WhichOne
-				case 'a'
+				case {'a','ax','c'}
 					varargout(1)={obj.a};
-				case 'b'
+				case {'b','bx','d'}
 					varargout(1)={obj.b};
 				case {'sigma','s'}
 					varargout(1)={obj.sigma};

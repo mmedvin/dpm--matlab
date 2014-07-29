@@ -22,7 +22,13 @@ classdef SuperLaplacianOp<Tools.DifferentialOps.SuperDiffOp
 				obj.Grid.yn + obj.Grid.dy/2 , ...
 				2*obj.Grid.Ny + 1         ) ;
 			
-			 ScattK = struct('r',GridK.R);
+            if isfield(ParamsStruct.CoeffsParams,'FocalDistance')
+
+                [Eta,Phi] = GridK.ToElliptical(ParamsStruct.CoeffsParams.FocalDistance);
+                ScattK = struct('FocalDistance',ParamsStruct.CoeffsParams.FocalDistance, 'Eta',Eta,'Phi',Phi);
+            else
+                ScattK = struct('r',GridK.R);%,'th',GridK.Theta);
+            end
 			 coeffs = ParamsStruct.CoeffsHandle(ScattK,ParamsStruct.CoeffsParams);
 			%%%%
 			

@@ -44,5 +44,11 @@ classdef CartesianGrid < Tools.Grid.Grids
         function y = get.Y(obj)
             [~,y] = meshgrid(obj.x,obj.y);
         end
+
+        function [eta,phi] = ToElliptical(obj,FocalDistance)
+            eZ  = acosh((obj.X + 1i*obj.Y)/FocalDistance);
+            eta = real(eZ);
+            phi = imag(eZ);
+        end        
     end
 end

@@ -129,11 +129,11 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
              %tmp part
              %assumimg sigma is constant or doesn't depends on eliptical
              %radius
-             bn = 0;
-             bfn = 0;
-             ann = 0;
-             unnn = ( (fn + sigma.*xi1).*h2 + (f + sigma.*xi0).*(2*h.*hn) -  bfn.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn )./a ...
-                  + ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*an./(a.^2);
+             %bn = LapCoeffs.bn;
+             %bfn = LapCoeffs.bnf;
+             %ann = LapCoeffs.ann;
+             %unnn = ( (fn + sigma.*xi1).*h2 + (f + sigma.*xi0).*(2*h.*hn) -  bfn.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn )./a ...
+             %     + ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*an./(a.^2);
              
              res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 ;%+ (obj.deta.^3).*unnn/6;
              

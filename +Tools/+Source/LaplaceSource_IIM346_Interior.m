@@ -1,7 +1,7 @@
 classdef LaplaceSource_IIM346_Interior < Tools.Source.SuperSource
-    properties (Dependent = true)
-        Source;%Fn;Ff;Fnn;Fff;    % WN;
-    end
+    %properties (Dependent = true)
+    %    Source;%Fn;Ff;Fnn;Fff;    % WN;
+    %end
     
     properties(Access = protected)       
         Scatterer; 
@@ -50,7 +50,7 @@ classdef LaplaceSource_IIM346_Interior < Tools.Source.SuperSource
 			obj.IsDummy = false;
 		end
         
-		function S = get.Source(obj)
+		function S = Source(obj)
  			S = spalloc(obj.Scatterer.Size(1),obj.Scatterer.Size(2),numel(obj.Scatterer.Np));
 			
 			[F,Fn,~,Fnn] = obj.Derivatives();
@@ -67,8 +67,8 @@ classdef LaplaceSource_IIM346_Interior < Tools.Source.SuperSource
             S(end,1:end)= 0; %Exact.u(end,1:end);
 			
 			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
-										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ...  
-										+ (obj.Scatterer.dr.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
+										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ;%...  
+										%+ (obj.Scatterer.dr.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
 			
 			%%tmp = obj.Derivatives();
 			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
