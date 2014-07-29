@@ -19,7 +19,7 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
             cn0 = Tools.Basis.ChebyshevBasis.chebyshevExpansion(f,range);
             cn1 = Tools.Basis.ChebyshevBasis.chebyshevExpansion(dfdr,range);
             
-            err=(1e-10);
+            err=(1e-14);
             cn1(abs(cn1) < err) = 0;
             N = find(cn1,1,'last');
             cn0 = cn0(1:N).';

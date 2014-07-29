@@ -1,4 +1,4 @@
-function RunLaplacian351
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          function RunLaplacian351
 
     a=1;%2.5;
     b=1/2;	
@@ -13,8 +13,8 @@ function RunLaplacian351
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-    BIn = 1e3;
-    BOut = 1e-3;
+    BIn = 1e0;
+    BOut = 1e3;
 
 	BType		= 'Fourier';
     
@@ -143,8 +143,8 @@ for	   LinearSolverType = 0
 		Extxi(ExtPrb.GridGamma) = ...
 			ExtPrb.W0(ExtPrb.GridGamma,:)*Basis.cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*Extcn1 + ExtPrb.Wf(ExtPrb.GridGamma);
 		
-		xiex  = ExtExact(FocalDistance,ExtPrb.Scatterer.eta,ExtPrb.Scatterer.phi);
-		Extxi(ExtPrb.GridGamma) = xiex; %debig
+		%xiex  = ExtExact(FocalDistance,ExtPrb.Scatterer.eta,ExtPrb.Scatterer.phi);
+		%Extxi(ExtPrb.GridGamma) = xiex; %debig
 		
 		Extu = ExtPrb.P_Omega(Extxi); 
 		
