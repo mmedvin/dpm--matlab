@@ -16,7 +16,7 @@ classdef LaplaceCoeffsEllps1 < Tools.Coeffs.AbstractCoeffs
 	methods
 		
 		function [d,dr,drr,d3r,d4r,d5r] = Derivatives(obj,WhichOne)
-            d=0;dr=0;drr=0;d3r=0;d4r=0;d5r=0;
+            %d=0;dr=0;drr=0;d3r=0;d4r=0;d5r=0;
 			switch WhichOne
 				case 'a'
 					d   = obj.a;

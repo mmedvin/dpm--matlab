@@ -70,7 +70,7 @@ classdef LaplaceSource01_Exterior < Tools.Source.LaplaceSource01_Interior
 			
 			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
 										+ obj.Scatterer.deta.*Fn(obj.Scatterer.GridGamma);% ...  
-										%+ (obj.Scatterer.dr.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
+										%+ (obj.Scatterer.deta.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
 			
 			%%tmp = obj.Derivatives();
 			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);

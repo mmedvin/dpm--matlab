@@ -18,7 +18,7 @@ function RunSimpleTransReflAboutCircle
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
 %     fprintf('Solving %s defraction problem, comparing using grid convergance, data is PlaneWave, scatterer is circle\n',Problem);
-     
+     fprintf('RunSimpleTransReflAboutCircle \n');
     for k = 1 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
             
         UincParams  = struct('ScattererType','circle','r',R0);              

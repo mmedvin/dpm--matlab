@@ -31,7 +31,7 @@ for	   LinearSolverType = 0
 
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 	
-    fprintf('Problem BL53, M=%d, LinearSolverType = %d \n', Basis.M, LinearSolverType);
+    fprintf('Problem BL54, M=%d, LinearSolverType = %d \n', Basis.M, LinearSolverType);
         
 	for n=1:4 %6 %run different grids
 		tic

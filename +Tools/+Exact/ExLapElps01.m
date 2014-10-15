@@ -141,27 +141,16 @@ end
             %yff=-y;           
             
             [c,cy,cyy] = Coeffs.CoeffsIn.Derivatives('c',x,y);
-%c=y.^2;cy=2*y;cyy=2*ones(size(y));
             [d,dx,dxx] = Coeffs.CoeffsIn.Derivatives('d',x,y);
-%d=(x).^3;dx=3*(x).^2;dxx=6*(x);
             
 
             [obj.u,ux,uxx,uy,uyy,uxy] = exact(obj,x,y,c,cy,cyy,d,dx,dxx);
             
-            %obj.u = sin(c.*x).*sin(d.*y);
-            %ux = y.*dx.*sin(c.*x).*cos(d.*y) + c.*cos(c.*x).*sin(d.*y);
-            %uy = x.*cy.*cos(c.*x).*sin(d.*y) + d.*cos(d.*y).*sin(c.*x);
-
             obj.dudeta = ux.*xn + uy.*yn;
             %obj.dudphi = ux.*xf + uy.*yf;
             
-            %uxx = y.*cos(d.*y).*(2*c.*dx.*cos(c.*x) + dxx.*sin(c.*x)) - (c.^2 + (dx.*y).^2).*sin(c.*x).*sin(d.*y); 
-            %uyy = 2*cy.*d.*x.*cos(c.*x).*cos(d.*y) + (cyy.*x.*cos(c.*x) - (d.^2 + (cy.*x).^2).*sin(c.*x)).*sin(d.*y);
-            %uxy = cos(d.*y).*(c.*d.*cos(c.*x) + dx.*(cy.*x.*y.*cos(c.*x) + sin(c.*x))) + (cy.*cos(c.*x) - (c.*cy.*x + d.*dx.*y).*sin(c.*x)).*sin(d.*y);
-            
             obj.d2udeta2 = uxx.*xn.^2 + uyy.*yn.^2 + 2*uxy.*xn.*yn;
             %obj.d2udphi2 = uxx.*xf.^2 + uyy.*yf.^2 + uxy.*xf.*yf;
-            
             
             if length(eta)==1 && eta > obj.Eta0
                 [c,cy,cyy] = Coeffs.CoeffsOut.Derivatives('c',x,y);
@@ -169,31 +158,21 @@ end
                 
                 [obj.u,ux,uxx,uy,uyy,uxy] = exact(obj,x,y,c,cy,cyy,d,dx,dxx);
                 
-                %obj.u = sin(c.*x).*sin(d.*y);
-                %ux = y.*dx.*sin(c.*x).*cos(d.*y) + c.*cos(c.*x).*sin(d.*y);
-                %uy = x.*cy.*cos(c.*x).*sin(d.*y) + d.*cos(d.*y).*sin(c.*x);
-                
                 obj.dudeta = ux.*xn + uy.*yn;
                 %obj.dudphi = ux.*xf + uy.*yf;
                 
-                %uxx = y.*cos(d.*y).*(2*c.*dx.*cos(c.*x) + dxx.*sin(c.*x)) - (c.^2 + (dx.*y).^2).*sin(c.*x).*sin(d.*y);
-                %uyy = 2*cy.*d.*x.*cos(c.*x).*cos(d.*y) + (cyy.*x.*cos(c.*x) - (d.^2 + (cy.*x).^2).*sin(c.*x)).*sin(d.*y);
-                %uxy = cos(d.*y).*(c.*d.*cos(c.*x) + dx.*(cy.*x.*y.*cos(c.*x) + sin(c.*x))) + (cy.*cos(c.*x) - (c.*cy.*x + d.*dx.*y).*sin(c.*x)).*sin(d.*y);
-                
                 obj.d2udeta2 = uxx.*xn.^2 + uyy.*yn.^2 + 2*uxy.*xn.*yn;
                 %obj.d2udphi2 = uxx.*xf.^2 + uyy.*yf.^2 + uxy.*xf.*yf;
-
-                
             else
                 [c,cy,cyy] = Coeffs.CoeffsOut.Derivatives('c',x,y);
+                [d,dx,dxx] = Coeffs.CoeffsOut.Derivatives('d',x,y);
+                
                 if size(c)==1
                     c = c*ones(size(eta));
                     cy = cy*ones(size(eta));
                     cyy = cyy*ones(size(eta));
                 end
 
-                [d,dx,dxx] = Coeffs.CoeffsOut.Derivatives('b',x,y);
-                
                 if size(d)==1
                     d   = d*ones(size(eta));
                     dx  = dx*ones(size(eta));
@@ -213,23 +192,13 @@ end
                 xn=xn(eta > obj.Eta0);
                 yn=yn(eta > obj.Eta0);
                 
-                
                 [obj.u(eta > obj.Eta0),ux,uxx,uy,uyy,uxy] = exact(obj,x,y,c,cy,cyy,d,dx,dxx);
-                
-                %obj.u(eta > obj.Eta0) = sin(c.*x).*sin(d.*y);
-                %ux = y.*dx.*sin(c.*x).*cos(d.*y) + c.*cos(c.*x).*sin(d.*y);
-                %uy = x.*cy.*cos(c.*x).*sin(d.*y) + d.*cos(d.*y).*sin(c.*x);
                 
                 obj.dudeta(eta > obj.Eta0) = ux.*xn + uy.*yn;
                 %obj.dudphi = ux.*xf + uy.*yf;
                 
-                %uxx = y.*cos(d.*y).*(2*c.*dx.*cos(c.*x) + dxx.*sin(c.*x)) - (c.^2 + (dx.*y).^2).*sin(c.*x).*sin(d.*y);
-                %uyy = 2*cy.*d.*x.*cos(c.*x).*cos(d.*y) + (cyy.*x.*cos(c.*x) - (d.^2 + (cy.*x).^2).*sin(c.*x)).*sin(d.*y);
-                %uxy = cos(d.*y).*(c.*d.*cos(c.*x) + dx.*(cy.*x.*y.*cos(c.*x) + sin(c.*x))) + (cy.*cos(c.*x) - (c.*cy.*x + d.*dx.*y).*sin(c.*x)).*sin(d.*y);
-                
                 obj.d2udeta2(eta > obj.Eta0) = uxx.*xn.^2 + uyy.*yn.^2 + 2*uxy.*xn.*yn;
                 %obj.d2udphi2 = uxx.*xf.^2 + uyy.*yf.^2 + uxy.*xf.*yf;
-                
             end
 
         end
@@ -237,7 +206,8 @@ end
         function [u,dudeta,d2udeta2,dudphi,d2udphi2] = Derivatives(obj)
             u         = obj.u;            
             dudeta    = obj.dudeta;      
-			if nargout>2
+            d2udeta2  = obj.d2udeta2;
+			if nargout>3
 				error('higher derivative not implemented')
 			end
         end        

@@ -1,31 +1,34 @@
 function RunLaplacian01
 
-    a=1;%2.5;
-    b=1/2;	
+    a=0.9;%2.5;
+    b=0.1;	
+	
+    %a=0.9; b=0.1;
 	
 	x1=-1.1;xn=1.1;
-	y1i=-0.7;yni=0.7;
+	y1i=-0.5;yni=0.5;
 	y1e=-1.1;yne=1.1;
 	%Lx=xn-x1;Ly=yn-y1;    
 
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-      Coeff.a0 = 1000000;
-      Coeff.b0 = 1000000;
-      %Coeff.a1 = 6;
-      %Coeff.b1 = 5;
-    Coeff.c0 = 2;
-    Coeff.d0 = 3;
-    %Coeff.c1 = 2;
+%        Coeff.a0 = 10;
+%        Coeff.b0 = 10;
+%        Coeff.a1 = 1;
+%        Coeff.b1 = 1;
+%     Coeff.c0 = 2;
+%     Coeff.d0 = 1;
+%      Coeff.c1 = 1;
     %Coeff.d1 = 1;
 
     ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
     
 	BType		= 'Fourier'; %'Chebyshev';%'Fourier';
     
-    ExParams.CoeffsOut	= Tools.Coeffs.ConstLapCoeffs([], struct('a',Coeff.c0,'b',Coeff.d0,'sigma',0) );  
-    ExParams.CoeffsIn	= Tools.Coeffs.ExactCoeffs( struct('a',0,'b',2,'c',0,'d',3));
+    %ExParams.CoeffsOut	= Tools.Coeffs.ConstLapCoeffs([], struct('a',Coeff.c0,'b',Coeff.d0,'sigma',0) ); 
+    ExParams.CoeffsOut	= Tools.Coeffs.ExactCoeffs( struct('a',1,'b',2,'c',0,'d',3));
+    ExParams.CoeffsIn	= Tools.Coeffs.ExactCoeffs( struct('a',2,'b',1,'c',0,'d',2));
 
 %ExParams.CoeffsOut	= Tools.Coeffs.ConstLapCoeffs([], struct('a',Coeff.c0,'b',Coeff.d0,'sigma',0) );    
 %ExParams.CoeffsIn	= Tools.Coeffs.ConstLapCoeffs([], struct('a',Coeff.c1,'b',Coeff.d1,'sigma',0) );
@@ -80,7 +83,7 @@ for	   LinearSolverType = 0
 		%InteriorCoeffsParams = struct('a',Coeff.a1,'b',Coeff.b1,'sigma',0);
         
         InteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsEllps1;
-        InteriorCoeffsParams = struct('ca',2,'da',1,'ea',3,'WithB',0,'cb',4,'db',3,'eb',3,'sigma',0);
+        InteriorCoeffsParams = struct('ca',2,'da',1,'ea',3,'WithB',1,'cb',4,'db',3,'eb',2,'sigma',0);
         
         InteriorSource          = @Tools.Source.LaplaceSource01_Interior;
         
@@ -88,8 +91,8 @@ for	   LinearSolverType = 0
 
 		SourceParams = ExParams;
         		
-        %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-        DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+        DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+        %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
                         
         DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType);
         
@@ -99,6 +102,7 @@ for	   LinearSolverType = 0
         %------------------------------------------------------------------
         %eZ = acosh((GridExt.X + 1i*GridExt.Y)/FocalDistance);
         %BeZ = [eZ(2:end-1,1), eZ(2:end-1,GridExt.Ny), eZ(1,2:end-1).' , eZ(GridExt.Nx,2:end-1).' ];
+        %------BeZ = [eZ(1,2:end-1), eZ(GridExt.Ny,2:end-1), eZ(2:end-1,1).' , eZ(2:end-1,GridExt.Nx).' ];
         [BEta,BPhi] = GridExt.ToElliptical(FocalDistance);
 
         Boundaries.FocalDistance = FocalDistance;
@@ -106,14 +110,32 @@ for	   LinearSolverType = 0
         Boundaries.Eta           = [BEta(2:end-1,1), BEta(2:end-1,end), BEta(1,2:end-1).' , BEta(end,2:end-1).' ];%real(BeZ);
         Boundaries.Phi           = [BPhi(2:end-1,1), BPhi(2:end-1,end), BPhi(1,2:end-1).' , BPhi(end,2:end-1).' ];%imag(BeZ);
 
-        Exact	= Tools.Exact.ExLapElps01(Boundaries, ExParams);
-        DiffOpParamsExt = struct('BC_x1', Exact.u(:,1).','BC_xn', Exact.u(:,2).','BC_y1',Exact.u(:,3),'BC_yn',Exact.u(:,4), 'LinearSolverType', LinearSolverType);
-		        
-        ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
-        ExteriorCoeffsParams = struct('a',Coeff.a0,'b',Coeff.b0,'sigma',0);
+        %Boundaries.Eta           = [BEta(1,2:end-1), BEta(end,2:end-1), BEta(2:end-1,1).' , BEta(2:end-1,end).' ];
+        %Boundaries.Phi           = [BPhi(1,2:end-1), BPhi(end,2:end-1), BPhi(2:end-1,1).' , BPhi(2:end-1,end).' ];
         
-        %ExteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsEllps1;
-        %ExteriorCoeffsParams = struct('ca',1,'da',1,'ea',1000,'WithB',0);%,'cb',1,'db',1,'eb',1000,'sigma',0);       
+%        Boundaries.Eta           = real(BeZ);
+%        Boundaries.Phi           = imag(BeZ);
+        
+        %Exact.u	= ExtExact(FocalDistance,Boundaries.Eta,Boundaries.Phi,ExParams);
+        Exact	= Tools.Exact.ExLapElps01(Boundaries, ExParams);
+        DiffOpParamsExt = struct('BC_y1', Exact.u(:,1),'BC_yn', Exact.u(:,2),'BC_x1',Exact.u(:,3).','BC_xn',Exact.u(:,4).', 'LinearSolverType', LinearSolverType);
+        
+		        
+%         c = ExParams.CoeffsOut.Derivatives('c',GridExt.x,GridExt.y);
+%         d = ExParams.CoeffsOut.Derivatives('d',GridExt.x,GridExt.y);
+%         
+%         DiffOpParamsExt2 = struct('BC_y1', sin(c.*GridExt.x(1))      .* sin(d.*GridExt.y(2:end-1)).', ...
+%                                  'BC_yn', sin(c.*GridExt.x(end))    .* sin(d.*GridExt.y(2:end-1)).',...
+%                                  'BC_x1',(sin(c.*GridExt.x(2:end-1)).* sin(d.*GridExt.y(1))), ...
+%                                  'BC_xn',(sin(c.*GridExt.x(2:end-1)).* sin(d.*GridExt.y(end))), 'LinearSolverType', LinearSolverType);
+%         
+        
+        
+        %ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
+        %ExteriorCoeffsParams = struct('a',Coeff.a0,'b',Coeff.b0,'sigma',0);
+        
+        ExteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsEllps1;
+        ExteriorCoeffsParams = struct('ca',5,'da',1,'ea',1000000,'WithB',1,'cb',1,'db',3,'eb',1000000,'sigma',0);       
         
         ExteriorSource       = @Tools.Source.LaplaceSource01_Exterior;
        
@@ -133,19 +155,7 @@ for	   LinearSolverType = 0
 		rhs(1:nGGInt)	= (-IntPrb.TrGF -IntPrb.Qf);
 		rhs(nGGInt+1:(nGGInt+nGGExt))= (-ExtPrb.TrGF -ExtPrb.Qf);
 
-		% [u_in] = x0^2 - y0^2 
-		% [u_out] = sin(x0).* cos(y0) 
-		% [ beta un_in] = 0
-		% [beta un_out] = - 2 b sin(x0).* cos(y0)
-		
-		%phi=linspace(0,2*pi, Basis.NBss+1);
-		%phi = phi(1:Basis.NBss);
-
-		%x0 = FocalDistance*cosh(Eta0).*cos(phi);
-		%y0 = FocalDistance*sinh(Eta0).*sin(phi);
-		%xn0 = FocalDistance*sinh(Eta0).*cos(phi);
-		%yn0 = FocalDistance*cosh(Eta0).*sin(phi);
-		
+        Exact	= Tools.Exact.ExLapElps01(IntPrb.Scatterer, ExParams);
 		
 		[ICu,ICun] = Exact.InterfaceCondition(Basis.NBss); 
 		ICuc = Tools.Basis.FourierBasis.FftCoefs(ICu, Basis.NBss);
@@ -185,7 +195,7 @@ for	   LinearSolverType = 0
 			ExtPrb.W0(ExtPrb.GridGamma,:)*Basis.cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*Extcn1 + ExtPrb.Wf(ExtPrb.GridGamma);
 		
 		%xiex  = ExtExact(FocalDistance,ExtPrb.Scatterer.eta,ExtPrb.Scatterer.phi,ExParams);
-		%Extxi(ExtPrb.GridGamma) = xiex; %debig
+		%Extxi(ExtPrb.GridGamma) = xiex; %debug
 		
 		Extu = ExtPrb.P_Omega(Extxi); 
 		
@@ -208,7 +218,7 @@ for	   LinearSolverType = 0
  		Intxi(IntPrb.GridGamma) = IntPrb.W0(IntPrb.GridGamma,:)*Intcn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1  + IntPrb.Wf(IntPrb.GridGamma);
     
 		%xiex  = IntExact(FocalDistance,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,ExParams);
-		%Intxi(ExtPrb.GridGamma) = xiex; %debig
+		%Intxi(IntPrb.GridGamma) = xiex; %debug
 		
 		Intu = IntPrb.P_Omega(Intxi);
 	end
@@ -232,13 +242,7 @@ for	   LinearSolverType = 0
     Extu(:,1)   = Extexact(:,1);
     Extu(:,end) = Extexact(:,end);
    
-    Ex=Tools.Exact.ExLapElps01(ExtPrb.Scatterer, ExParams);
-	
-	%u=Ex.u; %zeros(size(Grid.R));
-	%u(ExtPrb.Scatterer.Mm) = Extu(ExtPrb.Scatterer.Mm);
-	%u(2:end-1,2:end-1) = Extu(2:end-1,2:end-1);
-	%u(IntPrb.Scatterer.Mp) = Intu(IntPrb.Scatterer.Mp);
-
+    if 1
     [ErrUInf,ErrU2] = cmpr([Intu(IntPrb.Scatterer.Mp);Extu(ExtPrb.Scatterer.Mm)],[Intexact(IntPrb.Scatterer.Mp);Extexact(ExtPrb.Scatterer.Mm)],0);
 
     CDExt = Tools.Common.SecondDerivative(GridExt.Nx,GridExt.Ny,GridExt.dx,GridExt.dy);
@@ -269,39 +273,19 @@ for	   LinearSolverType = 0
     ErrUInfPre = ErrUInf; ErrU2Pre = ErrU2; ErrUxInfPre = ErrUxInf; ErrUx2Pre = ErrUx2; ErrUyInfPre = ErrUyInf; ErrUy2Pre = ErrUy2; 
     ErrUxxInfPre = ErrUxxInf; ErrUxx2Pre = ErrUxx2; ErrUyyInfPre = ErrUyyInf; ErrUyy2Pre = ErrUyy2;
     ErrUxyInfPre = ErrUxyInf; ErrUxy2Pre = ErrUxy2;
+    else
 
-%------------------------------------------------------------------
+         [ErrUInf,ErrU2] = cmpr(Intu(IntPrb.Scatterer.Mp),Intexact(IntPrb.Scatterer.Mp),0);
+         [ErrUxInf,ErrUx2] = cmpr(Extu(ExtPrb.Scatterer.Mm),Extexact(ExtPrb.Scatterer.Mm),1);
+         %[ErrUxInf,ErrUx2] = cmpr(Extu(2:end-1,2:end-1),Extexact(2:end-1,2:end-1),1);
 
-% 	Intexact = zeros(size(Grid.R));
-% 	Extexact = zeros(size(Grid.R));
-% 		
-% 	
-% 	Intexact(IntPrb.Scatterer.Np) = IntExact(FocalDistance,IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),ExParams);
-% 	Extexact(ExtPrb.Scatterer.Nm) = ExtExact(FocalDistance,ExtPrb.Scatterer.Eta(ExtPrb.Scatterer.Nm),ExtPrb.Scatterer.Phi(ExtPrb.Scatterer.Nm),ExParams);
-% 	
-%     ErrInt =norm(Intexact(IntPrb.Scatterer.Np)-Intu(IntPrb.Scatterer.Np),inf);
-%     
-%     Extu(1,:)   = Extexact(1,:);
-%     Extu(end,:) = Extexact(end,:);
-%     Extu(:,1)   = Extexact(:,1);
-%     Extu(:,end) = Extexact(:,end);
-%     
-% 	%Extetinf(n) =norm(Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm),inf);
-% 	%tmp = Extexact(2:end-1,2:end-1)-Extu(2:end-1,2:end-1);
-%     tmp = Extexact(ExtPrb.Scatterer.Nm)-Extu(ExtPrb.Scatterer.Nm);
-% 	ErrExt =norm(tmp(:),inf);
-% 	     
-%     ErrTot = max(ErrInt,ErrExt);
-%     
-%     fprintf('N=%-6dx%-7d EInt=%-10.4d rt=%-6.2f EExt=%-10.4d rt=%-6.2f ETot=%d\t rt=%-6.2f EU=%d\t rt=%-6.2f EUr=%d rt=%-6.2f EUrr=%d rt=%-6.2f  timeA=%-6.2f\n',...
-%        Nx,Ny,ErrInt,log2(ErrIntPre/ErrInt),ErrExt,log2(ErrExtPre/ErrExt),ErrTot,log2(ErrTotPre/ErrTot),ErrU,log2(ErrUPre/ErrU),ErrUr,log2(ErrUrPre/ErrUr),ErrUrr,log2(ErrUrrPre/ErrUrr),t1);
-%     
-%     ErrIntPre = ErrInt;
-%     ErrExtPre = ErrExt;
-%     ErrTotPre = ErrTot;
-%     ErrUPre	  = ErrU;
-%     ErrUrPre  = ErrUr;
-%     ErrUrrPre  = ErrUrr;
+          fprintf('N=%-6dx%-7d ErrInt=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f ErrExt=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f timeA=%-6.2f\n',...
+            Nx,Ny,ErrUInf,   ErrU2,   log2(ErrUInfPre/ErrUInf),     log2(ErrU2Pre/ErrU2), ...
+            ErrUxInf,  ErrUx2,  log2(ErrUxInfPre/ErrUxInf),   log2(ErrUx2Pre/ErrUx2), ...
+            t1);
+        
+        ErrUInfPre = ErrUInf; ErrU2Pre = ErrU2; ErrUxInfPre = ErrUxInf; ErrUx2Pre = ErrUx2;
+    end
     
 end
 end

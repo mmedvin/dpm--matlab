@@ -53,9 +53,14 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             u(obj.Scatterer.Nm)=GLW(obj.Scatterer.Nm) + Uinc(obj.Scatterer.Nm);
         end
         
-        function Qj = Qcol2(obj,w)
+        function Qj = Qcol2(obj,w,dw)
             
-            if numel(w) == numel(obj.GridGamma)%~= numel(obj.w0)
+            if isobject(w)%numel(w) == numel(obj.Scatterer.BasisArg)
+                %w, dw expected to be uinc and it's normal derivative
+                tmp = spalloc(obj.Grid.Nx,obj.Grid.Ny,length(obj.GridGamma));
+                tmp(obj.GridGamma)=obj.Scatterer.Expansion(w,dw,obj.NoSource,obj.Coeffs);
+                w=tmp;
+            elseif numel(w) == numel(obj.GridGamma)%~= numel(obj.w0)
                 tmp = spalloc(obj.Grid.Nx,obj.Grid.Ny,length(obj.GridGamma));
                 tmp(obj.GridGamma)=w;
                 w=tmp;
@@ -64,7 +69,6 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             GLW = obj.Solve(w);            
             Qj = obj.Qcol(GLW,w);
         end
-        
     end
     
     methods(Access = protected)
