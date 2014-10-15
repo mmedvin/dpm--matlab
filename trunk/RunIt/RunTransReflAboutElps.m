@@ -25,7 +25,7 @@ function RunTransReflAboutElps
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
 %     fprintf('Solving %s defraction problem, comparing using grid convergance, data is PlaneWave, scatterer is circle\n',Problem);
-     
+     fprintf('RunTransReflAboutElps \n');
 kin = [15];
 kex = [1];
 

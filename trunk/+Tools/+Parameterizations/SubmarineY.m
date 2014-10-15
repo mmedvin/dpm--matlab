@@ -21,6 +21,7 @@ classdef SubmarineY < Tools.Common.FunctionWithDerivatives
             
             obj.TowerWD = Tools.Parameterizations.SubmarineTowerPatch(obj.c,obj.p);
         end
+
         function varargout = Derivatives(obj,t)
             nout = nargout;
             

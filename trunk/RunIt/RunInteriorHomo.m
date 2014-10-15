@@ -6,8 +6,9 @@ function RunInteriorHomo
 %x1=-1.2;xn=1.2;
 %y1=-1.2;yn=1.2;
 
- x1=-1.2;xn=1.2;
- y1=-.7;yn=.7;
+ x1=-1.7;xn=1.2;
+ y1=-1.7;yn=1.7;
+ %y1=-.7;yn=.7;
 
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
@@ -24,8 +25,8 @@ Eta0 = acosh(a/FocalDist);
 
 %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
 %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
-%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
-Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
+Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+%Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
@@ -42,7 +43,8 @@ elseif strcmpi(ScatType,'StarShapedScatterer')
 end
 
 %fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
-fprintf('Method:%s,\t  \n',ScatType);
+fprintf('Method:RunInteriorHomo-%s,\t  \n',ScatType);
+fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
 
 for k = 1%[1,5,10,15,20,25]
     

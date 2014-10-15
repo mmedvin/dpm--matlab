@@ -36,9 +36,12 @@ HankelType = 2;
 
 for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.5] [0.69,0.66,0.63]% 0.69%
 	
-	Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+	%Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
 	%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
-	%Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',200));
+	Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',2,'p',100));
+	
+fprintf('Grid: r0=%f, r1=%f \n %s \n',r0,r1, Parameterization.Print);
+
 	
     FocalDist = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDist);
@@ -100,11 +103,11 @@ rat=4/5;
         WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
         WaveNumberParams = struct('k',k,'r0',NHR);
                 
-        for n=1:3 %run different grids
+        for n=1:5 %run different grids
             tic
             %build grid
             
-            p=3;%1;
+            p=4;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
            
             Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);

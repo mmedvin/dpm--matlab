@@ -241,8 +241,6 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			%end
         end
 		
-		
-		
         function Rhs = AdjustRhs(obj,Rhs,Exact,BC_yn,BC_x1,BC_xn)
                        
             Nx = obj.Grid.Nx;
@@ -251,11 +249,11 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			dx2 = obj.Grid.dx.^2;
 			dy2 = obj.Grid.dy.^2;
 			
-			a_iphalf_j = obj.Coeffs.a(2:2:end-1,3);
-			a_imhalf_j = obj.Coeffs.a(2:2:end-1,end-1);
+			a_iphalf_j = obj.Coeffs.a(3:2:end,2);
+			a_imhalf_j = obj.Coeffs.a(3:2:end,end-1);
 			
-			b_i_jphalf = obj.Coeffs.b(1,2:2:end-1);
-			b_i_jmhalf = obj.Coeffs.b(end-1,2:2:end-1);
+			b_i_jphalf = obj.Coeffs.b(2    ,3:2:end);
+			b_i_jmhalf = obj.Coeffs.b(end-1,3:2:end);
 			
 			
 % 			if nargin == 3
