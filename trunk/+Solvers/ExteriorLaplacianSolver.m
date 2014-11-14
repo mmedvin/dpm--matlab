@@ -48,8 +48,13 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
         
 		function rhs = Bf(obj,F)
 			%rhs = F(:);
+			
+            rhs = obj.Op.Bf(F);
+            F=reshape(rhs,size(F));
 			rhs = obj.Op.AdjustRhs(F);%,obj.BC_y1,obj.BC_yn,obj.BC_x1,obj.BC_xn);
+            
 			rhs = rhs(:);
+            
 		end
 		
 		function res = BF(obj)

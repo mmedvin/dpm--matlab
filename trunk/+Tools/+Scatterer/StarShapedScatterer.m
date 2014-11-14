@@ -90,8 +90,16 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
         end
         
         function TS = get.TheScatterer(obj)
-            TS = 'TBD';%struct('R',obj.r0,'Th',obj.th);
-            % error('TBD');
+            
+            x = obj.XHandle.Derivatives(obj.nrml_t);
+            y = obj.YHandle.Derivatives(obj.nrml_t);
+            
+            %x = obj.XHandle.Derivatives(obj.ScatParamToGridAng);
+            %y = obj.YHandle.Derivatives(obj.ScatParamToGridAng);
+            
+            TS = struct('r',sqrt(x.^2 + y.^2));%,'Th',obj.th);
+            %TS = struct('r',obj.RAtScatParamToGridAng(obj.GridGamma));%,'Th',obj.th);
+            
         end
     
         function res = Expansion(obj,Xi0,Xi1,~,WaveNumber) % ~ was F
@@ -99,11 +107,52 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             % Xi1.Derivatives() are evaluated at obj.nrml_t rather than obj.th??
             [xi0,xi0t,xi0tt,xi0ttt,xi0tttt] = Xi0.Derivatives();
             [xi1,xi1t,xi1tt,xi1ttt,xi1tttt] = Xi1.Derivatives();            
-            
-            k = WaveNumber.Derivatives(); %[k,kn,kf,knn,kff] = WaveNumber.Derivatives();
-
             [h,ht,htt,h3t] = obj.MetricsAtScatterer.metrics(obj.nrml_t);			
             [curv,ds_curv,dsds_curv] = obj.MetricsAtScatterer.curvature(obj.nrml_t);
+            
+            
+            %k = WaveNumber.Derivatives(); %[k,kn,kf,knn,kff] = WaveNumber.Derivatives();
+            %%%%%%%%%%%%%%%%%%%%%%
+            [k,kr,krr] = WaveNumber.Derivatives();
+            
+            [x,dx,dxx] = obj.XHandle.Derivatives(obj.nrml_t);
+            [y,dy,dyy] = obj.YHandle.Derivatives(obj.nrml_t);
+            r_ = sqrt(x.^2 + y.^2);
+            
+            kx = kr.*x./r_;%kr.*cos(obj.nrml_t); % + kt*(-sin(obj.nrml_t)/r;
+            ky = kr.*y./r_;%kr.*sin(obj.nrml_t); % + kt*(cos(obj.nrml_t)/r;
+            
+            kxx = (kr.*y.^2)./(r_.^3) + (krr.*x.^2)./(r_.^2);
+            kyy = (kr.*x.^2)./(r_.^3) + (krr.*y.^2)./(r_.^2);
+            kxy = -(kr.*x.*y)./(r_.^3) + (krr.*x.*y)./(r_.^2);
+
+            %kxx = krr.*(cos(obj.nrml_t).^2) + kr.*(sin(obj.nrml_t).^2)./r_;
+            %kyy = krr.*(sin(obj.nrml_t).^2) + kr.*(cos(obj.nrml_t).^2)./r_;
+            %kxy = krr.*cos(obj.nrml_t).*sin(obj.nrml_t) - kr.*cos(obj.nrml_t).*sin(obj.nrml_t)./r_;
+            %%%%%%%%%%%%%%%%%%%%%%
+
+            
+            
+            %%%%%%%%%%%%%%%%%%%%%%
+            %n_x = dy./h;
+            %n_y = -dx./h;
+            kn  = (kx.*dy  - ky.*dx)./h;
+            knn = (kxx.*dy.^2 - 2*kxy.*dx.*dy + kyy.*dx.^2 )./(h.^2); ...     + kx.*dyy.*dy + ky.*dxx.*dx          - kn.* ht./(h.^2);
+           %-(dyy.*dy + dxx.*dx)./(h.^3);%
+            %ks=0;kss=0;
+            
+            %kt  = (kr.*(x.*dx + y.*dy)./r_);
+            %ktt = ((kr./r_).*(dx.^2 + x.*dxx + dy.^2 + y.*dyy) + (((x.*dx + y.*dy).^2)./(r_.^2)).*(krr - kr./r_));
+                           
+            ks  = (kx.*dx + ky.*dy)./h;
+            kss = (kxx.*dx.^2 + 2*kxy.*dx.*dy + kyy.*dy.^2)./(h.^2) + curv.*kn;
+           
+            %ks  = kt./h;
+            %kss = (ktt./h - kt.*ht./(h.^2))./h;
+
+            %%%%%%%%%%%%%%%%%%%%%%
+            
+            
             
             xi0s    = xi0t./h;
             xi0ss   = (xi0tt./h - ht.*xi0t./h.^2)./h;
@@ -117,13 +166,13 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             xi1ss= (xi1tt./h - ht.*xi1t./h.^2)./h;
             
             u_nn    = xi1.*curv - xi0ss - xi0.*k.^2;
-            u_nnn   = u_nn.*curv +(curv.^2-k.^2).*xi1 - ds_curv.*xi0s - xi1ss - 2*curv.*xi0ss;
+            u_nnn   = u_nn.*curv +(curv.^2-k.^2).*xi1 - ds_curv.*xi0s - xi1ss - 2*curv.*xi0ss - 2*k.*kn.*xi0;%- 2*k.*kn.*xi0
             
-            %u_nns   = xi1s.*curv + xi1.*ds_curv -  xi0sss - xi0s.*k.^2;
-            u_nnss  = xi1.*dsds_curv + 2*xi1s.*ds_curv + xi1ss.*curv - xi0ss.*k.^2 - xi0ssss;
+            %u_nns   = xi1s.*curv + xi1.*ds_curv -  xi0sss - xi0s.*k.^2 - 2*k.*ks.*xi0; %- 2*k.*ks.*xi0
+            u_nnss  = xi1.*dsds_curv + 2*xi1s.*ds_curv + xi1ss.*curv - xi0ss.*k.^2 - xi0ssss - 4*k.*ks.*xi0s -2*(ks.^2 + k.*kss).*xi0; % - 4*k.*ks.*xi0s -2*(ks.^2 + k.*kss).*xi0
             
-            u_nnnn  = curv.*u_nnn + (2*curv.^2 - k.^2).*u_nn + 2*curv.^3.*xi1 ...
-                    - 2*ds_curv.*xi1s - 4*curv.*xi1ss - u_nnss - 6*curv.*ds_curv.*xi0s - 6*curv.^2.*xi0ss  ;
+            u_nnnn  = curv.*u_nnn + (2*curv.^2 - k.^2).*u_nn + (2*curv.^3 - 4*k.*kn).*xi1 ...
+                    - 2*ds_curv.*xi1s - 4*curv.*xi1ss - u_nnss - 6*curv.*ds_curv.*xi0s - 6*curv.^2.*xi0ss -2*(kn.^2 + k.*knn).*xi0 ; %- 4*k.*kn.*xi1 -2*(kn.^2 + k.*knn).*xi0
 
 
             % Complete the extension by plugging normal derivatives into Taylor along  with the lengths of the normals:

@@ -11,8 +11,9 @@ classdef SuperLaplacianOp<Tools.DifferentialOps.SuperDiffOp
     methods (Access=public)
         
         function obj = SuperLaplacianOp(ParamsStruct)
-            obj.Grid=ParamsStruct.Grid;
 
+            if nargin>0
+                obj.Grid=ParamsStruct.Grid;
 			%%%% Create Coeffs
 			GridK = Tools.Grid.CartesianGrid( ...
 				obj.Grid.x1 - obj.Grid.dx/2 , ...
@@ -35,6 +36,7 @@ classdef SuperLaplacianOp<Tools.DifferentialOps.SuperDiffOp
             obj.VerifyCoeffs(coeffs);
             obj.LaplacianA();
 		end
+		end
 		
 		function b = ApplyOp(obj,x,mask)
 			% returns matrix-vector multiplication result, i.e b = A*x
@@ -50,6 +52,11 @@ classdef SuperLaplacianOp<Tools.DifferentialOps.SuperDiffOp
 		
 		function u = Solve(obj,f)
 			u = obj.A\f;
+        end
+        
+        function rhs = Bf(obj,F)
+            rhs = F(:);
+            % do nothing
         end
     end
     methods (Access=protected)

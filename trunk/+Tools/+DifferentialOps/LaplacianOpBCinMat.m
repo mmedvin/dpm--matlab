@@ -1,15 +1,25 @@
 classdef LaplacianOpBCinMat<Tools.DifferentialOps.SuperLaplacianOp
     %LaplacianOp Creates 2nd order Matrix for variable coefficiant Laplacian
-    
+    properties
+        BC_x1=0;
+        BC_xn=0;
+        BC_y1=0;
+        BC_yn=0;
+    end
     methods (Access=public)
         
         function obj = LaplacianOpBCinMat(ParamsStruct)
             obj = obj@Tools.DifferentialOps.SuperLaplacianOp(ParamsStruct);	
 			obj.ApplyBC();
+            
+            obj.BC_x1 = ParamsStruct.BC_x1;
+            obj.BC_xn = ParamsStruct.BC_xn;
+            obj.BC_y1 = ParamsStruct.BC_y1;
+            obj.BC_yn = ParamsStruct.BC_yn;
+            
         end
 		function Rhs = AdjustRhs(obj,Rhs,Exact)
 			if exist('Exact','var')
-			
 			Nx = obj.Grid.Nx;
 			Ny = obj.Grid.Ny;
 			
@@ -17,6 +27,12 @@ classdef LaplacianOpBCinMat<Tools.DifferentialOps.SuperLaplacianOp
 			Rhs(1:Nx,  Ny     ) = Exact(1:Nx,  Ny     );
 			Rhs(1   ,  1: Ny  ) = Exact(1   ,  1:Ny   );
 			Rhs(Nx  ,  1: Ny  ) = Exact(Nx  ,  1:Ny   );
+            else 
+                
+                Rhs(:	, 1		) = obj.BC_y1;%m
+                Rhs(:   , end	) = obj.BC_yn;%p
+                Rhs(1	, :     ) = obj.BC_x1; %m
+                Rhs(end	, :     ) = obj.BC_xn; %p
 			end
 		end
     end

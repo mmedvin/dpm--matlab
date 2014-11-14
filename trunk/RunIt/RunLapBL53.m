@@ -97,7 +97,7 @@ for	   LinearSolverType = 0
     %u(ExtPrb.Scatterer.Mm) = Extu(ExtPrb.Scatterer.Mm);
 	%u(2:end-1,2:end-1) = Extu(2:end-1,2:end-1);
 	%u(ExtPrb.Scatterer.Mp) = 0;
-	[ErrUInf,ErrU2] = cmpr(exact,u,0);
+	[ErrUInf,ErrU2] = cmpr(exact,u);
     
     %ErrUInf = norm(exact(:) - u(:),inf)/norm(exact(:),inf);
     %ErrU2 = norm(exact(:) - u(:),2)/norm(u(:),2);
@@ -121,23 +121,23 @@ for	   LinearSolverType = 0
         
     ux = Exux;
     ux(2:end-1,2:end-1) = Tux(2:end-1,2:end-1);
-    [ErrUxInf,ErrUx2] = cmpr(Exux,ux,1);
+    [ErrUxInf,ErrUx2] = cmpr(Exux,ux);%,ExtPrb.Scatterer.GridGamma);
     
     uy = Exuy;
     uy(2:end-1,2:end-1) = Tuy(2:end-1,2:end-1);
-    [ErrUyInf,ErrUy2] = cmpr(Exuy,uy,1);
+    [ErrUyInf,ErrUy2] = cmpr(Exuy,uy);%,ExtPrb.Scatterer.GridGamma);
     
     uxx = Exuxx;
     uxx(2:end-1,2:end-1) = Tuxx(2:end-1,2:end-1);
-    [ErrUxxInf,ErrUxx2] = cmpr(Exuxx,uxx,1);
+    [ErrUxxInf,ErrUxx2] = cmpr(Exuxx,uxx);%,ExtPrb.Scatterer.GridGamma);
     
     uyy = Exuyy;
     uyy(2:end-1,2:end-1) = Tuyy(2:end-1,2:end-1);
-    [ErrUyyInf,ErrUyy2] = cmpr(Exuyy,uyy,1);
+    [ErrUyyInf,ErrUyy2] = cmpr(Exuyy,uyy);%,ExtPrb.Scatterer.GridGamma);
     
     uxy = Exuxy;
     uxy(2:end-1,2:end-1) = Tuxy(2:end-1,2:end-1);
-    [ErrUxyInf,ErrUxy2] = cmpr(Exuxy,uxy,1);
+    [ErrUxyInf,ErrUxy2] = cmpr(Exuxy,uxy);%,ExtPrb.Scatterer.GridGamma);
     %------------------------------------------------------------------
     
     fprintf('N=%-6dx%-7d Eu=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Eux=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euxx=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euyy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euxy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f timeA=%-6.2f\n',...
@@ -162,12 +162,12 @@ end
 
 function [Linf,L2] = cmpr(ex,u,GG)
 
-    if nargout==2, GG=0;end
+    if nargin==2, GG=[];end
     tmp = ex - u;
     
-    if GG==1
-        tmp(ExtPrb.Scatterer.GridGamma) = 0;
-        u(ExtPrb.Scatterer.GridGamma)=0;
+    if ~isempty(GG)
+        tmp(GG) = 0;
+        u(GG)=0;
     end
     
     Linf = norm(tmp(:),inf)/norm(u(:),inf);

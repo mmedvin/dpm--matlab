@@ -26,7 +26,7 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
             WNPlr=Tools.Coeffs.WaveNumberPolarR(ScattK,WaveNumberAddParams);
             obj.k = sparse(WNPlr.k);
             else
-                obj.k = obj.WaveNumber.k.*ones(obj.Grid.Size+2);
+                obj.k = obj.Coeffs.k.*ones(obj.Grid.Size+2);
             end
             
             obj.HlmSemA();%(x,y,k);

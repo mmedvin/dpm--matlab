@@ -83,8 +83,8 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
 		end
         
 		function rhs = Bf(obj,F)
-			rhs = F(:);
-			% do nothing 
+			%rhs = F(:);
+			rhs = obj.Op.Bf(F);
 		end
 		
 		function res = BF(obj)
@@ -92,7 +92,8 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
 			
 			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
 			
-			res = obj.Bf(HS.Source);
+			%res = obj.Bf(HS.Source);
+            res = obj.Op.Bf(HS.Source);
 			res(obj.Scatterer.Outside())=0;			
 		end
 	end
