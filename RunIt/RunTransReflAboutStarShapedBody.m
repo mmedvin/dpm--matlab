@@ -10,7 +10,7 @@ function RunTransReflAboutStarShapedBody
     %r0 = 0.7*b;
     %r1 = 1.8*a;
     
-r0=0.3;
+r0=0.8;
 r1=2.2;
 
     %x1=-1.2;xn=1.2;
@@ -33,7 +33,7 @@ r1=2.2;
     %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
     %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
     Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
-    %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',100));
+    %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',150));
     %Parameterization  = Tools.Parameterizations.ParametricStar();
     
     
@@ -82,7 +82,7 @@ kex = [1 ,5 ,  5,  10];
            
 %             BasisIndices        = -M:M;
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
+            ExtWaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
                       
             ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
             ScattererParams  = UincParams;
@@ -90,15 +90,16 @@ kex = [1 ,5 ,  5,  10];
 			CollectRhs=0;
 			
             ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,WaveNumberHandle,ExtWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
+                (Basis,PlrGrid,ExtWaveNumberHandle,ExtWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 
             %WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
+            IntWaveNumberHandle = @Tools.Coeffs.WaveNumberPolarR;%WaveNumberPolarR;%ConstantWaveNumber;
             
             CollectRhs=1;
             IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,WaveNumberHandle,IntWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
+                (Basis,CrtsGrid,IntWaveNumberHandle,IntWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
          
             if 1
                 IntQ = IntPrb.Q;

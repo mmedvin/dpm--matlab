@@ -3,12 +3,12 @@ function RunInteriorHomo
     
 %global R A x y x1 xn y1 yn dx dy cols rows NHR  ebinf etinf IntEta k0 k FocDist Eta%n 
 
-%x1=-1.2;xn=1.2;
+x1=-1.2;xn=1.2;
 %y1=-1.2;yn=1.2;
 
- x1=-1.7;xn=1.2;
- y1=-1.7;yn=1.7;
- %y1=-.7;yn=.7;
+ %x1=-1.7;xn=1.2;
+ %y1=-1.7;yn=1.7;
+ y1=-.7;yn=.7;
 
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
@@ -24,8 +24,8 @@ Eta0 = acosh(a/FocalDist);
 
 
 %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
-%Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
-Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
 %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
@@ -72,7 +72,7 @@ p=4;%3;
 	% polar wavenumber isn't designed to work with ellipse scatterer
 	% polar/elliptical wavenumber works with polar scatterer in general, but the problem here become inhomoginious, 
 	% so generally to speak it is wrong place to use it here, mainly because of compariseon to exact here
-    WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;%WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
+    WaveNumberClsHandle = @Tools.Coeffs.WaveNumberPolarR;%WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
     WaveNumberAddParams = struct('k',k,'r0',NHR);
    
     if strcmpi(ScatType,'ellipse')

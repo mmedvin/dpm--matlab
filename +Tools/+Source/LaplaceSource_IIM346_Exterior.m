@@ -60,10 +60,10 @@ classdef LaplaceSource_IIM346_Exterior < Tools.Source.LaplaceSource_IIM346_Inter
 			
 			
 			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
-            S(1:end,1)=	Exact.u(1:end,1);
-            S(1,1:end)= Exact.u(1,1:end);
-            S(1:end,end)= Exact.u(1:end,end);
-            S(end,1:end)= Exact.u(end,1:end);
+           % S(1:end,1)=	Exact.u(1:end,1);
+           % S(1,1:end)= Exact.u(1,1:end);
+           % S(1:end,end)= Exact.u(1:end,end);
+           % S(end,1:end)= Exact.u(end,1:end);
 			
 			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
 										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ;%...  

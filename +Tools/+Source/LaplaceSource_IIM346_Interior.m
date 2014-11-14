@@ -61,10 +61,10 @@ classdef LaplaceSource_IIM346_Interior < Tools.Source.SuperSource
 			
 			
 			S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);
-            S(1:end,1)=	0;%Exact.u(1:end,1);
-            S(1,1:end)= 0;%Exact.u(1,1:end);
-            S(1:end,end)= 0;%Exact.u(1:end,end);
-            S(end,1:end)= 0; %Exact.u(end,1:end);
+           % S(1:end,1)=	0;%Exact.u(1:end,1);
+           % S(1,1:end)= 0;%Exact.u(1,1:end);
+           % S(1:end,end)= 0;%Exact.u(1:end,end);
+           % S(end,1:end)= 0; %Exact.u(end,1:end);
 			
 			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
 										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ;%...  

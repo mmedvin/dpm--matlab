@@ -48,14 +48,17 @@ for	LinearSolverType = 0
 		InteriorCoeffsParams = [];
 		InteriorSource              = @Tools.Source.LaplaceSource_IIM346_Interior;
 		
+		
 		DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
 		
-		%Boundaries.R = [	sqrt(Grid.x(1)^2+ Grid.y(2:end-1).^2).' , sqrt(Grid.x(end)^2+ Grid.y(2:end-1).^2).',  ...
-		%					sqrt(Grid.x(2:end-1).^2+ Grid.y(1).^2).', sqrt(Grid.x(2:end-1).^2+ Grid.y(end).^2).' ];
+        if isequal(DiffOp , @Tools.DifferentialOps.LaplacianOpBCinRhs)
+
 		Boundaries.R = [	sqrt(Grid.x(2:end-1).^2+ Grid.y(1).^2).', sqrt(Grid.x(2:end-1).^2+ Grid.y(end).^2).',  ...
 							sqrt(Grid.x(1)^2+ Grid.y(2:end-1).^2).' , sqrt(Grid.x(end)^2+ Grid.y(2:end-1).^2).'	];
-		
-		
+        elseif isequal(DiffOp , @Tools.DifferentialOps.LaplacianOpBCinMat)
+            Boundaries.R = [	sqrt(Grid.x.^2+ Grid.y(1).^2).', sqrt(Grid.x.^2+ Grid.y(end).^2).',  ...
+                sqrt(Grid.x(1)^2+ Grid.y.^2).' , sqrt(Grid.x(end)^2+ Grid.y.^2).'	];
+        end
 		
 		Exact	= Tools.Exact.ExLapCrclVarCoeffs346(Boundaries, SourceParams);		
 		DiffOpParams = struct('BC_x1', Exact.u(:,1).','BC_xn', Exact.u(:,2).','BC_y1',Exact.u(:,3),'BC_yn',Exact.u(:,4), 'LinearSolverType', LinearSolverType);
