@@ -60,7 +60,10 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
 		function res = BF(obj)
 			
 			ScattererForSource = obj.Scatterer;
-			
+%             ScattererForSource.eta  = obj.Scatterer.eta;
+%             ScattererForSource.phi = obj.Scatterer.phi;
+%             ScattererForSource.fd  = obj.Scatterer.FocalDistance;
+% 			
 			HS = obj.SourceHandle(ScattererForSource,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
 			
 			res = obj.Bf(HS.Source);
