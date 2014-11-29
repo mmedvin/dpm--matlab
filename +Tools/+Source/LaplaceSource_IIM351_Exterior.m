@@ -75,7 +75,8 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 			
 			
 			
-			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
+			%S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
+            S=F;
             %S(1:end,1)=	Exact.u(1:end,1);
             %S(1,1:end)= Exact.u(1,1:end);
             %S(1:end,end)= Exact.u(1:end,end);
@@ -85,6 +86,8 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 										+ obj.Scatterer.deta.*Fn(obj.Scatterer.GridGamma) ...  
 										+ (obj.Scatterer.deta.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
 			
+                                   S=F; 
+                                   
 			%%tmp = obj.Derivatives();
 			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
 		end

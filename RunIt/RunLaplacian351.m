@@ -3,12 +3,12 @@
     a=1;%2.5;
     b=1/2;	
 	
-	x1=-1.1;xn=1.1;
+	x1=-2;xn=2;
 	%y1=-0.7;yn=0.7;
 	%y1=-1.1;yn=1.1;
     
-    y1i=-0.7;yni=0.7;
-	y1e=-1.1;yne=1.1;
+    y1i=-2;yni=2;
+	y1e=-2;yne=2;
     
 	%Lx=xn-x1;Ly=yn-y1;
 	%ebinf=[];etinf=[];
@@ -45,7 +45,7 @@ for	   LinearSolverType = 0
     
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 	
-    fprintf('Problem 3.51, M=%d, LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, LinearSolverType, BIn, BOut);
+    fprintf('Problem 3.51, M=%d, Order = %d,  LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, Order, LinearSolverType, BIn, BOut);
     
     
 	for n=1:4 %run different grids
@@ -113,7 +113,7 @@ for	   LinearSolverType = 0
 		
 		rhs = zeros(nGGext+nGGint + 2*Basis.NBss,1);
 		%rhs(1:nGG)	= (-IntPrb.TrGF -IntPrb.Qf);
-		rhs((nGGint+1):(nGGext+nGGint))= (-ExtPrb.TrGF -ExtPrb.Qf);
+		rhs((nGGint+1):(nGGext+nGGint))= -(ExtPrb.TrGF +ExtPrb.Qf);
 
 		% [u_in] = x0^2 - y0^2 
 		% [u_out] = sin(x0).* cos(y0) 
@@ -128,7 +128,7 @@ for	   LinearSolverType = 0
 		xn0 = FocalDistance*sinh(Eta0).*cos(phi);
 		yn0 = FocalDistance*cosh(Eta0).*sin(phi);
 		
-		
+		if 0
 		ICu = (x0.^2 - y0.^2) - sin(x0).* cos(y0);
 		ICuc = Tools.Basis.FourierBasis.FftCoefs(ICu, Basis.NBss);
 		
@@ -143,7 +143,48 @@ for	   LinearSolverType = 0
 			  ZerosExt,ZerosExt,ExtPrb.Q0,ExtPrb.Q1; 
 			  Eye,      Zeros2,   -Eye, Zeros2; 
 			  Zeros2, BIn*Eye, Zeros2, -BOut*Eye]\rhs;
+        else
+            sinxpy = sin(x0+y0);
+            sinxmy = sin(x0-y0);
+            cosxpy = cos(x0+y0);
+            cosxmy = cos(x0-y0);
+            cosxcosy = (cosxmy + cosxpy)/2;
+            sinxsiny = (cosxmy - cosxpy)/2;
+            sinxcosy = (sinxpy + sinxmy)/2;
+            
+            ICuin = (x0.^2 - y0.^2) ;
+            ICuout= sinxcosy; %sin(x0).* cos(y0);
+            ICuinc = Tools.Basis.FourierBasis.FftCoefs(ICuin, Basis.NBss);
+            ICuoutc = Tools.Basis.FourierBasis.FftCoefs(ICuout, Basis.NBss);
+            
+            %ICuinn = 2*BIn*(x0.*xn0-y0.*yn0) ;
+            %ICuoutn = BOut*(cos(x0).* cos(y0).*xn0 - sin(x0).* sin(y0).*yn0);
+            ICuinn = 2*(x0.*xn0-y0.*yn0) ;
+            ICuoutn = (cosxcosy.*xn0 - sinxsiny.*yn0);%(cos(x0).* cos(y0).*xn0 - sin(x0).* sin(y0).*yn0);
+            %2*BOut* sin(x0).* cos(y0);
+            ICuinnc = Tools.Basis.FourierBasis.FftCoefs(ICuinn, Basis.NBss);
+            ICuoutnc = Tools.Basis.FourierBasis.FftCoefs(ICuoutn, Basis.NBss);
 
+            rhs((nGGext+nGGint+1):(nGGext+nGGint+Basis.NBss))= ICuinc(:);
+            rhs((nGGext+nGGint+Basis.NBss+1):(nGGext+nGGint+2*Basis.NBss))= ICuoutc;
+            rhs((nGGext+nGGint+2*Basis.NBss+1):(nGGext+nGGint+3*Basis.NBss))= ICuinnc;
+            rhs((nGGext+nGGint+3*Basis.NBss+1):(nGGext+nGGint+4*Basis.NBss))= ICuoutnc;
+            
+            A = [IntPrb.Q0,IntPrb.Q1,ZerosInt,ZerosInt;
+                ZerosExt,ZerosExt,ExtPrb.Q0,ExtPrb.Q1;
+                Eye,      Zeros2, Zeros2  , Zeros2;
+                Zeros2,      Zeros2,   Eye, Zeros2;
+                Zeros2, Eye, Zeros2, Zeros2;
+                Zeros2, Zeros2, Zeros2, Eye];
+               % Zeros2, BIn*Eye, Zeros2, Zeros2;
+               % Zeros2, Zeros2, Zeros2, BOut*Eye];
+           % [cn,flag] = lsqr(A'*A,A'*rhs,1e-14,Nx);
+            %cn = (A'*A)\(A'*rhs);
+            
+           % [Q,R,P]=qr(A'*A);
+            %cn = P*( R\(Q\(A'*rhs)));
+            cn=A\rhs;
+        end
 		Intcn=cn(1:2*Basis.NBss);
 		Extcn= cn(2*Basis.NBss+1:end); 
 		
@@ -391,8 +432,8 @@ function [Linf,L2] = cmpr(ex,u,GG)
         u(GG)=0;
     end
 
-    Linf = norm(tmp(:),inf)/norm(u(:),inf);
-    L2   = norm(tmp(:),2)/norm(u(:),2);
+    Linf = norm(tmp(:),inf);%/norm(u(:),inf);
+    L2   = norm(tmp(:),2);%/norm(u(:),2);
 end
 	
 function e = IntExact(FocalDist,eta,phi)
