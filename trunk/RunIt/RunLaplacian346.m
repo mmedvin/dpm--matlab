@@ -143,7 +143,8 @@ for	LinearSolverType = 0
 	%u(ExtPrb.Scatterer.Mm) = Extu(ExtPrb.Scatterer.Mm);
 	u(2:end-1,2:end-1) = Extu(2:end-1,2:end-1);
 	u(IntPrb.Scatterer.Mp) = Intu(IntPrb.Scatterer.Mp);
-	ErrU = norm(Ex.u(:) - u(:),inf);
+	%ErrU = norm(Ex.u(:) - u(:),inf);
+    ErrU = cmpr(Ex.u(:), u(:));
 
 	dxdr = cos(Grid.Theta);
 	dydr = sin(Grid.Theta);
@@ -159,27 +160,20 @@ for	LinearSolverType = 0
     Exur  = reshape(Exur,Grid.Nx,Grid.Ny);
     Exurr = reshape(Exurr,Grid.Nx,Grid.Ny);
     
-	%[ux,uy] = gradient(u,Grid.dx,Grid.dy);
-	ur = Exur;%Ex.dudr;
-	%tmp = ux.*dxdr + uy.*dydr;
-	%ur(2:end-1,2:end-1) = tmp(2:end-1,2:end-1); 
+	ur = Exur;
     ur(2:end-1,2:end-1) = Tur(2:end-1,2:end-1); 
-	%tmp = Ex.dudr - ur;
-    tmp = Exur - ur;
-	tmp(IntPrb.Scatterer.GridGamma) = 0;
-	ErrUr = norm(tmp(:),inf);
 	
-	urr = Exurr;%Ex.d2udr2;
-    %urr(3:end-4,3:end-4) = Turr(3:end-4,3:end-4); 
+    ErrUr = cmpr(Exur,ur);
+	
+	urr = Exurr;    
     urr(2:end-1,2:end-1) = Turr(2:end-1,2:end-1); 
     
-	%tmp = Ex.d2udr2 - urr;
-    tmp = Exurr - urr;
-	tmp(IntPrb.Scatterer.GridGamma) = 0;
+%     tmp = Exurr - urr;
+% 	tmp(IntPrb.Scatterer.GridGamma) = 0;	
+% 	tmp( Grid.R>0.4  &  Grid.R<0.6 )=0;    
+% 	ErrUrr  = norm(tmp( :),2);
 	
-	tmp( Grid.R>0.4  &  Grid.R<0.6 )=0;
-    %tmp( Grid.R>0.1)=0;
-	ErrUrr  = norm(tmp( :),2);
+    ErrUrr = cmpr(Exurr,urr);
 %------------------------------------------------------------------
 	
 	
@@ -222,6 +216,21 @@ end
 
 end
 	
+
+function [Linf,L2] = cmpr(ex,u,GG)
+
+    if nargin==2, GG=[];end
+    tmp = ex - u;
+    
+    if ~isempty(GG)
+        tmp(GG) = 0;
+        u(GG)=0;
+    end
+
+    Linf = norm(tmp(:),inf);%/norm(u(:),inf);
+    L2   = norm(tmp(:),2);%/norm(u(:),2);
+end
+
 function e = ExtExact(Params,theta)
     r  = Params.r0   ;
 	if size(r)==1

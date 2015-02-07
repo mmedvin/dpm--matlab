@@ -8,8 +8,11 @@ classdef LaplaceCoeffsEllps1 < Tools.Coeffs.AbstractCoeffs
         bx;bxx;by;byy;bxy;
         
 		a; an; ann; %a3n; a4n; a5n;
-		b; bf;bn; bnf;% bff; %b3f; b4f; b5f;
-		br;btr;
+           af; aff;
+		b; bf; bff;
+           bn; bnn;
+           bnf;% bff; %b3f; b4f; b5f;
+		%br;btr;
 		sigma; sigma_r; sigma_rr; sigma_3r; sigma_4r; sigma_5r;
 	end
 	
@@ -18,13 +21,20 @@ classdef LaplaceCoeffsEllps1 < Tools.Coeffs.AbstractCoeffs
 		function [d,dr,drr,d3r,d4r,d5r] = Derivatives(obj,WhichOne)
             %d=0;dr=0;drr=0;d3r=0;d4r=0;d5r=0;
 			switch WhichOne
-				case 'a'
+				case {'a','an'}
 					d   = obj.a;
 					dr  = obj.an;
 					drr = obj.ann;
 					%d3r = obj.a3r;
 					%d4r = obj.a4r;
 					%d5r = obj.a5r;
+				case 'af'
+					d   = obj.a;
+					dr  = obj.af;
+					drr = obj.aff;
+					%d3r = obj.a3r;
+					%d4r = obj.a4r;
+					%d5r = obj.a5r;                    
                 case 'ax'
                     d   = obj.a;
                     dr  = obj.ax;
@@ -32,13 +42,21 @@ classdef LaplaceCoeffsEllps1 < Tools.Coeffs.AbstractCoeffs
                     d3r = obj.ay;
                     d4r = obj.ayy;
                     d5r = obj.axy;
-				case 'b'
+				case 'bn'
 					d   = obj.b;
-					dr  = obj.bf;
-					%drr = obj.bff;                    
+					dr  = obj.bn;
+					drr = obj.bnn;                    
 					%d3r = obj.b3t;
 					%d4r = obj.b4t;
 					%d5r = obj.b5t;
+				case {'b','bf'}
+					d   = obj.b;
+					dr  = obj.bf;
+					drr = obj.bff;                    
+					%d3r = obj.b3t;
+					%d4r = obj.b4t;
+					%d5r = obj.b5t;
+                    
                 case 'bx'
                     d   = obj.b;
                     dr  = obj.bx;
@@ -96,7 +114,10 @@ classdef LaplaceCoeffsEllps1 < Tools.Coeffs.AbstractCoeffs
             obj.axy=-c*d*sin(c*x+d*y)/2;
             
             obj.an  = obj.ax.*xn + obj.ay.*yn;
-			obj.ann = obj.axx.*xn.^2 + obj.ayy.*yn.^2 + 2*obj.axy.*xn.*yn;
+			obj.ann = obj.axx.*xn.^2 + obj.ayy.*yn.^2 + 2*obj.axy.*xn.*yn + obj.ax.*x + obj.ay.*y;
+            
+            obj.af  = obj.ax.*xf + obj.ay.*yf;
+            obj.aff = obj.axx.*(xf.^2) + obj.ayy.*(yf.^2) + 2*obj.axy.*xf.*yf + obj.ax.*(-x) + obj.ay.*(-y);
             
 			%obj.a3n = 0;  obj.a4n = 0;  obj.a5n = 0;
             
@@ -120,18 +141,14 @@ classdef LaplaceCoeffsEllps1 < Tools.Coeffs.AbstractCoeffs
                 obj.byy=obj.ayy;
                 obj.bxy=obj.axy;
             end
-            %obj.a=obj.b;
-            %obj.ax=obj.bx;
-            %obj.axx=obj.bxx;
-            %obj.ay=obj.by;
-            %obj.ayy=obj.byy;
-            %obj.axy=obj.bxy;
-            %obj.an  = obj.ax.*xn + obj.ay.*yn;
-            %obj.ann = obj.axx.*xn.^2 + obj.ayy.*yn.^2 + 2*obj.axy.*xn.*yn;
 
-			obj.bf	= obj.bx.*xf + obj.by.*yf;
 			obj.bn  = obj.bx.*xn + obj.by.*yn;
-			obj.bnf = obj.bxx.*xn.*xf + obj.byy.*yn.*yf + obj.bxy.*(xn.*yf + xf.*yn);
+            obj.bnn = obj.bxx.*xn.^2 + obj.byy.*yn.^2 + 2*obj.bxy.*xn.*yn + obj.bx.*x + obj.by.*y;
+            
+            obj.bf  = obj.bx.*xf + obj.by.*yf;
+            obj.bff = obj.bxx.*xf.^2 + obj.byy.*yf.^2 + 2*obj.bxy.*xf.*yf + obj.bx.*(-x) + obj.by.*(-y);
+           
+			obj.bnf = obj.bxx.*xn.*xf + obj.byy.*yn.*yf + obj.bxy.*(xn.*yf + xf.*yn) + obj.bx.*(-y) + obj.by.*x;
             
 			obj.sigma=0; obj.sigma_r=0; obj.sigma_rr=0; obj.sigma_3r=0; obj.sigma_4r=0; obj.sigma_5r=0;
 		end

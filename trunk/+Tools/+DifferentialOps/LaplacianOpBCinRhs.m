@@ -25,7 +25,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		P;
 		Q;
 		R;
-		tollerance = 1e-10; %default value, may be changed in some iterative solvers
+		tollerance = 1e-11; %default value, may be changed in some iterative solvers
 		MaxIteration ;
         RestartAt;
         
@@ -68,10 +68,10 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 						mg_param.sy  = 4;            % skip size y
 						mg_param.cycleType = 'v';    % MG cycle type.  % the other choice is 'v', 'f'
 						mg_param.verbose = 0;
-						mg_param.maxIt = 100;
+						mg_param.maxIt = 1000;
 						
 						if 1
-							mg_param.TOL = max((EGrid.dx*EGrid.dy)^2,obj.tollerance);
+							mg_param.TOL = max((EGrid.dx*EGrid.dy)^4,obj.tollerance); %10^-12;
 						else
 							mg_param.TOL = obj.tollerance; %1.e-10;
 						end

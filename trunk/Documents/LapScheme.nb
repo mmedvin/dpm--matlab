@@ -10,7 +10,7 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[    529322,      16897]
+NotebookDataLength[    529321,      16897]
 NotebookOptionsPosition[    525819,      16790]
 NotebookOutlinePosition[    526173,      16806]
 CellTagsIndexPosition[    526130,      16803]
@@ -16788,7 +16788,7 @@ Cell[BoxData[
  CellChangeTimes->{3.618696080720235*^9}]
 }, Open  ]]
 },
-WindowSize->{1037, 686},
+WindowSize->{1037, 655},
 WindowMargins->{{59, Automatic}, {Automatic, 0}},
 FrontEndVersion->"10.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (June 27, \
 2014)",
@@ -16811,7 +16811,7 @@ Cell[2706, 82, 981, 23, 28, "Input"],
 Cell[3690, 107, 96077, 3157, 360, "Input"],
 Cell[99770, 3266, 143, 2, 28, "Input"],
 Cell[99916, 3270, 96048, 3154, 360, "Input"],
-Cell[195967, 6426, 9266, 328, 403, "Input"],
+Cell[195967, 6426, 9266, 328, 345, "Input"],
 Cell[CellGroupData[{
 Cell[205258, 6758, 7815, 231, 707, "Input"],
 Cell[213076, 6991, 2788, 103, 88, "Output"]
@@ -16870,7 +16870,7 @@ Cell[405642, 13069, 1332, 30, 352, "Input"],
 Cell[406977, 13101, 148, 2, 28, "Input"],
 Cell[CellGroupData[{
 Cell[407150, 13107, 12764, 369, 688, "Input"],
-Cell[419917, 13478, 18951, 550, 733, "Output"]
+Cell[419917, 13478, 18951, 550, 784, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[438905, 14033, 6201, 161, 172, "Input"],
@@ -16879,7 +16879,7 @@ Cell[445109, 14196, 2670, 91, 87, "Output"]
 Cell[CellGroupData[{
 Cell[447816, 14292, 515, 14, 69, "Input"],
 Cell[448334, 14308, 1996, 70, 53, "Output"],
-Cell[450333, 14380, 3312, 113, 133, "Output"],
+Cell[450333, 14380, 3312, 113, 99, "Output"],
 Cell[453648, 14495, 170, 2, 28, "Output"]
 }, Open  ]],
 Cell[453833, 14500, 115, 2, 28, "Input"],
@@ -16893,7 +16893,7 @@ Cell[472147, 15126, 4209, 142, 154, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[476393, 15273, 17622, 500, 648, "Input"],
-Cell[494018, 15775, 29842, 935, 673, "Output"]
+Cell[494018, 15775, 29842, 935, 659, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[523897, 16715, 283, 10, 32, "Input"],

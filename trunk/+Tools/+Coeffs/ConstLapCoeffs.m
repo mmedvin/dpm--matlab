@@ -19,9 +19,9 @@ classdef ConstLapCoeffs < Tools.Coeffs.AbstractCoeffs
 		
 		function varargout = Derivatives(obj,WhichOne,varargin)
 			switch WhichOne
-				case {'a','ax','c'}
+				case {'a','ax','c','ar','at','an','af'}
 					varargout(1)={obj.a};
-				case {'b','bx','d'}
+				case {'b','bx','d','br','bt','bn','bf'}
 					varargout(1)={obj.b};
 				case {'sigma','s'}
 					varargout(1)={obj.sigma};

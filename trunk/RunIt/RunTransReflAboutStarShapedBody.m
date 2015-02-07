@@ -10,8 +10,11 @@ function RunTransReflAboutStarShapedBody
     %r0 = 0.7*b;
     %r1 = 1.8*a;
     
-r0=0.8;
-r1=2.2;
+%r0=0.8;
+%r1=2.2;
+
+	%x1=-pi; xn=pi;
+	%y1=-pi; yn=pi;
 
     %x1=-1.2;xn=1.2;
     %y1=-1.2;  yn=1.2;
@@ -19,8 +22,24 @@ r1=2.2;
    
 
     % Kite
-    x1=-1.7;xn=1.2;
-    y1=-1.7;  yn=1.7;
+%    x1=-1.7;xn=1.2;
+%    y1=-1.7;  yn=1.7;
+%    r0=0.8;
+%    r1=2.2;
+
+   % star
+   % x1=-1.7; xn=1.7;
+   % y1=-1.7; yn=1.7;
+   % r0=0.3;
+   % r1=2.2;
+
+
+   % submarine
+    x1=-2.2; xn=2.2;
+    y1=-0.6; yn=1.2;
+    r0=0.3;
+    r1=2.2;
+
    
   %  R0 =0.7;
    
@@ -34,6 +53,7 @@ r1=2.2;
     %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
     Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',150));
+    %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',2,'p',150));
     %Parameterization  = Tools.Parameterizations.ParametricStar();
     
     
@@ -58,8 +78,8 @@ kex = [1 ,5 ,  5,  10];
         %UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0, 'Vark',true); % ,false);%
         UincParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
             
-        %tst_k = max(kin(ki),kex(ki));
-  	tst_k = kin(ki) + kex(ki);
+        tst_k = max(kin(ki),kex(ki));
+  	%tst_k = kin(ki) + kex(ki);
 
         f1      = @(phi) Uinc(UincParams,phi,IncAng,tst_k);
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,tst_k);
@@ -69,9 +89,9 @@ kex = [1 ,5 ,  5,  10];
 	Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
         %Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
 
-        fprintf('%s, Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,x1,xn,y1,yn, Parameterization.Print, kin(ki),kex(ki), Basis.M);
+        fprintf('%s, Grid: x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.M);
     
-        nmax=5;
+        nmax=4;
         for n=0:nmax %run different grids
             tic
             %build grid
@@ -278,7 +298,9 @@ tmp2 = 1;%Intu(1:2:end,1:2:end);
                 colorbar
 
                 hold on;
-                plot(a*cos(th),b*sin(th),'k','LineWidth',2)
+                %plot(a*cos(th),b*sin(th),'k','LineWidth',2)
+                plot(Parameterization.XHandle.Derivatives(th),Parameterization.YHandle.Derivatives(th),'k','LineWidth',2)
+                
                 hold off;
                 
                 figure(2)
@@ -296,7 +318,7 @@ tmp2 = 1;%Intu(1:2:end,1:2:end);
                 colorbar
                 
                 hold on;
-                plot(a*cos(th),b*sin(th),'k','LineWidth',2)
+                plot(Parameterization.XHandle.Derivatives(th),Parameterization.YHandle.Derivatives(th),'k','LineWidth',2)
                 hold off;
                 
                 figure(3)
@@ -314,7 +336,7 @@ tmp2 = 1;%Intu(1:2:end,1:2:end);
                 colorbar
                 
                  hold on;
-                plot(a*cos(th),b*sin(th),'k','LineWidth',2)
+                plot(Parameterization.XHandle.Derivatives(th),Parameterization.YHandle.Derivatives(th),'k','LineWidth',2)
                 hold off;
                 
                % tmp=abs([tIntu,tExtu]);

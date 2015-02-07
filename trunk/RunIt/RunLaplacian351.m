@@ -22,8 +22,8 @@
 
 	BType		= 'Fourier';
     
-     Order=4;
-     if Order==2 , ExpansionType=33; else ExpansionType=35; end
+     Order=2; 
+     if Order==2 , ExpansionType=33; Stencil=5; else ExpansionType=35; Stencil=9; end
     
     f   =@(phi) ExtExact(FocalDistance,Eta0,phi);
 	g   =@(phi) IntExact(FocalDistance,Eta0,phi);
@@ -61,7 +61,7 @@ for	   LinearSolverType = 0
         GridInt                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1i,yni,Ny);
         
 		ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
-		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType);
+		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil);
 
 		%------------------------------------------------------------------
 		InteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
@@ -70,8 +70,8 @@ for	   LinearSolverType = 0
         if Order==4		
             DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat4OrdrConst;%LaplacianOpBCinMat4OrdrConst; %LaplacianOpBCinMat;
         elseif Order==2
-            %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-            DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+            DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+            %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
         end
 		DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType);
 		%x.^2 - y.^2
@@ -422,6 +422,8 @@ end
     
 end
 
+
+
 function [Linf,L2] = cmpr(ex,u,GG)
 
     if nargin==2, GG=[];end
@@ -432,8 +434,8 @@ function [Linf,L2] = cmpr(ex,u,GG)
         u(GG)=0;
     end
 
-    Linf = norm(tmp(:),inf);%/norm(u(:),inf);
-    L2   = norm(tmp(:),2);%/norm(u(:),2);
+    Linf = norm(tmp(:),inf)/norm(u(:),inf);
+    L2   = norm(tmp(:),2)/norm(u(:),2);
 end
 	
 function e = IntExact(FocalDist,eta,phi)

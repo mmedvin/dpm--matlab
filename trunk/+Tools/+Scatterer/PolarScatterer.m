@@ -61,7 +61,7 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
             obj.MyGrid();
 			
 			if obj.ExpansionType == 33
-				obj.SecondOrderSplitGrid();
+				obj.SplitGrid5();
 			else
 				obj.SplitGrid();
 			end		
@@ -157,12 +157,37 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
              [xi0,xi0t,xi0tt] = Xi0.Derivatives();
              [xi1,xi1t,xi1tt] = Xi1.Derivatives();
              
-			 [f,fr,frr] = F.Derivatives();
-			 [a,ar,arr] = LapCoeffs.Derivatives('a');
-			 [b,bt] = LapCoeffs.Derivatives('b');			
+			 f      = F.Derivatives();
+			 [a,ar] = LapCoeffs.Derivatives('ar');
+             [~,at] = LapCoeffs.Derivatives('at');
+             [b,br] = LapCoeffs.Derivatives('br');
+             [~,bt] = LapCoeffs.Derivatives('bt');
 			 sigma	= LapCoeffs.Derivatives('sigma');
 			 
-			 urr = (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2))./a - xi1./obj.r0 ;
+			% urr2 = (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2))./a - xi1./obj.r0 ;
+			 
+             sint = sin(obj.th);
+             cost = cos(obj.th);
+             sincost = sint.*cost;
+             sint2 = sint.^2; 
+             cost2 = cost.^2;
+             
+             urr = (f + sigma.*xi0 ... 
+             -  (xi0t.*( (obj.r0.*(br-ar) + 2*(a-b) ).*sincost   + bt.*cost2  +at.*sint2)./(obj.r0.^2)  ... 
+            + xi1.* ( (bt-at).*sincost  +(obj.r0.*ar+b).*cost2 + (a +obj.r0.* br).*sint2 )./obj.r0 ...
+            + 2*sincost./obj.r0 .* (b-a).* xi1t  ...
+            + (b.*cost2 + a.*sint2).*xi0tt./(obj.r0.^2)) )./(a.*cost2 + b.*sint2);
+	 
+		 
+             res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*urr/2;% + (obj.dr.^3).*u3r/6;
+             
+         end
+         
+         function res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,LapCoeffs)
+             [xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+             [xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
+             assert('tbd')
+             
 			 
 			 % 			 %this is temporary part
 			 % 			 %assuming sigma constant or at least doesn't depends on r
@@ -182,15 +207,6 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
 			 % 				 + (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2)).*ar./a./a ...
 			 % 				 - urr./obj.r0 + xi1./obj.r0.^2 ;
 			 
-		 
-             res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*urr/2;% + (obj.dr.^3).*u3r/6;
-             
-         end
-         
-         function res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,F,LapCoeffs)
-             [xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
-             [xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
-             assert('tbd')
              res = xi0 + obj.dr.*xi1 + (obj.dr.^2).*xirr/2 + (obj.dr.^3).*xi3r/6 + (obj.dr.^4).*xi4r/24 ;
          end
         
