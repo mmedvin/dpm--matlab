@@ -26,7 +26,8 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
     end
     
     properties (Access = private)
-        ExpansionType;
+        ExpansionType = 25;
+        Stencil=5
         AddParams;
     end
     
@@ -42,19 +43,17 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
             obj.AddParams = AddParams;
 			if isfield(AddParams,'ExpansionType')
 				obj.ExpansionType = AddParams.ExpansionType;
-			else
-				obj.ExpansionType = 25;
 			end
 %             obj.Eta0 = AddParams.Eta0;
 %             obj.FocalDistance = AddParams.FocalDistance;
             
             obj.MyGrid();
 			
-			if obj.ExpansionType == 33
-				obj.SecondOrderSplitGrid();
-			else
-				obj.SplitGrid();
+            if isfield(AddParams,'Stencil')
+                obj.Stencil = AddParams.Stencil;
 			end
+            
+            obj.SplitGrid(obj.Stencil);
             
             obj.GridGamma = intersect(obj.Np,obj.Nm)';
             
@@ -117,23 +116,34 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
              [xi1,xi1f,xi1ff] = Xi1.Derivatives();
              
 			 [f,fn] = F.Derivatives();
-			 [a,an] = LapCoeffs.Derivatives('a');
-			 [b,bf] = LapCoeffs.Derivatives('b');
+			 [a,an] = LapCoeffs.Derivatives('an');
+             [~,af] = LapCoeffs.Derivatives('af');
+             [b,bn] = LapCoeffs.Derivatives('bn');
+			 [~,bf] = LapCoeffs.Derivatives('bf');
 			 sigma	= LapCoeffs.Derivatives('sigma');
              [h,hn] = obj.MetricsAtScatterer.metrics();
              
 			 h2 = h.^2;
 
-			 unn = ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 )./a ;
+			 unn1 = ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 )./a ;
              
-             %tmp part
-             %assumimg sigma is constant or doesn't depends on eliptical
-             %radius
-             %bn = LapCoeffs.bn;
-             %bfn = LapCoeffs.bnf;
-             %ann = LapCoeffs.ann;
-             %unnn = ( (fn + sigma.*xi1).*h2 + (f + sigma.*xi0).*(2*h.*hn) -  bfn.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn )./a ...
-             %     + ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*an./(a.^2);
+             fd = obj.FocalDistance;
+             fd4 = fd^4;
+
+             x  = fd*cosh(obj.Eta0).*cos(obj.phi);
+             y  = fd*sinh(obj.Eta0).*sin(obj.phi);
+             xn = fd*sinh(obj.Eta0).*cos(obj.phi);            
+             xf =-fd*cosh(obj.Eta0).*sin(obj.phi);
+             
+             cn = fd4*(b-a).*(sinh(2*obj.Eta0).*(cos(4*obj.phi) - 3) + sinh(4*obj.Eta0).*cos(2.*obj.phi))./(8*h2) + x.*y.*(bf-af) + an.*xn.^2 + bn.*xf.^2; 
+            
+             cf = fd4*(a-b).*((cosh(4*obj.Eta0) - 3).*sin(2*obj.phi) + cosh(2*obj.Eta0).*sin(4.*obj.phi))./(8*h2) + x.*y.*(bn-an) + bf.*xn.^2 + an.*xf.^2; 
+            
+             unn = ((f + sigma.*xi0).*(h.^4) - (b.*(xn.^2) + a.*(xf.^2)).*xi0ff - 2*x.*y.*(b-a).*xi1f - cn.*xi1 - cf.*xi0f)./(a.*(xn.^2) + b.*(xf.^2));
+            
+             %(a.*(xn.^2) + b.*(xf.^2)).*unn + (b.*(xn.^2) + a.*(xf.^2)).*xi0ff + 2*x.*y.*xi1f + c1.*xi1 + c2.*xi0f;
+             
+             
              
              res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 ;%+ (obj.deta.^3).*unnn/6;
              
@@ -147,7 +157,7 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
              
 			 [f,fn,fnn,f_f,f_ff] = F.Derivatives();
 			 [a,an,ann,a3n,af,aff,anf,anff] = LapCoeffs.Derivatives('a');
-			 [b,bf,bff,bfff,bn,bnn,bfn,bfnn] = LapCoeffs.Derivatives('b');
+			 [b,bf,bff,b3f,bn,bnn,bfn,bfnn] = LapCoeffs.Derivatives('b');
 			 sigma	= LapCoeffs.Derivatives('sigma');
              [h,hn,hnn,h3n,h4n,hf,hff,h3f,h4f] = obj.MetricsAtScatterer.metrics();
              
@@ -162,17 +172,20 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
              			 unn  = ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 )./a ;
              
                           %atm assumimg sigma is constant
-                          unnf = ( (f_f + sigma.*xi0f).*h2 + (f + sigma.*xi0).*(2*h.*hf) - bff.*xi0f - bf.*xi0ff - bf.*xi0ff - b.*xi0fff - anf.*xi1  - an.*xi1f)./a ...
+                         
+                         unnn =  (fn.*h2 + 2*f.*h.*hn - an.*unn - bfn.*xi0f - bn.*xi0ff - ann.*xi1 - bf.*xi1f - b.*xi1ff)./a ...
+                                ... ( (fn + sigma.*xi1).*h2 + (f + sigma.*xi0).*(2*h.*hn) -  bfn.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn )./a ...
+                               - ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*(an./(a.^2));
+                           
+                          
+                          unnf = ( (f_f + sigma.*xi0f).*h2 + (f + sigma.*xi0).*(2*h.*hf) - bff.*xi0f - 2*bf.*xi0ff - b.*xi0fff - anf.*xi1  - an.*xi1f)./a ...
                                - ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*af./(a.^2);
              
                           unnff= ( (f_ff + sigma.*xi0f).*h2 + (f_f + sigma.*xi0f).*(3*h.*hf) + (f + sigma.*xi0).*(2*hf.^2 + 2*h.*hff) ...
-                          - bfff.*xi0f - 3*bff.*xi0ff - 3*bf.*xi0fff - b.*xi0ffff - anff.*xi1 - 2*anf.*xi1f - an.*xi1ff)./a ...
+                          - b3f.*xi0f - 3*bff.*xi0ff - 3*bf.*xi0fff - b.*xi0ffff - anff.*xi1 - 2*anf.*xi1f - an.*xi1ff)./a ...
                                - 2*( (f_f + sigma.*xi0f).*h2 + (f + sigma.*xi0).*(2*h.*hf) - bff.*xi0f - bf.*xi0ff - bf.*xi0ff - b.*xi0fff - anf.*xi1  - an.*xi1f).*af./(a.^2) ...
                                - ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*aff./(a.^2) ...
                                + 2*( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*(af.^2)./(a.^3);
-             
-                          unnn = ( (fn + sigma.*xi1).*h2 + (f + sigma.*xi0).*(2*h.*hn) -  bfn.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn )./a ...
-                               - ( (f + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*an./(a.^2);
              
                           unnnn= ( (fnn + sigma.*unn).*h2 + (fn + sigma.*xi1).*(3*h.*hn) + (f + sigma.*xi0).*(2*hn.^2 + 2*h.*hnn) ...
                                     -  bfnn.*xi0f - 2*bfn.*xi1f - bf.*unnf - bnn.*xi0ff - 2*bn.*xi1ff - b.*unnff - a3n.*xi1 - 2*ann.*unn - an.*unnn )./a ...
