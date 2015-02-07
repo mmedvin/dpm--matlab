@@ -199,7 +199,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
         end
         
         function HashInfo = hash_func(obj)
-			P=59;
+			P=11;
 			Ppow = P;
             HashInfo.Loaded = 0;
             HashInfo.X = obj.XHandle;
@@ -209,12 +209,18 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             
 			HashInfo.HashVal = obj.Grid.x1*obj.Grid.xn*obj.Grid.Nx + obj.Grid.y1*obj.Grid.yn*obj.Grid.Ny;
 			
-			for i=1:numel(HashInfo.Xmeta.Name)
-				 HashInfo.HashVal = HashInfo.HashVal + (double(HashInfo.Xmeta.Name(i)) - double('a')+1)*Ppow;
+			Str=strsplit(HashInfo.Xmeta.Name,'.');
+			Str=Str{end};
+			for i=1:numel(Str)
+				 HashInfo.HashVal = HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow;
 				 Ppow=Ppow*P;
 			end
-			for i=1:numel(HashInfo.Ymeta.Name)
-				HashInfo.HashVal = HashInfo.HashVal + (double(HashInfo.Ymeta.Name(i)) - double('a')+1)*Ppow;
+			
+			Str=strsplit(HashInfo.Ymeta.Name);
+			Str=Str{end};
+			Ppow = P;
+			for i=1:numel(Str)
+				HashInfo.HashVal = HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow;
 				Ppow=Ppow*P;
 			end
                         
@@ -231,12 +237,12 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
                     
                     if isobject(val2), continue,end
                     
-                   HashInfo.HashVal = HashInfo.HashVal + (val1 + val2.^j)*Ppow;
-				   Ppow=Ppow*P;
+                   HashInfo.HashVal = HashInfo.HashVal + fix((val1.^(2*i) + val2.^(2*j))*1e4);
+
                 end
             end
                         
-            HashInfo.HashVal = fix(HashInfo.HashVal);
+            HashInfo.HashVal = int64(HashInfo.HashVal);
         end
         
         function Gstr = TypeOfGrid(obj)
