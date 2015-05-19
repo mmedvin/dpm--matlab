@@ -1,4 +1,4 @@
-classdef LaplaceSource_BL54_Exterior < Tools.Source.SuperSource
+classdef LaplaceSource_BL54_Interior < Tools.Source.SuperSource
     properties (Dependent = true)
         Source;%Fn;Ff;Fnn;Fff;    % WN;
     end
@@ -69,7 +69,7 @@ classdef LaplaceSource_BL54_Exterior < Tools.Source.SuperSource
             
         end
             
-        function obj = LaplaceSource_BL54_Exterior(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
+        function obj = LaplaceSource_BL54_Interior(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
 			obj.Scatterer = Scatterer;
 			obj.CoeffsClsrHndl = CoeffsClsrHndl;
 			obj.CoeffsParams = CoeffsParams;
@@ -79,43 +79,38 @@ classdef LaplaceSource_BL54_Exterior < Tools.Source.SuperSource
         
 		function S = get.Source(obj)
  			S = spalloc(obj.Scatterer.Size(1),obj.Scatterer.Size(2),numel(obj.Scatterer.Np));
-			
-			[F,Fn,~,Fnn] = obj.Derivatives();
-            %[F,Fn] = obj.Derivatives();
+			            
+            eta  = obj.Scatterer.Eta0;
+            phi = obj.Scatterer.phi;
+            fd  = obj.Scatterer.FocalDistance;
             
-            try
-                eta = obj.Scatterer.Eta;
-                phi = obj.Scatterer.Phi;
-                fd  = obj.Scatterer.FocalDistance;
-            catch exception
-                if strcmp(exception.identifier,'MATLAB:nonExistentField')
-                    eta  = obj.Scatterer.eta;
-                    phi = obj.Scatterer.phi;
-                    fd  = obj.Scatterer.FocalDistance;
-                else
-                    rethrow(exception);
-                end
-            end
-            
+%%%%%%%%
             x  = fd*cosh(eta).*cos(phi);
             y  = fd*sinh(eta).*sin(phi);
-						
-			u = (x.^obj.ExParams.c) .* (y.*obj.ExParams.d);
-			
-			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
-            S(1:end,1)=	u(1:end,1);
-            S(1,1:end)= u(1,1:end);
-            S(1:end,end)= u(1:end,end);
-            S(end,1:end)= u(end,1:end);
-			
-			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
-										+ obj.Scatterer.deta.*Fn(obj.Scatterer.GridGamma) ...  
-										+ (obj.Scatterer.deta.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
-			
-                                   S=F;
-			
-			%%tmp = obj.Derivatives();
-			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
+            xn = fd*sinh(eta).*cos(phi);
+            xnn = x;
+            yn = fd*cosh(eta).*sin(phi);
+            ynn=y;
+            
+            c = obj.ExParams.c;
+            d = obj.ExParams.d;
+            
+            F   = 56*(x.^c).*(y.^(d-2)) + 72*(x.^(c-2)).*(y.^d);
+            
+            Fx = c*(d-1)*d*(x.^(c-1)).*(y.^(d-2)) + (c-2)*(c-1)*c*(x.^(c-3)).*(y.^d);
+            Fy = (d-2)*(d-1)*d*(x.^c).*(y.^(d-3)) + (c-1)*c*d*(x.^(c-2)).*(y.^(d-1));
+            Fn = Fx.*xn + Fy.*yn;
+
+            Fxx = 56.*((-1)+c).*c.*x.^((-2)+c).*y.^((-2)+d)+72.*((-3)+c).*((-2)+c).*x.^((-4)+c).*y.^d;
+            Fyy = 56.*((-3)+d).*((-2)+d).*x.^c.*y.^((-4)+d)+72.*((-1)+d).*d.*x.^((-2)+c).*y.^((-2)+d);
+            Fxy = 56.*c.*((-2)+d).*x.^((-1)+c).*y.^((-3)+d)+72.*((-2)+c).*d.*x.^((-3)+c).*y.^((-1)+d);
+            Fnn = Fxx.*(xn.^2) + Fyy.*(yn.^2) + 2*Fxy.*xn.*yn + Fx.*xnn + Fy.*ynn;
+%%%%%%%%
+ 			
+			S(obj.Scatterer.GridGamma)	= F + obj.Scatterer.deta.*Fn + (obj.Scatterer.deta.^2).*Fnn/2;%taylor
+			                                   
+			Fin = obj.Derivatives();
+			S(obj.Scatterer.Inside) = Fin(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
 		end
 	end
 end

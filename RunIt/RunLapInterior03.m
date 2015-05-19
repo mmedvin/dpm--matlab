@@ -3,11 +3,14 @@ function RunLapInterior03
     a=1;%2.5;
     b=1/2;	
 	
-	x1=-2;xn=2;  
-    y1=-2;yn=2;
+	x1=-1.2;xn=1.2;  
+    y1=-0.7;yn=0.7;
     
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
+
+    Order=2;
+    if Order==2 , ExpansionType=33; Stencil=5; else ExpansionType=35; Stencil=9; end
 
     BIn = 1e3;
     BOut = 1e0;
@@ -31,12 +34,12 @@ for	   LinearSolverType = 4
     
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 	errBpre = 0;
-    fprintf('Problem RunLapInterior02, M=%d, LinearSolverType = %d\n', Basis.M, LinearSolverType);
+    fprintf('Problem RunLapInterior02, M=%d, LinearSolverType = %d, Order=%d\n', Basis.M, LinearSolverType,Order);
         
-	for n=1:4 %run different grids
+	for n=1:6 %run different grids
 		tic
 		%build grid
-		p=4;%4;
+		p=3;%4;
 		Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
 		
         Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
@@ -45,13 +48,23 @@ for	   LinearSolverType = 4
 		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil);
 
 		%------------------------------------------------------------------
+        if Order==4
+            DiffOp = @Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs;
+        elseif Order==2
+            DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+            %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+        end        
+		%------------------------------------------------------------------
+
+        
+		%------------------------------------------------------------------
 		InteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsEllps2;
 		InteriorCoeffsParams = struct('ca',1,'da',0,'ea',0,'WithB',1,'cb',1,'db',1,'eb',-2,'sigma',0);
         %InteriorCoeffsParams = struct('ca',111,'da',0,'ea',0,'WithB',1,'cb',55,'db',0,'eb',-2,'sigma',0);
 		        
-        DiffOp = @Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs;
+        %DiffOp = @Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs;
         
-		DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType, 'Order',4);
+		DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType, 'Order',Order);
 		
 		IntPrb = Solvers.InteriorHomoLaplacianSolver ...
 			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParamsInt);
@@ -76,7 +89,7 @@ for	   LinearSolverType = 4
  		Intxi(IntPrb.GridGamma) = IntPrb.W0(IntPrb.GridGamma,:)*Intcn0 + IntPrb.W1(IntPrb.GridGamma,:)*Intcn1;
     
 		xiex  = IntExact(FocalDistance,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi);
-		%Intxi(IntPrb.GridGamma) = xiex; %debig
+		%Intxi(IntPrb.GridGamma) = xiex; %debug
 		
          errB = norm(xiex - Intxi(IntPrb.GridGamma), inf);
         
@@ -97,8 +110,20 @@ for	   LinearSolverType = 4
     
     [ErrUInf,ErrU2] = cmpr(Intu(IntPrb.Scatterer.Np),Intexact(IntPrb.Scatterer.Np));
     
-    fprintf('N=%-6dx%-7d Eu=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f, eb =%-10.4d  rt=%-6.2f  timeA=%-6.2f\n',...
-        Nx,Ny,ErrUInf,   ErrU2,   log2(ErrUInfPre/ErrUInf),     log2(ErrU2Pre/ErrU2), errB, log2(errBpre/errB), t1);
+    
+    CDInt = Tools.Common.SecondDerivative(Grid.Nx,Grid.Ny,Grid.dx,Grid.dy);
+    
+    [iTux,iTuy]    = CDInt.CartesianDerivatives(Intu);   
+    [iExux,iExuy]  = CDInt.CartesianDerivatives(Intexact);
+            
+    [ErrUxInf,ErrUx2]   = cmpr(iTux(IntPrb.Scatterer.Mp),iExux(IntPrb.Scatterer.Mp));
+    [ErrUyInf,ErrUy2]   = cmpr(iTuy(IntPrb.Scatterer.Mp),iExuy(IntPrb.Scatterer.Mp));    
+    
+    fprintf('N=%-6dx%-7d Eu=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f,  Eux=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f eb =%-10.4d  rt=%-6.2f  timeA=%-6.2f\n',...
+        Nx,Ny,ErrUInf,   ErrU2,   log2(ErrUInfPre/ErrUInf),     log2(ErrU2Pre/ErrU2), ...
+               ErrUxInf,  ErrUx2,  log2(ErrUxInfPre/ErrUxInf),   log2(ErrUx2Pre/ErrUx2), ...  
+               ErrUyInf,  ErrUy2,  log2(ErrUyInfPre/ErrUyInf),   log2(ErrUy2Pre/ErrUy2), ...  
+                errB, log2(errBpre/errB), t1);
     
     errBpre = errB;
     
@@ -125,7 +150,7 @@ for	   LinearSolverType = 4
 %             t1);
 		
     ErrUInfPre = ErrUInf; ErrU2Pre = ErrU2; 
-%     ErrUxInfPre = ErrUxInf; ErrUx2Pre = ErrUx2; ErrUyInfPre = ErrUyInf; ErrUy2Pre = ErrUy2; 
+     ErrUxInfPre = ErrUxInf; ErrUx2Pre = ErrUx2; ErrUyInfPre = ErrUyInf; ErrUy2Pre = ErrUy2; 
 %     ErrUxxInfPre = ErrUxxInf; ErrUxx2Pre = ErrUxx2; ErrUyyInfPre = ErrUyyInf; ErrUyy2Pre = ErrUyy2;
 %     ErrUxyInfPre = ErrUxyInf; ErrUxy2Pre = ErrUxy2;
     

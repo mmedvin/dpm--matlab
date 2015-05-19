@@ -37,7 +37,7 @@ classdef WaveNumberPolarR < Tools.Coeffs.AbstractCoeffs
             k5r=obj.k5r;
         end
         
-        function obj=WaveNumberPolarR(Scatterer,Params) %(k0,r,r0)
+        function obj=WaveNumberPolarR(Scatterer,Params) 
             r  = Scatterer.r;
             r0 = Params.r0;
             

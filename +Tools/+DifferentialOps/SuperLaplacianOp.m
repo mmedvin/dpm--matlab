@@ -16,7 +16,11 @@ classdef SuperLaplacianOp<Tools.DifferentialOps.SuperDiffOp
                 obj.Grid=ParamsStruct.Grid;
 			%%%% Create Coeffs
             
-            if isfield(ParamsStruct,'Order')
+            if ~isfield(ParamsStruct,'Order')
+                ParamsStruct.Order=2;
+            end
+            
+            if ParamsStruct.Order==4
                 GridK = Tools.Grid.CartesianGrid( ...
                     obj.Grid.x1 - 2*obj.Grid.dx , ...
                     obj.Grid.xn + 2*obj.Grid.dx , ...

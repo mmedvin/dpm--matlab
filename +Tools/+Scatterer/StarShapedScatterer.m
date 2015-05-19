@@ -212,7 +212,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
 			Str=strsplit(HashInfo.Xmeta.Name,'.');
 			Str=Str{end};
 			for i=1:numel(Str)
-				 HashInfo.HashVal = HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow;
+				 HashInfo.HashVal = int64(HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow);
 				 Ppow=Ppow*P;
 			end
 			
@@ -220,7 +220,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
 			Str=Str{end};
 			Ppow = P;
 			for i=1:numel(Str)
-				HashInfo.HashVal = HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow;
+				 HashInfo.HashVal = int64(HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow);
 				Ppow=Ppow*P;
 			end
                         
@@ -237,12 +237,12 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
                     
                     if isobject(val2), continue,end
                     
-                   HashInfo.HashVal = HashInfo.HashVal + fix((val1.^(2*i) + val2.^(2*j))*1e4);
+                   HashInfo.HashVal = int64(HashInfo.HashVal + fix((val1.^(2*i) + val2.^(2*j))*100));
 
                 end
             end
                         
-            HashInfo.HashVal = int64(HashInfo.HashVal);
+            
         end
         
         function Gstr = TypeOfGrid(obj)

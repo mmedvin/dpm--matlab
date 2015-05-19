@@ -1,4 +1,4 @@
-classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
+classdef LaplaceSource_BL53_Interior < Tools.Source.SuperSource
     properties (Dependent = true)
         Source;%Fn;Ff;Fnn;Fff;    % WN;
     end
@@ -60,7 +60,7 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
             
         end
             
-        function obj = LaplaceSource_IIM351_Exterior(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
+        function obj = LaplaceSource_BL53_Interior(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
 			obj.Scatterer = Scatterer;
 			obj.CoeffsClsrHndl = CoeffsClsrHndl;
 			obj.CoeffsParams = CoeffsParams;
@@ -71,28 +71,37 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 		function S = get.Source(obj)
  			S = spalloc(obj.Scatterer.Size(1),obj.Scatterer.Size(2),numel(obj.Scatterer.Np));
 			
-			[F,Fn,~,Fnn] = obj.Derivatives();
+			%[F,Fn,~,Fnn] = obj.Derivatives();
+            Fin = obj.Derivatives();
+
+
+            coeffs = obj.CoeffsClsrHndl(obj.Scatterer,obj.CoeffsParams);
+            B = coeffs.Derivatives('a');
+
+            eta = obj.Scatterer.Eta0;
+			phi = obj.Scatterer.phi;
+			fd  = obj.Scatterer.FocalDistance;
+
+            x  = fd*cosh(eta).*cos(phi);
+            y  = fd*sinh(eta).*sin(phi);
+            xn = fd*sinh(eta).*cos(phi);
+            %xnn = x;
+            yn = fd*cosh(eta).*sin(phi);
+            %ynn=y;
+            %xf =-fd*cosh(eta).*sin(phi);
+            %xff=-x;
+            %yf = fd*sinh(eta).*cos(phi);
+            %yff=-y;
+
+            F   = -2*B*sin(x).*cos(y);            
+            Fn  =  -2*B*cos(x).*cos(y).*xn +  2*B*sin(x).*sin(y).*yn;            
+            Fnn =  -F.*(xn.^2+yn.^2) + 2*xn.*yn.*(2*B.*cos(x).*sin(y)) + x.*(-2*B.*cos(x).*cos(y)) + y.*(2*B.*sin(x).*sin(y));
 			
-% 			Coeffs	= obj.CoeffsClsrHndl(obj.Scatterer.TheScatterer,obj.CoeffsParams);
-			Exact	= Tools.Exact.ExLapElps351(obj.Scatterer, obj.ExParams);
+            
 			
-			
-			
-			%S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
-            S=F;
-            S(1:end,1)=	Exact.u(1:end,1);
-            S(1,1:end)= Exact.u(1,1:end);
-            S(1:end,end)= Exact.u(1:end,end);
-            S(end,1:end)= Exact.u(end,1:end);
-			
-%  			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
-%  										+ obj.Scatterer.deta.*Fn(obj.Scatterer.GridGamma) ...  
-%  										+ (obj.Scatterer.deta.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
-% 			
-%           S=F; 
-                                   
-			%%tmp = obj.Derivatives();
-			S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
+ 			S(obj.Scatterer.GridGamma)	= F + obj.Scatterer.deta.*Fn + (obj.Scatterer.deta.^2).*Fnn/2;%taylor
+            S(obj.Scatterer.Inside) = Fin(obj.Scatterer.Inside);
+
 		end
 	end
 end

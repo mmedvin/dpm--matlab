@@ -5,8 +5,13 @@ function RunLaplacian01
 	
     %a=0.9; b=0.1;
 	
-	x1=-1.1;xn=1.1;
-	y1i=-0.5;yni=0.5;
+	%x1i=-1.1;xni=1.1;
+	%y1i=-0.6;yni=0.6;
+
+    x1i=-1.1;xni=1.1;
+    y1i=-1.1;yni=1.1;
+    
+    x1e=-1.1;xne=1.1;
 	y1e=-1.1;yne=1.1;
 	%Lx=xn-x1;Ly=yn-y1;    
 
@@ -27,8 +32,11 @@ function RunLaplacian01
 	BType		= 'Fourier'; %'Chebyshev';%'Fourier';
     
     %ExParams.CoeffsOut	= Tools.Coeffs.ConstLapCoeffs([], struct('a',Coeff.c0,'b',Coeff.d0,'sigma',0) ); 
-    ExParams.CoeffsOut	= Tools.Coeffs.ExactCoeffs( struct('a',1,'b',2,'c',0,'d',3));
-    ExParams.CoeffsIn	= Tools.Coeffs.ExactCoeffs( struct('a',2,'b',1,'c',0,'d',2));
+    %ExParams.CoeffsOut	= Tools.Coeffs.ExactCoeffs( struct('a',1,'b',2,'c',0,'d',3));
+    %ExParams.CoeffsIn	= Tools.Coeffs.ExactCoeffs( struct('a',2,'b',1,'c',0,'d',2));
+    
+    ExParams.CoeffsOut	= Tools.Coeffs.ConstLapCoeffs([], struct('a',2,'b',3,'sigma',0) ); %icosoham proceeding
+    ExParams.CoeffsIn	= Tools.Coeffs.ExactCoeffs( struct('a',0,'b',2,'c',0,'d',3));%icosoham proceeding
 
 %ExParams.CoeffsOut	= Tools.Coeffs.ConstLapCoeffs([], struct('a',Coeff.c0,'b',Coeff.d0,'sigma',0) );    
 %ExParams.CoeffsIn	= Tools.Coeffs.ConstLapCoeffs([], struct('a',Coeff.c1,'b',Coeff.d1,'sigma',0) );
@@ -63,7 +71,7 @@ for	   LinearSolverType = 0
     fprintf('Problem01, M=%d, LinearSolverType = %d, elps_a=%d, elps_b=%d\n', Basis.M, LinearSolverType, a, b);
     
     
-	for n=1:4 %run different grids
+	for n=1:5 %run different grids
 		tic
 		%build grid
 		%p=3;%3;
@@ -73,8 +81,8 @@ for	   LinearSolverType = 0
         p=20;
 		Nx=p*2^n; Ny=p*2^n;        
         
-		GridExt                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1e,yne,Ny);
-		GridInt                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1i,yni,Ny);
+		GridExt                = Tools.Grid.CartesianGrid(x1e,xne,Nx,y1e,yne,Ny);
+		GridInt                = Tools.Grid.CartesianGrid(x1i,xni,Nx,y1i,yni,Ny);
 		ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
 		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',33);
 
@@ -131,11 +139,11 @@ for	   LinearSolverType = 0
 %         
         
         
-        %ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
-        %ExteriorCoeffsParams = struct('a',Coeff.a0,'b',Coeff.b0,'sigma',0);
+        ExteriorCoeffsHandle = @Tools.Coeffs.ConstLapCoeffs;
+        ExteriorCoeffsParams = struct('a',1000000,'b',1000000,'sigma',0); %icosoham proceeding
         
-        ExteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsEllps1;
-        ExteriorCoeffsParams = struct('ca',5,'da',1,'ea',1000000,'WithB',1,'cb',1,'db',3,'eb',1000000,'sigma',0);       
+        %ExteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsEllps1;
+        %ExteriorCoeffsParams = struct('ca',5,'da',1,'ea',1000000,'WithB',1,'cb',1,'db',3,'eb',1000000,'sigma',0);       
         
         ExteriorSource       = @Tools.Source.LaplaceSource01_Exterior;
        

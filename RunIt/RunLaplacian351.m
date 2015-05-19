@@ -1,42 +1,60 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           function RunLaplacian351
-
+ AbsErr = 1;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     a=1;%2.5;
     b=1/2;	
+
 	
-	x1=-2;xn=2;
 	%y1=-0.7;yn=0.7;
 	%y1=-1.1;yn=1.1;
     
-    y1i=-2;yni=2;
+    %x1i=-1.2;xni=1.2;
+    %y1i=-0.7;yni=0.7; Dom='Diff';
+
+    %x1i=-1.1;xni=1.1;
+    %y1i=-0.6;yni=0.6; Dom='Diff';
+
+    
+    x1i=-2;xni=2;
+     y1i=-2;yni=2; Dom='Same';
+  
+    %x1e=-1.2;xne=1.2;
+	%y1e=-1.2;yne=1.2;
+    
+    x1e=-2;xne=2;
 	y1e=-2;yne=2;
-    
-	%Lx=xn-x1;Ly=yn-y1;
-	%ebinf=[];etinf=[];
-    
 
-    FocalDistance = sqrt(a^2-b^2);
-    Eta0 = acosh(a/FocalDistance);
-
-    BIn = 1e3;
-    BOut = 1e0;
+    BIn = 1e0;
+    BOut = 1e3;
 
 	BType		= 'Fourier';
     
-     Order=2; 
+     for Order= [2,4] 
      if Order==2 , ExpansionType=33; Stencil=5; else ExpansionType=35; Stencil=9; end
     
+     
+     for b=1/2%[1/2,1/16] %[1/2,1/4,1/8,1/16]
+    
+         %y1i=-(b+0.2);yni=(b+0.2); Dom='Diff';
+         
+         FocalDistance = sqrt(a^2-b^2);
+         Eta0 = acosh(a/FocalDistance);
+     
     f   =@(phi) ExtExact(FocalDistance,Eta0,phi);
 	g   =@(phi) IntExact(FocalDistance,Eta0,phi);
 	gn   =@(phi) dndIntExact(FocalDistance,Eta0,phi);
 	
     
 
-	if strcmpi(BType,'Chebyshev')
-		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
-	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
-	end
+    if strcmpi(BType,'Chebyshev')
+        Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
+    elseif strcmpi(BType,'Fourier')
+        Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);%(@sin,@sin,1);%(f,dfdn);
+    end
 
+    for AbsErr=[0,1]
+        
+                
 for	   LinearSolverType = 0
     if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
 
@@ -45,20 +63,25 @@ for	   LinearSolverType = 0
     
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 	
-    fprintf('Problem 3.51, M=%d, Order = %d,  LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, Order, LinearSolverType, BIn, BOut);
+    PreAmble = sprintf('%%%%Problem 3.51, AbsErr=%d, M=%d, Order = %d, AR=%d, LinearSolverType = %d, BIn=%d, BOut=%d, ID=[%d,%d]x[%d,%d], ED=[%d,%d]x[%d,%d]\n',AbsErr, Basis.M, Order,a/b, LinearSolverType, BIn, BOut,x1i,xni,y1i,yni,x1e,xne,y1e,yne);
+    fprintf(PreAmble);
+    
+    FileName = sprintf('P351RE%dM%dO%dAR%dSol%dBI%dBO%d%sDom',AbsErr, Basis.M, Order,a/b, LinearSolverType, BIn, BOut,Dom);
+    fileID = fopen([FileName '.txt'],'a');
+    fprintf(fileID,PreAmble);
     
     
-	for n=1:4 %run different grids
+	for n=1:7 %run different grids
 		tic
 		%build grid
-		p=4;%3;
+		p=3;%4;
 		Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
 		
 		
 		%Grid             = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
         
-        GridExt                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1e,yne,Ny);
-        GridInt                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1i,yni,Ny);
+        GridExt                = Tools.Grid.CartesianGrid(x1e,xne,Nx,y1e,yne,Ny);
+        GridInt                = Tools.Grid.CartesianGrid(x1i,xni,Nx,y1i,yni,Ny);
         
 		ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
 		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil);
@@ -181,7 +204,7 @@ for	   LinearSolverType = 0
            % [cn,flag] = lsqr(A'*A,A'*rhs,1e-14,Nx);
             %cn = (A'*A)\(A'*rhs);
             
-           % [Q,R,P]=qr(A'*A);
+            %[Q,R,P]=qr(A'*A);
             %cn = P*( R\(Q\(A'*rhs)));
             cn=A\rhs;
         end
@@ -265,8 +288,17 @@ for	   LinearSolverType = 0
     Extu(:,1)   = Extexact(:,1);
     Extu(:,end) = Extexact(:,end);
     
+    Iu=Intu;
+    %Iu(IntPrb.GridGamma)=0;
+    Ie=Intexact;
+    %Ie(IntPrb.GridGamma)=0;
     
-    [ErrUInf,ErrU2] = cmpr([Intu(IntPrb.Scatterer.Mp);Extu(ExtPrb.Scatterer.Mm)],[Intexact(IntPrb.Scatterer.Mp);Extexact(ExtPrb.Scatterer.Mm)]);
+    Eu=Extu;
+    %Eu(ExtPrb.GridGamma)=0;
+    Ee=Extexact;
+    %Ee(ExtPrb.GridGamma)=0;
+    
+    [ErrUInf,ErrU2] = cmpr([Iu(IntPrb.Scatterer.Mp);Eu(ExtPrb.Scatterer.Mm)],[Ie(IntPrb.Scatterer.Mp);Ee(ExtPrb.Scatterer.Mm)],[],AbsErr);
     
     CDExt = Tools.Common.SecondDerivative(GridExt.Nx,GridExt.Ny,GridExt.dx,GridExt.dy);
     CDInt = Tools.Common.SecondDerivative(GridInt.Nx,GridInt.Ny,GridInt.dx,GridInt.dy);
@@ -276,23 +308,37 @@ for	   LinearSolverType = 0
     [eExux,eExuy,eExuxx,eExuyy,eExuxy]  = CDExt.CartesianDerivatives(Extexact);
     [iExux,iExuy,iExuxx,iExuyy,iExuxy]  = CDInt.CartesianDerivatives(Intexact);
     
-    [ErrUxInf,ErrUx2]   = cmpr([iTux(IntPrb.Scatterer.Mp);eTux(ExtPrb.Scatterer.Mm)],[iExux(IntPrb.Scatterer.Mp);eExux(ExtPrb.Scatterer.Mm)]);
-    [ErrUyInf,ErrUy2]   = cmpr([iTuy(IntPrb.Scatterer.Mp);eTuy(ExtPrb.Scatterer.Mm)],[iExuy(IntPrb.Scatterer.Mp);eExuy(ExtPrb.Scatterer.Mm)]);
+    [ErrUxInf,ErrUx2]   = cmpr([iTux(IntPrb.Scatterer.Mp);eTux(ExtPrb.Scatterer.Mm)],[iExux(IntPrb.Scatterer.Mp);eExux(ExtPrb.Scatterer.Mm)],[],AbsErr);
+    [ErrUyInf,ErrUy2]   = cmpr([iTuy(IntPrb.Scatterer.Mp);eTuy(ExtPrb.Scatterer.Mm)],[iExuy(IntPrb.Scatterer.Mp);eExuy(ExtPrb.Scatterer.Mm)],[],AbsErr);
 	
-    [ErrUxxInf,ErrUxx2] = cmpr([iTuxx(IntPrb.Scatterer.Mp);eTuxx(ExtPrb.Scatterer.Mm)],[iExuxx(IntPrb.Scatterer.Mp);eExuxx(ExtPrb.Scatterer.Mm)]);
-    [ErrUyyInf,ErrUyy2] = cmpr([iTuyy(IntPrb.Scatterer.Mp);eTuyy(ExtPrb.Scatterer.Mm)],[iExuyy(IntPrb.Scatterer.Mp);eExuyy(ExtPrb.Scatterer.Mm)]);
-    [ErrUxyInf,ErrUxy2] = cmpr([iTuxy(IntPrb.Scatterer.Mp);eTuxy(ExtPrb.Scatterer.Mm)],[iExuxy(IntPrb.Scatterer.Mp);eExuxy(ExtPrb.Scatterer.Mm)]);
+    [ErrUxxInf,ErrUxx2] = cmpr([iTuxx(IntPrb.Scatterer.Mp);eTuxx(ExtPrb.Scatterer.Mm)],[iExuxx(IntPrb.Scatterer.Mp);eExuxx(ExtPrb.Scatterer.Mm)],[],AbsErr);
+    [ErrUyyInf,ErrUyy2] = cmpr([iTuyy(IntPrb.Scatterer.Mp);eTuyy(ExtPrb.Scatterer.Mm)],[iExuyy(IntPrb.Scatterer.Mp);eExuyy(ExtPrb.Scatterer.Mm)],[],AbsErr);
+    [ErrUxyInf,ErrUxy2] = cmpr([iTuxy(IntPrb.Scatterer.Mp);eTuxy(ExtPrb.Scatterer.Mm)],[iExuxy(IntPrb.Scatterer.Mp);eExuxy(ExtPrb.Scatterer.Mm)],[],AbsErr);
 %------------------------------------------------------------------
-     
-    fprintf('N=%-6dx%-7d Eu=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Eux=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euxx=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euyy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euxy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f timeA=%-6.2f\n',...
-        Nx,Ny,ErrUInf,   ErrU2,   log2(ErrUInfPre/ErrUInf),     log2(ErrU2Pre/ErrU2), ...
-              ErrUxInf,  ErrUx2,  log2(ErrUxInfPre/ErrUxInf),   log2(ErrUx2Pre/ErrUx2), ...  
-              ErrUyInf,  ErrUy2,  log2(ErrUyInfPre/ErrUyInf),   log2(ErrUy2Pre/ErrUy2), ...  
-              ErrUxxInf, ErrUxx2, log2(ErrUxxInfPre/ErrUxxInf), log2(ErrUxx2Pre/ErrUxx2), ...
-              ErrUyyInf, ErrUyy2, log2(ErrUyyInfPre/ErrUyyInf), log2(ErrUyy2Pre/ErrUyy2), ...  
-              ErrUxyInf, ErrUxy2, log2(ErrUxyInfPre/ErrUxyInf), log2(ErrUxy2Pre/ErrUxy2), ...
-            t1);
-		
+%      
+%     fprintf('N=%-6dx%-7d Eu=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Eux=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euxx=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euyy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f Euxy=%-10.4d|%-10.4d rt=%-6.2f|%-6.2f timeA=%-6.2f\n',...
+%         Nx,Ny,ErrUInf,   ErrU2,   log2(ErrUInfPre/ErrUInf),     log2(ErrU2Pre/ErrU2), ...
+%               ErrUxInf,  ErrUx2,  log2(ErrUxInfPre/ErrUxInf),   log2(ErrUx2Pre/ErrUx2), ...  
+%               ErrUyInf,  ErrUy2,  log2(ErrUyInfPre/ErrUyInf),   log2(ErrUy2Pre/ErrUy2), ...  
+%               ErrUxxInf, ErrUxx2, log2(ErrUxxInfPre/ErrUxxInf), log2(ErrUxx2Pre/ErrUxx2), ...
+%               ErrUyyInf, ErrUyy2, log2(ErrUyyInfPre/ErrUyyInf), log2(ErrUyy2Pre/ErrUyy2), ...  
+%               ErrUxyInf, ErrUxy2, log2(ErrUxyInfPre/ErrUxyInf), log2(ErrUxy2Pre/ErrUxy2), ...
+%             t1);
+
+%$16\times16$	&	$9.8821e-04$&	$-	 $ 	&	$3.3575e-04$&	$-	 $	&	$2.7225e-03$&	$-	 $ 	&	$3.6927e-05$&	$-	 $ 	&	$2.3633e-05$&	$-	 $	&	$4.6294e-05$&	$-	 $	\\
+
+%  str = sprintf('$%-6d\\\\times%-7d$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ \\\\\\\\ \n',...
+%        Nx-1,Ny-1,ErrUInf,  log2(ErrUInfPre/ErrUInf), ErrUxInf,log2(ErrUxInfPre/ErrUxInf), ErrUyInf,log2(ErrUyInfPre/ErrUyInf),...
+%                    ErrU2,  log2(ErrU2Pre/ErrU2),     ErrUx2,   log2(ErrUx2Pre/ErrUx2), ErrUy2,  log2(ErrUy2Pre/ErrUy2) );
+
+ str = sprintf('$%-6d\\\\times%-7d$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$  \\\\\\\\ \n',...
+       Nx-1,Ny-1,ErrUInf,  log2(ErrUInfPre/ErrUInf), ErrUxInf,log2(ErrUxInfPre/ErrUxInf), ErrUyInf,log2(ErrUyInfPre/ErrUyInf) );
+
+
+ fprintf(str);
+ fprintf(fileID,str);
+  
+
     ErrUInfPre = ErrUInf; ErrU2Pre = ErrU2; ErrUxInfPre = ErrUxInf; ErrUx2Pre = ErrUx2; ErrUyInfPre = ErrUyInf; ErrUy2Pre = ErrUy2; 
     ErrUxxInfPre = ErrUxxInf; ErrUxx2Pre = ErrUxx2; ErrUyyInfPre = ErrUyyInf; ErrUyy2Pre = ErrUyy2;
     ErrUxyInfPre = ErrUxyInf; ErrUxy2Pre = ErrUxy2;
@@ -418,13 +464,14 @@ for	   LinearSolverType = 0
     
 end
 end
-    
-    
+        end
+    end
+     end
 end
 
 
 
-function [Linf,L2] = cmpr(ex,u,GG)
+function [Linf,L2] = cmpr(ex,u,GG,RelErr)
 
     if nargin==2, GG=[];end
     tmp = ex - u;
@@ -436,6 +483,11 @@ function [Linf,L2] = cmpr(ex,u,GG)
 
     Linf = norm(tmp(:),inf)/norm(u(:),inf);
     L2   = norm(tmp(:),2)/norm(u(:),2);
+    
+    if RelErr
+        Linf = Linf/norm(u(:),inf);
+        L2   = L2/norm(u(:),2);
+    end
 end
 	
 function e = IntExact(FocalDist,eta,phi)

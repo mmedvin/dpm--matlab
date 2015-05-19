@@ -22,23 +22,23 @@ function RunTransReflAboutStarShapedBody
    
 
     % Kite
-   x1=-1.7;xn=1.2;
-   y1=-1.7;  yn=1.7;
-   r0=0.8;
-   r1=2.2;
+%    x1=-1.7;xn=1.2;
+%    y1=-1.7;  yn=1.7;
+%    r0=0.8;
+%    r1=2.2;
 
    % star
-   x1=-1.7; xn=1.7;
-   y1=-1.7; yn=1.7;
-   r0=0.3;
-   r1=2.2;
+%    x1=-1.7; xn=1.7;
+%    y1=-1.7; yn=1.7;
+%    r0=0.3;
+%    r1=2.2;
 
 
    % submarine
-%     x1=-2.2; xn=2.2;
-%     y1=-0.6; yn=1.2;
-%     r0=0.3;
-%     r1=2.2;
+    x1=-2.2; xn=2.2;
+    y1=-0.6; yn=1.2;
+    r0=0.3;
+    r1=2.2;
 
    
   %  R0 =0.7;
@@ -46,15 +46,15 @@ function RunTransReflAboutStarShapedBody
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
   
-    IncAng = 40;
-    IncAng = IncAng*pi/180;    
+    IncAngD = 0;
+    IncAng = IncAngD*pi/180;    
     
     %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
     %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
     %Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',150));
-    %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',2,'p',150));
-    Parameterization  = Tools.Parameterizations.ParametricStar();
+    Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',1,'p',150));
+    %Parameterization  = Tools.Parameterizations.ParametricStar();
     
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
@@ -66,7 +66,7 @@ dbk=dbstack();
 kin = [3 ,10, 15,  20];
 kex = [1 ,5 ,  5,  10];
         
-    for ki = 1 %1:3
+    for ki = 2 %1:3
         
         ErrIntPre = 0;         ErrExtPre = 0;   ErrTotPre = 0;
         
@@ -86,17 +86,17 @@ kex = [1 ,5 ,  5,  10];
             
 
         Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
-	Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
+	%Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
         %Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
 
-        fprintf('%s, Grid: x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.M);
+        fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.M);
     
-        nmax=3;
+        nmax=1;%3;
         for n=0:nmax %run different grids
             tic
             %build grid
             
-            p=4;%6;%3;%1;
+            p=5;%4;%6;%3;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
             Nx=2^(n+p)+1;	Ny=2^(n+p)+1;
            
@@ -286,6 +286,7 @@ tmp2 = 1;%Intu(1:2:end,1:2:end);
                 figure(1)
                 pcolor([XInt,XExt],[YInt,YExt],abs(full([tIntu,tExtu])))
                 
+                colormap jet
                 title('total field, abs');
                 axis equal
                 axis off;
@@ -306,6 +307,7 @@ tmp2 = 1;%Intu(1:2:end,1:2:end);
                 figure(2)
                 pcolor([XInt,XExt],[YInt,YExt],real(full([tIntu,tExtu])))
                 
+                colormap jet
                 title('total field, real');
                 axis equal
                 axis off;
@@ -324,6 +326,7 @@ tmp2 = 1;%Intu(1:2:end,1:2:end);
                 figure(3)
                 pcolor([XInt,XExt],[YInt,YExt],imag(full([tIntu,tExtu])))
                 
+                colormap jet
                 title('total field, imag');
                 axis equal
                 axis off;

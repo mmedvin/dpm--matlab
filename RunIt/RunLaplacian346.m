@@ -227,8 +227,8 @@ function [Linf,L2] = cmpr(ex,u,GG)
         u(GG)=0;
     end
 
-    Linf = norm(tmp(:),inf);%/norm(u(:),inf);
-    L2   = norm(tmp(:),2);%/norm(u(:),2);
+    Linf = norm(tmp(:),inf)/norm(u(:),inf);
+    L2   = norm(tmp(:),2)/norm(u(:),2);
 end
 
 function e = ExtExact(Params,theta)

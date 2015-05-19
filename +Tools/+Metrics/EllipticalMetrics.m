@@ -9,10 +9,12 @@ classdef EllipticalMetrics < Tools.Metrics.AbstractMetrics
         hff =0;
         h3f =0;
         h4f =0;
+        
+        hnf = 0;
     end
     
     methods       
-        function [h,hn,hnn,h3n,h4n,hf,hff,h3f,h4f] = metrics(obj)
+        function [h,hn,hnn,h3n,h4n,hf,hff,h3f,h4f,  hnf] = metrics(obj)
             h   = obj.h;
             hn  = obj.hn;
             hnn = obj.hnn;
@@ -22,6 +24,8 @@ classdef EllipticalMetrics < Tools.Metrics.AbstractMetrics
             hff = obj.hff;
             h3f = obj.h3f;
             h4f = obj.h4f;
+            
+            hnf = obj.hnf;
         end
         
         function obj = EllipticalMetrics(FocalDistance,eta,phi)
@@ -40,6 +44,8 @@ classdef EllipticalMetrics < Tools.Metrics.AbstractMetrics
             obj.h3f = (-4 - (3* obj.hff)./ obj.h) .* obj.hf;
             obj.h4f = (-((3* obj.h3f)./ obj.h) + (  3*obj.hff.*obj.hf)./ ((obj.h).^2)).* obj.hf ...
                     + (4 - (3* obj.hff)./obj.h).* obj.hff;
+
+            obj.hnf = (-1).*f.*cos(phi).*cosh(eta).*sin(phi).*sinh(eta).*(sin(phi).^2+sinh(eta).^2).^(-3/2);
 
         end
     end
