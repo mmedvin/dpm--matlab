@@ -43,8 +43,8 @@ kex = [1];
         Basis =Tools.Basis.FourierBasis.BasisHelper(f1,@sin);%dfdn);
         %[cn0ex,cn1ex,M] = FourierCoeff(f1,dfdn);
     
-        nmax=2;
-        for n=0:nmax %run different grids
+        nmax=3;
+        for n=1:nmax %run different grids
             tic
             %build grid
             
