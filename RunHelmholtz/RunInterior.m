@@ -16,37 +16,35 @@ b=0.5;
 FocalDist = sqrt(a^2-b^2);
 Eta0 =acosh(1/FocalDist);
 
-for k0 = 1% [1,3,5] %[1,5,10,15,20,25]
+for k0 = 5% [1,3,5] %[1,5,10,15,20,25]
     
     f   =@(phi) Exact(FocalDist,Eta0,phi,k0,NHR);
     dfdn=@(phi)  detaExact(FocalDist,Eta0,phi,k0,NHR);
 
-Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
-  %  [cn0,cn1ex,M] = FourierCoeff(f,dfdn);
-    % [cn0,cn1ex] = FourierCoeff2(f,dfdr,M);
+    Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
 
 for n=1:4 %run different grids
 tic
 	%build grid
 % 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
-p=3;%3;
+p=3;
 	Nx=2.^(n+p);	Ny=2.^(n+p);
 	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
     
 	
     %BasisIndices        = -M:M;
     
-    Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-    WaveNumberClsHandle = @Tools.Coeffs.WaveNumberElliptical;
-    WaveNumberAddParams = struct('k',k0,'r0',NHR);
-    ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Internal
-    ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
-    Source              = @Tools.Source.HelmholtzSource;
+    Grid             = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
+    WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
+    WaveNumberParams = struct('k',k0,'r0',NHR);
+    ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
+    ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
+    Source           = @Tools.Source.HelmholtzSource;
     
 	CollectRhs=1;
     
     IntPrb = Solvers.InteriorSolver ... 
-        (Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs,Source);%(k0,x1,xn,y1,yn,Nx,Ny,FocalDist,Eta0,M,NHR);
+        (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs,Source);
     
     Q0 = IntPrb.Q0;%(:,1:2*M+1);
     Q1 = IntPrb.Q1;%(:,2*M+2:4*M+2);
@@ -61,22 +59,11 @@ p=3;%3;
     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
     xi(IntPrb.GridGamma) = ...
         IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*cn1 + IntPrb.Wf(IntPrb.GridGamma);
-ebinf(n)=0;
-%       xi(Split.GridGamma)=getIxfaceCond(dr,th,k0,IntR);%test
+    ebinf(n)=0;
     xiex = Exact(FocalDist,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,k0,NHR);
-    %xiex = Exact(Eta(Split.GridGamma),phi,k0);
     ebinf(n) =norm(xiex -xi(IntPrb.GridGamma),inf);
+    xi(IntPrb.GridGamma)=xiex;
     
- %xi(Split.GridGamma)=xiex;
-    
-%%%%%%%%%%%%
-%         u = spalloc(Nx,Ny,length(IntPrb.Np));
-%         
-%         GLW = IntPrb.Solve(xi);
-%         
-%         u(IntPrb.Np)=xi(IntPrb.Np) - GLW(IntPrb.Np).';
-% 
-%         u=u + IntPrb.GF;
 
         u = IntPrb.P_Omega(xi);
 
