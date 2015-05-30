@@ -4,6 +4,12 @@ function RunInterior
 
 x1=-1.2;xn=1.2;
 y1=-0.7;yn=0.7;
+
+%kite
+%x1=-1.7;xn=1.2;
+%y1=-1.7;yn=1.7;
+
+
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
 
@@ -16,30 +22,62 @@ b=0.5;
 FocalDist = sqrt(a^2-b^2);
 Eta0 =acosh(1/FocalDist);
 
-for k0 = 5% [1,3,5] %[1,5,10,15,20,25]
+
+%doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
+Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+%Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
+%Parameterization  = Tools.Parameterizations.ParametricStar();
+
+
+ScatType = 'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
+ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
+
+if strcmpi(ScatType,'ellipse')
+    ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist,'r0',NHR);
+elseif strcmpi(ScatType,'circle')
+    ExParams  = struct('ScattererType','circle','r',R0);
+elseif strcmpi(ScatType,'StarShapedScatterer')
+    ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization,'r0',NHR);
+end
+
+%fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
+fprintf('Method:RunInteriorHomo-%s,\t  \n',ScatType);
+fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
+
+for k = [1,5]% [1,3,5] %[1,5,10,15,20,25]
+
+    ebinfPre=0; etinfPre=0; etinf = 0; ebinf = 0;
     
-    f   =@(phi) Exact(FocalDist,Eta0,phi,k0,NHR);
-    dfdn=@(phi)  detaExact(FocalDist,Eta0,phi,k0,NHR);
+    f   =@(th) Exact(th,k,ExParams);
+    dfdn=@(th) drExact(th,k,ExParams);
 
     Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
 
-for n=1:4 %run different grids
+for n=1:5 %run different grids
 tic
 	%build grid
-% 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
-p=3;
-	Nx=2.^(n+p);	Ny=2.^(n+p);
-	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
-    
-	
-    %BasisIndices        = -M:M;
-    
+    p=4;
+	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;    
+	    
     Grid             = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-    WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
-    WaveNumberParams = struct('k',k0,'r0',NHR);
-    ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
-    ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
-    Source           = @Tools.Source.HelmholtzSource;
+
+    if strcmpi(ScatType,'ellipse')
+        WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
+        ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
+        ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist, 'Stencil', 9);
+        Source           = @Tools.Source.HelmholtzSource;
+    elseif strcmpi(ScatType,'StarShapedScatterer')
+        WaveNumberHandle = @Tools.Coeffs.WaveNumberPolarR;
+        Source           = @Tools.Source.HelmholtzSourceR;
+        ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
+        ScattererParams  = ExParams;
+        ScattererParams.Stencil=9;
+    end
+
+    
+    WaveNumberParams = struct('k',k,'r0',NHR);   
     
 	CollectRhs=1;
     
@@ -60,26 +98,35 @@ p=3;
     xi(IntPrb.GridGamma) = ...
         IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*cn1 + IntPrb.Wf(IntPrb.GridGamma);
     ebinf(n)=0;
-    xiex = Exact(FocalDist,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,k0,NHR);
-    ebinf(n) =norm(xiex -xi(IntPrb.GridGamma),inf);
-    xi(IntPrb.GridGamma)=xiex;
+
+    if strcmpi(ScatType,'ellipse')
+        ExParams2 = ExParams;
+        ExParams2.eta = IntPrb.Scatterer.eta;
+        xiex = Exact(IntPrb.Scatterer.phi,k,ExParams2);
+        ebinf =norm(xiex -xi(IntPrb.GridGamma),inf);
+    elseif strcmpi(ScatType,'StarShapedScatterer')
+        if 0
+            ExParams2 = ExParams;
+            ExParams2.r = IntPrb.Scatterer.r;
+            xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);
+            ebinf =norm(xiex -xi(IntPrb.GridGamma),inf);
+        else
+            if n > 1
+                xiPre2= spalloc(Nx,Ny,nnz(xiPre));
+                xiPre2(IntPrb.GridGamma) = xiPre(IntPrb.GridGamma);
+                
+                tmp = xi(1:2:end,1:2:end)-xiPre2(1:2:end,1:2:end);
+                ebinf =norm(tmp(:),inf);
+            end
+            xiPre=spalloc(Nx*2-1,Ny*2-1,nnz(xi));
+            xiPre(1:2:end,1:2:end) = xi;
+        end
+    end
+
+    %xi(IntPrb.GridGamma)=xiex;
     
-
-        u = IntPrb.P_Omega(xi);
-
-
-%     tmp = A*xi(:);
-%     rhs=zeros(cols,rows);
-%     rhs(Split.Mp)=tmp(Split.Mp);
-%     GLW = A\rhs(:);
-%     tmp=xi(:)-GLW;
-%     tmp = reshape(tmp, cols, rows);
-%     u(Split.Np)=tmp(Split.Np);
-%     u=u + GF;
-
-   % ebinf(n) =norm(xi(Split.GridGamma) -u(Split.GridGamma),inf);
     
-    %%%%%%%%%%%%%%
+    u = IntPrb.P_Omega(xi);
     
    t1=toc; 
 
@@ -87,44 +134,108 @@ p=3;
     % Comparison
     % % % % % % % % % % % % % % % %
     
-    
-    
-    
-    
+   
     exact = zeros(Nx,Ny);
-    exact(IntPrb.Scatterer.Np) = Exact(FocalDist,IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),k0,NHR);
-       
+    if strcmpi(ScatType,'ellipse')
+        ExParams3 = ExParams;
+        ExParams3.eta = IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np);
+        exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
+        etinf = norm(exact(:)-u(:),inf);
+    elseif strcmpi(ScatType,'StarShapedScatterer')
+        if 0
+            ExParams3 = ExParams;
+            ExParams3.r = IntPrb.Scatterer.R(IntPrb.Scatterer.Np);
+            exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k,ExParams3);
+            etinf = norm(exact(:)-u(:),inf);
+        else
+            if n > 1
+                u1= spalloc(Nx,Ny,nnz(u0));
+                u1(IntPrb.Np) = u0(IntPrb.Np);
+                
+                tmp = u(1:2:end,1:2:end)-u1(1:2:end,1:2:end);
+                etinf =norm(tmp(:),inf);
+            end
+            
+            u0=spalloc(Nx*2-1,Ny*2-1,nnz(u));
+            u0(1:2:end,1:2:end)=u;
+        end
+    end
     t2=toc;
     
-    etinf(n) =norm(exact(:)-u(:),inf);
-    fprintf('k=%d,M=%d,N=%-10dx%-10d\t ebinf=%d\tetinf=%d\ttimeA=%d\ttimeE=%d\n',k0,Basis.M, Nx,Ny,full(ebinf(n)),full(etinf(n)),t1,t2-t1);
     
+    fprintf('k=%d,M=%d,N=%-10dx%-10d\t ebinf=%d|%-5.4f\tetinf=%d|%-5.4f\ttimeA=%d\ttimeE=%d\n',k,Basis.M, Nx,Ny,ebinf, log2(ebinfPre./ebinf), etinf,log2(etinfPre./etinf),t1,t2-t1);
+    etinfPre = etinf;ebinfPre = ebinf;
     
-   % figure, plot(x,abs(u(fix(Ny/2),:)),'r+-',x,abs(exact(fix(Ny/2),:)),'bo');
-%     saveas(gcf,['inhomo_k=' num2str(k) 'N=' num2str(Nx) '.jpg'],'jpg');
-    % plot(x,abs(u(:,fix(Ny/2))),'r+-',x,abs(exact(:,fix(Ny/2))),'bo');
-
 end
 
-Linf=log2(etinf(1:end-1)./etinf(2:end))
-Lbinf=log2(ebinf(1:end-1)./ebinf(2:end))
+fprintf('\n')
 end
 %end
 end
 
-
-function e = Exact(FocDist,eta,phi,k0,r0)
-
-    k = Tools.Coeffs.WaveNumberElliptical.kkn(FocDist,eta,phi,k0,r0);
-
-    x = FocDist*cosh(eta).*cos(phi);
-    e = exp(1i.*k.*x); 
+function g = Exact(th,k0,Params)
+if strcmpi(Params.ScattererType,'ellipse')
+    k = Tools.Coeffs.WaveNumberElliptical.kkn(Params.FocalDistance,Params.eta,th,k0,Params.r0);
+    x = Params.FocalDistance * cosh(Params.eta) .* cos(th);
+    %          y = Params.FocalDistance * sinh(Params.eta) .* sin(th);
+elseif strcmpi(Params.ScattererType,'circle')
+    x = Params.r .* cos(th);
+    %         y = Params.r .* sin(th);
+elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+    try
+        x = Params.Parameterization.XHandle.Derivatives(th);
+        y = Params.Parameterization.YHandle.Derivatives(th);
+    catch
+        x = Params.r.*cos(th);
+        y = Params.r.*sin(th);
+    end
+    r=sqrt(x.^2+y.^2);
+    k = Tools.Coeffs.WaveNumberPolarR.kkr(r,Params.r0,k0);
+    
 end
 
-function dne = detaExact(FocDist,eta,phi,k0,r0)
+%g = exp(1i.*k.*R.*cos(th));
+g = exp(1i.*k.*x);
+end
 
-    [k,kn] = Tools.Coeffs.WaveNumberElliptical.kkn(FocDist,eta,phi,k0,r0);
+
+function dne = drExact(th,k0,Params)%(R,th,k)
+if strcmpi(Params.ScattererType,'ellipse')
+    [k,kn] = Tools.Coeffs.WaveNumberElliptical.kkn(Params.FocalDistance,Params.eta,th,k0,Params.r0);
+    kx=kn;
+    x = Params.FocalDistance * cosh(Params.eta) .* cos(th);
+    dx = Params.FocalDistance * sinh(Params.eta) .* cos(th);
+    %         dy = Params.FocalDistance * cosh(Params.eta) .* sin(th);
+elseif strcmpi(Params.ScattererType,'circle')
+    dx = cos(th);
+    %         dy = sin(th);
+elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+    [x,dx] = Params.Parameterization.XHandle.Derivatives(th);
+    [y,dy] = Params.Parameterization.YHandle.Derivatives(th);
     
-    e = Exact(FocDist,eta,phi,k0,r0);
-    dne = 1i.*FocDist.*cos(phi).*(kn.*cosh(eta)+k.*sinh(eta)).*e;
+    r=sqrt(x.^2+y.^2);
+    [k,kr] = Tools.Coeffs.WaveNumberPolarR.kkr(r,Params.r0,k0);        
+    kx = kr.*x./r;
+    %ky = kr.*y./r;
+    
+end
+
+e = Exact(th,k,Params);%(R,th,k);
+%dne = 1i.*k.*cos(th).*e;
+dne = 1i.*(k.*dx+kx.*x).*e;
+
+
+%dne = 1i.*FocDist.*cos(phi).*(kn.*cosh(eta)+k.*sinh(eta)).*e;
+
+if strcmpi(Params.ScattererType,'StarShapedScatterer')
+   h = sqrt(dx.^2 + dy.^2);
+   % dne = dne./h;
+	
+	%fx dy + fy (-dx)
+	
+	dne  = 1i.*e.*(k+x.^2.*kr./r).*dy./h - (1i.*e.*x.*y.*kr./r).*dx./h;
+	
+end
+
+
 end

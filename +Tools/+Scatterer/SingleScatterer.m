@@ -69,12 +69,8 @@ classdef SingleScatterer < Tools.Scatterer.SupperScatterer
     
     methods(Access =protected)
         
-        function SplitGrid(obj, Stencil)
-            if ~exist('Stencil', 'var')
-                Stencil = 5;
-            end
-            
-            switch Stencil
+        function SplitGrid(obj, Stencil)          
+           switch Stencil
                 case 5
                     obj.SplitGrid5();
                 case 9

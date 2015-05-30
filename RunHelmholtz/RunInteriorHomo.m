@@ -30,23 +30,23 @@ Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'StarShapedScatterer'; %'ellipse';% 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
 if strcmpi(ScatType,'ellipse')
-    ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist);
+    ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
 elseif strcmpi(ScatType,'circle')
     ExParams  = struct('ScattererType','circle','r',R0);
 elseif strcmpi(ScatType,'StarShapedScatterer')
-    ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
+    ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization, 'Stencil', 9);
 end
 
 %fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
 fprintf('Method:RunInteriorHomo-%s,\t  \n',ScatType);
 fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
 
-for k = 1%[1,5,10,15,20,25]
+for k =1%[1,5,10,15,20,25]
     
     ErrPre = 0; ErrXiPre =0;
     
@@ -59,11 +59,11 @@ for k = 1%[1,5,10,15,20,25]
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
 	end
 
-for n=1:3 %run different grids
+for n=1:4 %run different grids
 tic
 	%build grid
-% 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
-p=4;%3;
+    % 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
+    p=4;%3;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
 	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
     	
@@ -72,24 +72,26 @@ p=4;%3;
 	% polar wavenumber isn't designed to work with ellipse scatterer
 	% polar/elliptical wavenumber works with polar scatterer in general, but the problem here become inhomoginious, 
 	% so generally to speak it is wrong place to use it here, mainly because of compariseon to exact here
-    WaveNumberClsHandle = @Tools.Coeffs.WaveNumberPolarR;%WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
-    WaveNumberAddParams = struct('k',k,'r0',NHR);
+    %WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
+    WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
+    WaveNumberParams = struct('k',k,'r0',NHR);
    
-    if strcmpi(ScatType,'ellipse')
-        ScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;
-        ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
+    
+    if strcmpi(ScatType,'ellipse')        
+        ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
+        ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
     elseif strcmpi(ScatType,'circle')
-        ScattererClsHandle  = @Tools.Scatterer.PolarScatterer;
-        ScattererAddParams  = struct('r0',R0,'ExpansionType',25);
+        ScattererHandle  = @Tools.Scatterer.PolarScatterer;
+        ScattererParams  = struct('r0',R0,'ExpansionType',25);
     elseif strcmpi(ScatType,'StarShapedScatterer')
-        ScattererClsHandle  = @Tools.Scatterer.StarShapedScatterer;
-        ScattererAddParams  = ExParams;
+        ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
+        ScattererParams  = ExParams;
     end
 
     CollectRhs = 1;
     
     IntPrb =  Solvers.InteriorHomoSolver ... 
-        (Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs);
+        (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs);
     
     Q0 = IntPrb.Q0;%(:,1:2*M+1);
     Q1 = IntPrb.Q1;%(:,2*M+2:4*M+2);
@@ -102,23 +104,19 @@ p=4;%3;
     ebinf(n)=0;
 
     if strcmpi(ScatType,'ellipse')
-        ExParams2  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.eta,'FocalDistance',FocalDist);
+        ExParams2  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.eta,'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
         xiex = Exact(IntPrb.Scatterer.phi,k,ExParams2);%(FocalDist,IntPrb.Scatterer.eta,IntPrb.Scatterer.phi,k0,NHR);
     elseif strcmpi(ScatType,'circle')
         ExParams2 =ExParams;
         ExParams2.r = IntPrb.Scatterer.r;
-        xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
-    elseif strcmpi(ScatType,'StarShapedScatterer')
-        
-        ExParams2 = struct('ScattererType','StarShapedScatterer','r', IntPrb.Scatterer.r);        
-        
         xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);
-        
+    elseif strcmpi(ScatType,'StarShapedScatterer')
+        ExParams2 = struct('ScattererType','StarShapedScatterer','r', IntPrb.Scatterer.r,'ExpansionType',25, 'Stencil', 9);
+        xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);
     end
     
-    %xiex = Exact(Eta(Split.GridGamma),phi,k0);
     ErrXi =norm(xiex -xi(IntPrb.GridGamma),inf);
-    
+    %xi(IntPrb.GridGamma)=xiex;
     u = IntPrb.P_Omega(xi);
     
     t1=toc;
@@ -131,7 +129,7 @@ p=4;%3;
     exact = zeros(Nx,Ny);   
     %exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.R(IntPrb.Scatterer.Np),IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k);
     if strcmpi(ScatType,'ellipse')
-        ExParams3  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),'FocalDistance',FocalDist);
+        ExParams3  = struct('ScattererType','ellipse','eta',IntPrb.Scatterer.Eta(IntPrb.Scatterer.Np),'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
         exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Phi(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
         %TBD;
     elseif strcmpi(ScatType,'circle')
@@ -140,7 +138,7 @@ p=4;%3;
         exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k,ExParams3);%(IntPrb.Scatterer.r,IntPrb.Scatterer.th,k);
      elseif strcmpi(ScatType,'StarShapedScatterer')
         
-        ExParams3 = struct('ScattererType','StarShapedScatterer','r',IntPrb.Scatterer.R(IntPrb.Scatterer.Np));
+        ExParams3 = struct('ScattererType','StarShapedScatterer','r',IntPrb.Scatterer.R(IntPrb.Scatterer.Np), 'Stencil', 9);
         
         exact(IntPrb.Scatterer.Np) = Exact(IntPrb.Scatterer.Th(IntPrb.Scatterer.Np),k,ExParams3);        
     

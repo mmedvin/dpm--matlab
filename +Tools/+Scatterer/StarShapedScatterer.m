@@ -64,7 +64,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
                 obj.CreateScatParamToGridAng();                
             end
             
-            obj.SplitGrid();
+            obj.SplitGrid(Params.Stencil);
             obj.GridGamma = intersect(obj.Np,obj.Nm)';
             
             obj.GridOnScatterer(HashInfo);            
@@ -97,21 +97,20 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             %x = obj.XHandle.Derivatives(obj.ScatParamToGridAng);
             %y = obj.YHandle.Derivatives(obj.ScatParamToGridAng);
             
-            TS = struct('r',sqrt(x.^2 + y.^2));%,'Th',obj.th);
+            z=x+1i*y;
+            TS = struct('R',abs(z),'Th',angle(z));
             %TS = struct('r',obj.RAtScatParamToGridAng(obj.GridGamma));%,'Th',obj.th);
             
         end
     
-        function res = Expansion(obj,Xi0,Xi1,~,WaveNumber) % ~ was F
+        function res = Expansion(obj,Xi0,Xi1,Source,WaveNumber) 
             
             % Xi1.Derivatives() are evaluated at obj.nrml_t rather than obj.th??
             [xi0,xi0t,xi0tt,xi0ttt,xi0tttt] = Xi0.Derivatives();
             [xi1,xi1t,xi1tt,xi1ttt,xi1tttt] = Xi1.Derivatives();            
             [h,ht,htt,h3t] = obj.MetricsAtScatterer.metrics(obj.nrml_t);			
             [curv,ds_curv,dsds_curv] = obj.MetricsAtScatterer.curvature(obj.nrml_t);
-            
-            
-            %k = WaveNumber.Derivatives(); %[k,kn,kf,knn,kff] = WaveNumber.Derivatives();
+                                                
             %%%%%%%%%%%%%%%%%%%%%%
             [k,kr,krr] = WaveNumber.Derivatives();
             
@@ -130,9 +129,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             %kyy = krr.*(sin(obj.nrml_t).^2) + kr.*(cos(obj.nrml_t).^2)./r_;
             %kxy = krr.*cos(obj.nrml_t).*sin(obj.nrml_t) - kr.*cos(obj.nrml_t).*sin(obj.nrml_t)./r_;
             %%%%%%%%%%%%%%%%%%%%%%
-
-            
-            
+                        
             %%%%%%%%%%%%%%%%%%%%%%
             %n_x = dy./h;
             %n_y = -dx./h;
@@ -151,7 +148,28 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             %kss = (ktt./h - kt.*ht./(h.^2))./h;
 
             %%%%%%%%%%%%%%%%%%%%%%
+            [F,Fr,Frr,Ft,Ftt,Frt] = Source.Derivatives();
             
+            Fx = Fr.*x./r_ - Ft.*y./(r_.^2);
+            Fy = Fr.*y./r_ + Ft.*x./(r_.^2);
+            
+            Fxx = Ftt.*y.^2./(r_.^4) + Frr.*(x.^2)./(r_.^2) - 2*Frt.*x.*y./(r_.^3) ...
+                + 2*Ft.*x.*y./(r_.^4) + Fr.*(y.^2)./(r_.^3) ;
+            
+            Fyy = Ftt.*x.^2./(r_.^4) + Frr.*(y.^2)./(r_.^2) + 2*Frt.*x.*y./(r_.^3) ...
+                - 2*Ft.*x.*y./(r_.^4) + Fr.*(x.^2)./(r_.^3) ;
+            
+            Fxy =-Ftt.*x.*y./(r_.^4) + Frr.*x.*y./(r_.^2) + Frt.*(x.^2 - y.^2)./(r_.^3) ...
+                + Ft.*(y.^2-x.^2)./(r_.^4) - (Fr.*x.*y)./(r_.^3) ;
+
+
+            Fn  = (Fx.*dy  - Fy.*dx)./h;
+            Fnn = (Fxx.*dy.^2 - 2*Fxy.*dx.*dy + Fyy.*dx.^2 )./(h.^2); ...     + kx.*dyy.*dy + ky.*dxx.*dx          - kn.* ht./(h.^2);
+
+            Fs  = (Fx.*dx + Fy.*dy)./h;
+            Fss = (Fxx.*dx.^2 + 2*Fxy.*dx.*dy + Fyy.*dy.^2)./(h.^2) + curv.*Fn;
+            
+            %%%%%%%%%%%%%%%%%%%%%%
             
             
             xi0s    = xi0t./h;
@@ -165,13 +183,13 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             xi1s = xi1t./h;
             xi1ss= (xi1tt./h - ht.*xi1t./h.^2)./h;
             
-            u_nn    = xi1.*curv - xi0ss - xi0.*k.^2;
-            u_nnn   = u_nn.*curv +(curv.^2-k.^2).*xi1 - ds_curv.*xi0s - xi1ss - 2*curv.*xi0ss - 2*k.*kn.*xi0;%- 2*k.*kn.*xi0
+            u_nn    = F + xi1.*curv - xi0ss - xi0.*k.^2;
+            u_nnn   = Fn + u_nn.*curv +(curv.^2-k.^2).*xi1 - ds_curv.*xi0s - xi1ss - 2*curv.*xi0ss - 2*k.*kn.*xi0;%- 2*k.*kn.*xi0
             
             %u_nns   = xi1s.*curv + xi1.*ds_curv -  xi0sss - xi0s.*k.^2 - 2*k.*ks.*xi0; %- 2*k.*ks.*xi0
-            u_nnss  = xi1.*dsds_curv + 2*xi1s.*ds_curv + xi1ss.*curv - xi0ss.*k.^2 - xi0ssss - 4*k.*ks.*xi0s -2*(ks.^2 + k.*kss).*xi0; % - 4*k.*ks.*xi0s -2*(ks.^2 + k.*kss).*xi0
+            u_nnss  = Fss + xi1.*dsds_curv + 2*xi1s.*ds_curv + xi1ss.*curv - xi0ss.*k.^2 - xi0ssss - 4*k.*ks.*xi0s -2*(ks.^2 + k.*kss).*xi0; % - 4*k.*ks.*xi0s -2*(ks.^2 + k.*kss).*xi0
             
-            u_nnnn  = curv.*u_nnn + (2*curv.^2 - k.^2).*u_nn + (2*curv.^3 - 4*k.*kn).*xi1 ...
+            u_nnnn  = Fnn + curv.*u_nnn + (2*curv.^2 - k.^2).*u_nn + (2*curv.^3 - 4*k.*kn).*xi1 ...
                     - 2*ds_curv.*xi1s - 4*curv.*xi1ss - u_nnss - 6*curv.*ds_curv.*xi0s - 6*curv.^2.*xi0ss -2*(kn.^2 + k.*knn).*xi0 ; %- 4*k.*kn.*xi1 -2*(kn.^2 + k.*knn).*xi0
 
 

@@ -20,8 +20,8 @@ classdef ExactVarKr < Tools.Exact.SuperExact
         end
         
         function dr = drExact(r,th,k,kr)
-            e = Tools.Exact.ExactElpsVarKr.Exact(r,th,k);
-            %dnde = 1i.*FocalDist.*cos(phi).*(kn.*cosh(eta)+k.*sinh(eta)).*e;
+            e = Tools.Exact.ExactVarKr.Exact(r,th,k);
+            dr = 1i.*cos(th).*(k + kr.*r).*e;
         end
     end    
     
@@ -30,32 +30,40 @@ classdef ExactVarKr < Tools.Exact.SuperExact
         function obj = ExactVarKr(Scatterer, WaveNumber)
             obj = obj@Tools.Exact.SuperExact(Scatterer, WaveNumber);
             
-            obj.FocalDistance   = Scatterer.FocalDistance;
-            obj.R         = Scatterer.R;
-            obj.Th        = Scatterer.Th;
-            
+%             try
+                obj.R         = Scatterer.R;
+                obj.Th        = Scatterer.Th;
+%             catch
+%                 obj.R         = Scatterer.r;
+%                 obj.Th        = Scatterer.th;
+%             end
             obj.u  = obj.Exact(obj.R,obj.Th,obj.Coeffs.k);
             obj.dudr = obj.drExact(obj.R,obj.Th,obj.Coeffs.k,obj.Coeffs.kr);                       
         end
         
-        function [u,ur,urr,u3r,ut,utt,urt,urtt] = Derivatives(obj)
+        function [u,ur,urr,ut,utt,urt] = Derivatives(obj)%[u,ur,urr,u3r,ut,utt,urt,urtt] = Derivatives(obj)
             u      = obj.u;
             
             ur     = obj.dudr;
             
-            urr = u.*((krr.*r + 2.*kr).*1i.*cos (th) - ((kr.*r + k).*cos (th)).^2);
-            u3r = ((k3r.*r+3.*krr).*1i.*cos(th) - 2.*(kr.*r+k).*(krr.*r + 2.*kr).*(cos(th).^2)).*u +...
-                ((krr.*r + 2.*kr).*1i.*cos (th) - ((kr.*r + k).*cos (th)).^2).*ur;
+            [k,kr,krr,k3r,k4r,k5r] = obj.Coeffs.Derivatives();
+            r=obj.R;
+            th=obj.Th;
+            
+            urr = 1i.*cos(th).*(k + kr.*r).*ur + 1i.*cos(th).*(2*kr + krr.*r).*u;
+           % u3r = ((k3r.*r+3.*krr).*1i.*cos(th) - 2.*(kr.*r+k).*(krr.*r + 2.*kr).*(cos(th).^2)).*u +...
+           %     ((krr.*r + 2.*kr).*1i.*cos (th) - ((kr.*r + k).*cos (th)).^2).*ur;
             ut = -1i.*k.*r.*sin(th).*u;
-            utt = -u.*(1i.*k.*r.*cos(th)+(k.*r.*sin(th)).^2);
-            urt = 1i.*(kr.*r + k).*(cos(th).*ut - sin(th).*u);
-            urtt = 1i.*(kr.*r + k).*(cos(th).*utt - 2.*sin(th).*ut - cos(th).*u);
+            utt = -1i.*k.*r.*cos(th).*u - 1i.*k.*r.*sin(th).*ut;
+            urt = -1i.*sin(th).*(u.*(k+r.*kr) + ur.*r.*k);
+           % urtt = 1i.*(kr.*r + k).*(cos(th).*utt - 2.*sin(th).*ut - cos(th).*u);
         end
         
         function [s,sr,srr,s3r,st,stt,srt,srtt] = calc_s(obj)
             
             [k,kr,krr,k3r,k4r,k5r] = obj.Coeffs.Derivatives();
-            
+             r=obj.R;
+            th=obj.Th;
             
             s   = (krr.*r + 3*kr).*1i.*cos (th) -((kr.* r).^2 + 2*k.*kr.*r).*(cos(th).^2);
             if nargout > 1
