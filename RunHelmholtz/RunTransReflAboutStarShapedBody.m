@@ -106,6 +106,7 @@ kex = [1 ,5 ,  5,  10];
                       
             ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
             ScattererParams  = UincParams;
+            ScattererParams.Stencil=9;
             
 			CollectRhs=0;
 			
