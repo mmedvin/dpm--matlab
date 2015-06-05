@@ -80,6 +80,7 @@ classdef HelmholtzSourceR < Tools.Source.SuperHelmholtzSource
             
             tmp = obj.Derivatives();
             S(obj.Scatterer.Inside) = tmp(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
+            S=tmp;
         end    
     end
     

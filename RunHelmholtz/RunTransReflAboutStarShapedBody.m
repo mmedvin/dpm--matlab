@@ -91,12 +91,12 @@ kex = [1 ,5 ,  5,  10];
 
         fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.M);
     
-        nmax=1;%3;
-        for n=0:nmax %run different grids
+        nmax=2;%3;
+        for n=1:nmax %run different grids
             tic
             %build grid
             
-            p=5;%4;%6;%3;%1;
+            p=4;%4;%6;%3;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
             Nx=2^(n+p)+1;	Ny=2^(n+p)+1;
            
