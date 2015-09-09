@@ -7,9 +7,9 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
     
     methods
         function obj = InteriorSolver( ...
-                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs,Source)
+                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs,Source,Params)
             obj = obj@Solvers.SuperNonHomoSolver( ...
-                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs,Source);
+                Basis,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs,Source,Params);
                         
             if  numel(obj.Coeffs.k)>1
             GridK =Tools.Grid.CartesianGrid( ...

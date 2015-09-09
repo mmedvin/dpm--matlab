@@ -1,4 +1,4 @@
-classdef HelmholtzSource < Tools.Source.SuperHelmholtzSource
+classdef HelmholtzSourceElps < Tools.Source.SuperHelmholtzSource
     properties (Dependent = true)
         Source;%Fn;Ff;Fnn;Fff;    % WN;
     end
@@ -51,7 +51,7 @@ classdef HelmholtzSource < Tools.Source.SuperHelmholtzSource
             
         end
             
-        function obj = HelmholtzSource(Scatterer, WaveNumberHndl,WaveNumberAddParams,~)%(Exact)%(FocalDist,eta,phi,k0,r0)
+        function obj = HelmholtzSourceElps(Scatterer, WaveNumberHndl,WaveNumberAddParams,~)%(Exact)%(FocalDist,eta,phi,k0,r0)
                 obj.Scatterer = Scatterer;
                 obj.WaveNumberHndl = WaveNumberHndl;
                 obj.WaveNumberAddParams = WaveNumberAddParams;

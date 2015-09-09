@@ -77,13 +77,13 @@ rat=4/5;
 
 %for k= 6.*[2^(-4*rat),2^(-3*rat),2^(-2*rat),2^(-rat),1,2^(rat),2^(2*rat),2^(3*rat),2^(4*rat)]
 
-    for k =1%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
+    for k =[1,5,10]%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
 		
 		ErrPre = 0; 
 		
 %for n = 1:6
 %k=K(n);
-        for  IncAngD =40;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
+        for  IncAngD =0;%0:10:90 %[0,50]%[0,15,35,50] % 0:15:90 %[0,50,100,150,200]
     		IncAng = IncAngD*pi/180;   
 
         if strcmpi(HankOrPlane,'PlaneWave')                        
@@ -97,17 +97,17 @@ rat=4/5;
         if strcmpi(BType,'Chebyshev')
             Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
         elseif strcmpi(BType,'Fourier')
-            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
+            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,105);
         end
       
         WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
         WaveNumberParams = struct('k',k,'r0',NHR);
                 
-        for n=1:5 %run different grids
+        for n=1:2 %run different grids
             tic
             %build grid
             
-            p=4;%1;
+            p=7;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
            
             Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
@@ -121,6 +121,7 @@ rat=4/5;
             elseif strcmpi(ScatType,'StarShapedScatterer')
                 ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
                 ScattererParams  = ExParams;
+                ScattererParams.Stencil = 9;
 			end
             
 			CollectRhs = 0;

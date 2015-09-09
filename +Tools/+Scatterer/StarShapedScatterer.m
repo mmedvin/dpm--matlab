@@ -103,71 +103,67 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             
         end
     
+        function [curv,ds_curv,dsds_curv] = Curvature(obj,angl)
+            [curv,ds_curv,dsds_curv] = obj.MetricsAtScatterer.curvature(angl);
+        end
+        
+        function [h,ht,htt,h3t] = Metrics(obj,angl)
+            [h,ht,htt,h3t] = obj.MetricsAtScatterer.metrics(angl);
+        end
         function res = Expansion(obj,Xi0,Xi1,Source,WaveNumber) 
             
             % Xi1.Derivatives() are evaluated at obj.nrml_t rather than obj.th??
             [xi0,xi0t,xi0tt,xi0ttt,xi0tttt] = Xi0.Derivatives();
             [xi1,xi1t,xi1tt,xi1ttt,xi1tttt] = Xi1.Derivatives();            
-            [h,ht,htt,h3t] = obj.MetricsAtScatterer.metrics(obj.nrml_t);			
-            [curv,ds_curv,dsds_curv] = obj.MetricsAtScatterer.curvature(obj.nrml_t);
-                                                
-            %%%%%%%%%%%%%%%%%%%%%%
-            [k,kr,krr] = WaveNumber.Derivatives();
+            [h,ht,htt,h3t] = obj.Metrics(obj.nrml_t); %obj.MetricsAtScatterer.metrics(obj.nrml_t);			
+            [curv,ds_curv,dsds_curv] = obj.Curvature(obj.nrml_t); %obj.MetricsAtScatterer.curvature(obj.nrml_t);
             
-            [x,dx,dxx] = obj.XHandle.Derivatives(obj.nrml_t);
-            [y,dy,dyy] = obj.YHandle.Derivatives(obj.nrml_t);
+            
+            [x,dx] = obj.XHandle.Derivatives(obj.nrml_t);
+            [y,dy] = obj.YHandle.Derivatives(obj.nrml_t);
             r_ = sqrt(x.^2 + y.^2);
             
-            kx = kr.*x./r_;%kr.*cos(obj.nrml_t); % + kt*(-sin(obj.nrml_t)/r;
-            ky = kr.*y./r_;%kr.*sin(obj.nrml_t); % + kt*(cos(obj.nrml_t)/r;
-            
-            kxx = (kr.*y.^2)./(r_.^3) + (krr.*x.^2)./(r_.^2);
-            kyy = (kr.*x.^2)./(r_.^3) + (krr.*y.^2)./(r_.^2);
-            kxy = -(kr.*x.*y)./(r_.^3) + (krr.*x.*y)./(r_.^2);
-
-            %kxx = krr.*(cos(obj.nrml_t).^2) + kr.*(sin(obj.nrml_t).^2)./r_;
-            %kyy = krr.*(sin(obj.nrml_t).^2) + kr.*(cos(obj.nrml_t).^2)./r_;
-            %kxy = krr.*cos(obj.nrml_t).*sin(obj.nrml_t) - kr.*cos(obj.nrml_t).*sin(obj.nrml_t)./r_;
+            [k,kn,knn,ks,kss] = WaveNumber.Derivatives(obj);
             %%%%%%%%%%%%%%%%%%%%%%
-                        
+%             [k,kr,krr] = WaveNumber.Derivatives();
+%                         
+%             kx = kr.*x./r_;%kr.*cos(obj.nrml_t); % + kt*(-sin(obj.nrml_t)/r;
+%             ky = kr.*y./r_;%kr.*sin(obj.nrml_t); % + kt*(cos(obj.nrml_t)/r;
+%             
+%             kxx = (kr.*y.^2)./(r_.^3) + (krr.*x.^2)./(r_.^2);
+%             kyy = (kr.*x.^2)./(r_.^3) + (krr.*y.^2)./(r_.^2);
+%             kxy = -(kr.*x.*y)./(r_.^3) + (krr.*x.*y)./(r_.^2);
+% 
+%             %%%%%%%%%%%%%%%%%%%%%%                        
+%             %%%%%%%%%%%%%%%%%%%%%%
+%             kn  = (kx.*dy  - ky.*dx)./h;
+%             knn = (kxx.*dy.^2 - 2*kxy.*dx.*dy + kyy.*dx.^2 )./(h.^2); ...     + kx.*dyy.*dy + ky.*dxx.*dx          - kn.* ht./(h.^2);
+% 
+%             ks  = (kx.*dx + ky.*dy)./h;
+%             kss = (kxx.*dx.^2 + 2*kxy.*dx.*dy + kyy.*dy.^2)./(h.^2) + curv.*kn;
+
+            [F,Fn,Fnn,Fs,Fss] = Source.Derivatives(obj);
             %%%%%%%%%%%%%%%%%%%%%%
-            %n_x = dy./h;
-            %n_y = -dx./h;
-            kn  = (kx.*dy  - ky.*dx)./h;
-            knn = (kxx.*dy.^2 - 2*kxy.*dx.*dy + kyy.*dx.^2 )./(h.^2); ...     + kx.*dyy.*dy + ky.*dxx.*dx          - kn.* ht./(h.^2);
-           %-(dyy.*dy + dxx.*dx)./(h.^3);%
-            %ks=0;kss=0;
-            
-            %kt  = (kr.*(x.*dx + y.*dy)./r_);
-            %ktt = ((kr./r_).*(dx.^2 + x.*dxx + dy.^2 + y.*dyy) + (((x.*dx + y.*dy).^2)./(r_.^2)).*(krr - kr./r_));
-                           
-            ks  = (kx.*dx + ky.*dy)./h;
-            kss = (kxx.*dx.^2 + 2*kxy.*dx.*dy + kyy.*dy.^2)./(h.^2) + curv.*kn;
-           
-            %ks  = kt./h;
-            %kss = (ktt./h - kt.*ht./(h.^2))./h;
-
-            %%%%%%%%%%%%%%%%%%%%%%
-            [F,Fr,Frr,Ft,Ftt,Frt] = Source.Derivatives();
-            
-            Fx = Fr.*x./r_ - Ft.*y./(r_.^2);
-            Fy = Fr.*y./r_ + Ft.*x./(r_.^2);
-            
-            Fxx = Ftt.*y.^2./(r_.^4) + Frr.*(x.^2)./(r_.^2) - 2*Frt.*x.*y./(r_.^3) ...
-                + 2*Ft.*x.*y./(r_.^4) + Fr.*(y.^2)./(r_.^3) ;
-            
-            Fyy = Ftt.*x.^2./(r_.^4) + Frr.*(y.^2)./(r_.^2) + 2*Frt.*x.*y./(r_.^3) ...
-                - 2*Ft.*x.*y./(r_.^4) + Fr.*(x.^2)./(r_.^3) ;
-            
-            Fxy =-Ftt.*x.*y./(r_.^4) + Frr.*x.*y./(r_.^2) + Frt.*(x.^2 - y.^2)./(r_.^3) ...
-                + Ft.*(y.^2-x.^2)./(r_.^4) - (Fr.*x.*y)./(r_.^3) ;
-
-
-            Fn  = (Fx.*dy  - Fy.*dx)./h;
-            Fnn = (Fxx.*dy.^2 - 2*Fxy.*dx.*dy + Fyy.*dx.^2 )./(h.^2); ...     + kx.*dyy.*dy + ky.*dxx.*dx          - kn.* ht./(h.^2);
-
-            Fs  = (Fx.*dx + Fy.*dy)./h;
-            Fss = (Fxx.*dx.^2 + 2*Fxy.*dx.*dy + Fyy.*dy.^2)./(h.^2) + curv.*Fn;
+%             [F,Fr,Frr,Ft,Ftt,Frt] = Source.Derivatives();
+%             
+%             Fx = Fr.*x./r_ - Ft.*y./(r_.^2);
+%             Fy = Fr.*y./r_ + Ft.*x./(r_.^2);
+%             
+%             Fxx = Ftt.*y.^2./(r_.^4) + Frr.*(x.^2)./(r_.^2) - 2*Frt.*x.*y./(r_.^3) ...
+%                 + 2*Ft.*x.*y./(r_.^4) + Fr.*(y.^2)./(r_.^3) ;
+%             
+%             Fyy = Ftt.*x.^2./(r_.^4) + Frr.*(y.^2)./(r_.^2) + 2*Frt.*x.*y./(r_.^3) ...
+%                 - 2*Ft.*x.*y./(r_.^4) + Fr.*(x.^2)./(r_.^3) ;
+%             
+%             Fxy =-Ftt.*x.*y./(r_.^4) + Frr.*x.*y./(r_.^2) + Frt.*(x.^2 - y.^2)./(r_.^3) ...
+%                 + Ft.*(y.^2-x.^2)./(r_.^4) - (Fr.*x.*y)./(r_.^3) ;
+% 
+% 
+%             Fn  = (Fx.*dy  - Fy.*dx)./h;
+%             Fnn = (Fxx.*dy.^2 - 2*Fxy.*dx.*dy + Fyy.*dx.^2 )./(h.^2); ...     + kx.*dyy.*dy + ky.*dxx.*dx          - kn.* ht./(h.^2);
+% 
+%             Fs  = (Fx.*dx + Fy.*dy)./h;
+%             Fss = (Fxx.*dx.^2 + 2*Fxy.*dx.*dy + Fyy.*dy.^2)./(h.^2) + curv.*Fn;
             
             %%%%%%%%%%%%%%%%%%%%%%
             

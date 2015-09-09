@@ -33,11 +33,11 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
 			DiffOpParams.Grid=Grid;
 			DiffOpParams.CoeffsHandle=CoeffsHandle;
 			DiffOpParams.CoeffsParams =CoeffsParams;
-           if isfield(ScattererParams,'FocalDistance')
+            if isfield(ScattererParams,'FocalDistance')
                 DiffOpParams.CoeffsParams.FocalDistance = ScattererParams.FocalDistance;
             end
-							
-			obj.Op = DiffOp(DiffOpParams);
+            
+            obj.Op = DiffOp(DiffOpParams);
         end
 		
 		function u = P_Omega(obj,xi_gamma)

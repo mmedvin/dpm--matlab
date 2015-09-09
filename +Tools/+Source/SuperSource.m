@@ -8,7 +8,7 @@ classdef SuperSource < Tools.Common.FunctionWithDerivatives
         function obj = SuperSource()
             obj.IsDummy = true;
         end
-        function varargout = Derivatives(obj)
+        function varargout = Derivatives(obj,~)
             assert(obj.IsDummy);
             
             nout = nargout;

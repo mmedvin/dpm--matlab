@@ -30,7 +30,7 @@ Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'ellipse';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -46,7 +46,7 @@ end
 fprintf('Method:RunInteriorHomo-%s,\t  \n',ScatType);
 fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
 
-for k = [1,5]% [1,3,5] %[1,5,10,15,20,25]
+for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
 
     ebinfPre=0; etinfPre=0; etinf = 0; ebinf = 0;
     
@@ -67,22 +67,24 @@ tic
         WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
         ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
         ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist, 'Stencil', 9);
-        Source           = @Tools.Source.HelmholtzSource;
+        Source           = @Tools.Source.HelmholtzSourceElps;%HelmholtzSourceElpsDescrete;%
+        SourceParams     =  struct('Grid',Grid);  
     elseif strcmpi(ScatType,'StarShapedScatterer')
-        WaveNumberHandle = @Tools.Coeffs.WaveNumberPolarR;
-        Source           = @Tools.Source.HelmholtzSourceR;
+        WaveNumberHandle = @Tools.Coeffs.WaveNumberStarShaped;%WaveNumberStarShaped;%WaveNumberPolarR;
+        Source           = @Tools.Source.HelmholtzSourceStarShaped;%HelmholtzSourceR;
+        SourceParams     =  [];  
         ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
         ScattererParams  = ExParams;
         ScattererParams.Stencil=9;
     end
 
     
-    WaveNumberParams = struct('k',k,'r0',NHR);   
+    WaveNumberParams = struct('k',k,'r0',NHR);      
     
 	CollectRhs=1;
     
     IntPrb = Solvers.InteriorSolver ... 
-        (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs,Source);
+        (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams);
     
     Q0 = IntPrb.Q0;%(:,1:2*M+1);
     Q1 = IntPrb.Q1;%(:,2*M+2:4*M+2);

@@ -165,7 +165,9 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 				 obj.Grid.yn + obj.Grid.dy/2 , ...
 				 obj.Grid.Ny * 2 + 1         ) ;
 			 ScattererForSource = obj.ScattererHandle(GridF,obj.ScattererParams);
-			 HS = obj.SourceHandle(ScattererForSource,obj.CoeffsHandle,obj.CoeffsParams);
+             SourceParamsForSource = obj.SourceParams;
+             SourceParamsForSource.Grid = GridF;
+			 HS = obj.SourceHandle(ScattererForSource,obj.CoeffsHandle,obj.CoeffsParams,SourceParamsForSource);
 			 
 			 res = obj.Bf(HS.Source);
 			 res(obj.Scatterer.Outside())=0;

@@ -90,7 +90,7 @@ figure
 colormap jet
 m=mesh(XMp,YMp,kmp,'FaceColor','interp'); hold on, 
 %m=mesh(XMm,YMm,kmm,'FaceColor','flat');
-m=mesh(XMm,YMm,1*ones(size(X)),'FaceColor','flat');
+m=mesh(XMm,YMm,5*ones(size(X)),'FaceColor','flat');
 %hold off, camlight, 
 lighting gouraud, 
 %xlabel('x'), ylabel('y'),  

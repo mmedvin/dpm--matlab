@@ -67,6 +67,9 @@ classdef HelmholtzSourceR < Tools.Source.SuperHelmholtzSource
         
         
         function S = get.Source(obj)
+            S=obj.getSource();
+        end
+        function S = getSource(obj)
             S = spalloc(obj.Scatterer.Size(1),obj.Scatterer.Size(2),numel(obj.Scatterer.Np));
             
 %             ScatGamma = struct('FocalDistance',obj.Scatterer.FocalDistance,'Eta', obj.Scatterer.Eta0,'Phi', obj.Scatterer.Phi(obj.Scatterer.GridGamma));
