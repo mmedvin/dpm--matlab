@@ -9,7 +9,7 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
             me = metaclass(Tools.Basis.ChebyshevBasis);
             CBasis = struct('type','Chebyshev','Handle',str2func(me.Name),...
                             'Indices',  0:N-1, ...
-                            'cn0',cn0.','cn1',cn1.','M',N,'AddParams',range,'NBss', N);
+                            'cn0',cn0.','cn1',cn1.','M',N,'MoreParams',range,'NBss', N);
             
         end
         function [cn0,cn1,N] = ChebychevCoeff(f,dfdr,range)
