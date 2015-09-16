@@ -30,7 +30,7 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
 			me = metaclass(Tools.Basis.FourierBasis);
 			FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
 							'Indices',  -M:M, ...
-							'cn0',cn0,'cn1',cn1,'M',M,'AddParams',[],'NBss', 2*M+1);
+							'cn0',cn0,'cn1',cn1,'M',M,'MoreParams',[],'NBss', 2*M+1);
 		end
         
 		function Coefs = FftCoefs(vec, siz)
@@ -118,7 +118,7 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
     
     methods
         
-        function obj    = FourierBasis(x,n,NoMetrics,NoAddParams)
+        function obj    = FourierBasis(x,n,NoMetrics,NoMoreParams)
             if nargin == 0
                 obj.xi0     = 0;
                 obj.xi0t    = 0;

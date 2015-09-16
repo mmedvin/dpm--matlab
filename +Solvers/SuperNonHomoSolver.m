@@ -27,8 +27,8 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 				 obj.calc_QnW();
 			 end
 			 
-			 qf=obj.myQf;
-			 
+			 %qf=obj.myQf;
+			 qf=obj.NewQ{end};
 		 end
 		 
 		 function wf = get.Wf(obj)
@@ -37,7 +37,6 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 end
 			 
 			 wf=obj.myWf;
-			 
 		 end
 		 
 		 function res = get.TrGF(obj)
@@ -97,17 +96,12 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
          function calc_QnW(obj)
 			 if obj.CollectRhs
 				 obj.Rhs();
-				 
-				 GLW = obj.Gf([obj.rhs0,obj.rhs1,obj.rhsf(:),obj.BF]);
-				 
-				 obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   )		 , obj.myW0 );
-				 obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss ), obj.myW1 );
-				 
-				 obj.myQf = obj.Qcol( GLW(:,2*obj.Basis.NBss + 1 )				 , obj.myWf(:) );
-				 
-				 %obj.myGF(obj.Scatterer.Np)  = GLW(obj.Scatterer.Np          ,2*obj.Basis.NBss + 2);
-				 obj.myGF  = GLW(:         ,2*obj.Basis.NBss + 2);
-				 obj.myTrGF                = GLW(obj.Scatterer.GridGamma   ,2*obj.Basis.NBss + 2);
+				 				 
+                 NewGLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,{obj.rhsf(:)},{obj.BF}],'UniformOutput',false);
+                 obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),NewGLW(1:end-1), [obj.NewW,{obj.myWf(:)}],'UniformOutput',false);
+                 
+                 obj.myGF   = NewGLW{end};
+                 obj.myTrGF = NewGLW{end}(obj.Scatterer.GridGamma);
 			 else
 				 calc_QnW@Solvers.SuperHomoSolver(obj);
 				 
@@ -145,12 +139,10 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
            
            Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
            
-             obj.myWf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);             
+           obj.myWf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);
          end
                   
-         function CreateRhsf(obj)
-             %tmp =obj.Lu(obj.myWf(:));
-             %obj.rhsf(obj.Scatterer.Mp) = tmp(obj.Scatterer.Mp,:);
+         function CreateRhsf(obj)             
              obj.rhsf(obj.Scatterer.Mp) = obj.Lu(obj.myWf(:),obj.Scatterer.Mp);
          end
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -147,10 +147,16 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
             [xi0,xi0f,xi0ff,xi0fff,xi0ffff] = Xi0.Derivatives();
              [xi1,xi1f,xi1ff,xi1fff] = Xi1.Derivatives();
              
-			 [F,Fn,Fnn,Ff,Fff] = Src.Derivatives(); Fnf=0;
-			 [a,an,ann,a3n,af,aff,a3f,anf,anff,annf] = LapCoeffs.Derivatives('a');
-			 [b,bn,bnn,b3n,bf,bff,b3f,bnf,bnff,bnnf] = LapCoeffs.Derivatives('b');
-			 sigma	= LapCoeffs.Derivatives('sigma');
+			 %[F,Fn,Fnn,Ff,Fff] = Src.Derivatives(); Fnf=0;
+             F = Src.Derivatives(); Fnf=0;
+			 %[a,an,ann,a3n,af,aff,a3f,anf,anff,annf] = LapCoeffs.Derivatives('a');
+			 %[b,bn,bnn,b3n,bf,bff,b3f,bnf,bnff,bnnf] = LapCoeffs.Derivatives('b');
+             [a,an] = LapCoeffs.Derivatives('an');
+             [~,af] = LapCoeffs.Derivatives('af');
+             [b,bn] = LapCoeffs.Derivatives('bn');
+             [~,bf] = LapCoeffs.Derivatives('bf');
+
+             sigma	= LapCoeffs.Derivatives('sigma');
              [h,hn,hnn,h3n,h4n,hf,hff,h3f,h4f,hnf] = obj.MetricsAtScatterer.metrics();
              
              sigma_f=0;  sigma_ff=0; sigma_n=0; sigma_nf=0; sigma_nn=0;

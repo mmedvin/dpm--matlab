@@ -1,7 +1,7 @@
 function RunInteriorHomo
     % Semyon Method, Homo HLM, Cart coord, 
     
-%global R A x y x1 xn y1 yn dx dy cols rows NHR  ebinf etinf IntEta k0 k FocDist Eta%n 
+
 
 x1=-1.2;xn=1.2;
 %y1=-1.2;yn=1.2;
