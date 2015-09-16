@@ -103,11 +103,11 @@ rat=4/5;
         WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
         WaveNumberParams = struct('k',k,'r0',NHR);
                 
-        for n=1:2 %run different grids
+        for n=1:4 %run different grids
             tic
             %build grid
             
-            p=7;%1;
+            p=6;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
            
             Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
