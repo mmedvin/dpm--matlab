@@ -60,11 +60,8 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
             
             obj.MyGrid();
 			
-			if obj.ExpansionType == 33
-				obj.SplitGrid5();
-			else
-				obj.SplitGrid();
-			end		
+            obj.SplitGrid(Params.Stencil);
+            	
             obj.GridGamma = intersect(obj.Np,obj.Nm)';
             
             obj.GridOnScatterer();
