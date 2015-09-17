@@ -34,7 +34,7 @@ for	   LinearSolverType = 4
     
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 	errBpre = 0;
-    fprintf('Problem RunLapInterior02, M=%d, LinearSolverType = %d, Order=%d\n', Basis.M, LinearSolverType,Order);
+    fprintf('Problem RunLapInterior03, M=%d, LinearSolverType = %d, Order=%d\n', Basis.M, LinearSolverType,Order);
         
 	for n=1:6 %run different grids
 		tic
