@@ -49,7 +49,7 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
             
             obj.MyGrid();
 			
-            obj.Stencil = AddParams.Stencil;
+                obj.Stencil = AddParams.Stencil;
             
             obj.SplitGrid(obj.Stencil);
             
