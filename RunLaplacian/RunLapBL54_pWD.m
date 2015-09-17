@@ -54,7 +54,7 @@ for	   LinearSolverType = 0
         end
         
 		%------------------------------------------------------------------
-
+         
         if isequal(DiffOp , @Tools.DifferentialOps.LaplacianOpBCinRhs)
             DiffOpParams = struct(   'BC_y1',  (Grid.x(1).^ExParams.c)       .*(Grid.y(2:end-1).^ExParams.d).', ...
                                         'BC_yn',  (Grid.x(end).^ExParams.c)     .*(Grid.y(2:end-1).^ExParams.d).',...
@@ -67,7 +67,7 @@ for	   LinearSolverType = 0
                                         'BC_xn',( (Grid.x.^ExParams.c) .*(Grid.y(end).^ExParams.d)     ), 'LinearSolverType', LinearSolverType);
 
         end
-		
+        
 		ExtPrb =  Solvers.ExteriorLaplacianSolver(struct( ...
                   'Basis'     , Basis, ...
                   'Grid'              , Grid, ...
@@ -83,7 +83,7 @@ for	   LinearSolverType = 0
                   ));
 							
 		%------------------------------------------------------------------
-
+		
 		EQ0 = ExtPrb.Q0;
 		EQ1 = ExtPrb.Q1;
 		ETrGF = ExtPrb.TrGF;

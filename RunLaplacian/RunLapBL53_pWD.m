@@ -49,7 +49,7 @@ for	   LinearSolverType = 0
         end
         
 		%------------------------------------------------------------------
-
+		
         if isequal(DiffOp , @Tools.DifferentialOps.LaplacianOpBCinRhs) 
             		DiffOpParams = struct('BC_y1', sin(Grid.x(1)).*cos(Grid.y(2:end-1)).','BC_yn',  sin(Grid.x(end)).*cos(Grid.y(2:end-1)).',...
 							  'BC_x1',(sin(Grid.x(2:end-1)).*cos(Grid.y(1))),'BC_xn',(sin(Grid.x(2:end-1)).*cos(Grid.y(end))), 'LinearSolverType', LinearSolverType);
