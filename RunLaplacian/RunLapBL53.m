@@ -25,10 +25,14 @@ function RunLapBL53
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,fn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
 		Basis = Tools.Basis.FourierBasis.BasisHelper(f,fn);
-	end
+    end
 
+    ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
+    ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil);
+    
 for	   LinearSolverType = 0
     if LinearSolverType==0, CollectRhs = 1; else CollectRhs = 0;  end
+    DiffOpParams = struct('BC_y1', 0,'BC_yn',  0,'BC_x1',0,'BC_xn',0, 'LinearSolverType', LinearSolverType, 'Order',Order);
 
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0;
 	
@@ -40,12 +44,7 @@ for	   LinearSolverType = 0
         p=20;
 		Nx=p*2^n; Ny=p*2^n;
 		
-        %p=3;
-        %Nx=2.^(n+p);	Ny=2.^(n+p);
-		
 		Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-		ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
-		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil);
 
         %------------------------------------------------------------------
         if Order==4
@@ -60,19 +59,23 @@ for	   LinearSolverType = 0
 
 		CoeffsHandle    = @Tools.Coeffs.ConstLapCoeffs;
 		CoeffsParams    = struct('a',1,'b',1,'sigma',0);
-		Source          = @Tools.Source.LaplaceSource_BL53_Interior;
-		SourceParams	= [];
-		
-        %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+		        		
         
-		DiffOpParamsInt = struct('BC_y1', 0,'BC_yn',  0,'BC_x1',0,'BC_xn',0, 'LinearSolverType', LinearSolverType, 'Order',Order);
-		
-		IntPrb =  Solvers.InteriorLaplacianSolver ...
-			(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams,DiffOp,DiffOpParamsInt);
-							
-        ExtPrb =  Solvers.ExteriorHomoLaplacianSolver ...
-			(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParamsInt);
+        Setup = struct( 'Basis'             ,Basis, ...
+                        'Grid'              , Grid, ...
+                        'CoeffsHandle'      , CoeffsHandle, ...
+                        'CoeffsParams'      , CoeffsParams, ...
+                        'ScattererHandle'   , ScattererHandle, ...
+                        'ScattererParams'   , ScattererParams, ...
+                        'CollectRhs'        , CollectRhs, ...
+                        'DiffOp'            , DiffOp, ...
+                        'DiffOpParams'      , DiffOpParams, ...
+                        'SourceHandle'      , @Tools.Source.LaplaceSource_BL53_Interior, ...
+                        'SourceParams'      , [] ...
+                        );
+        
+		IntPrb =  Solvers.InteriorLaplacianSolver(Setup); 
+        ExtPrb =  Solvers.ExteriorHomoLaplacianSolver(Setup); 
 		%------------------------------------------------------------------
 	if 1
         nGGext = numel(ExtPrb.GridGamma);

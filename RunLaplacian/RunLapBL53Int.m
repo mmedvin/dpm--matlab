@@ -1,4 +1,4 @@
-function RunLapBL53
+function RunLapBL53Int
 % 5.3  bealy-layton
 
     %a=0.9; b=0.7; %table 1
@@ -46,9 +46,6 @@ for	   LinearSolverType = 0
         %Nx=2.^(n+p);	Ny=2.^(n+p);
 		
 		Grid             = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-		ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
-		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil);
-
         %------------------------------------------------------------------
         if Order==4
             %DiffOp = @Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs;
@@ -59,23 +56,23 @@ for	   LinearSolverType = 0
         end
 
 		%------------------------------------------------------------------
-
-		CoeffsHandle    = @Tools.Coeffs.ConstLapCoeffs;
-		CoeffsParams    = struct('a',1,'b',1,'sigma',0);
-		Source          = @Tools.Source.LaplaceSource_BL53_Interior;
-		SourceParams	= [];
-		
-        %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-		%DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
-        
-		DiffOpParamsInt = struct('BC_y1', 0,'BC_yn',  0,'BC_x1',0,'BC_xn',0, 'LinearSolverType', LinearSolverType, 'Order',Order);
-        
-		IntPrb =  Solvers.InteriorLaplacianSolver ...
-			(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams,DiffOp,DiffOpParamsInt);
-							
+                        
+		IntPrb =  Solvers.InteriorLaplacianSolver(struct( ...
+                  'Basis'             ,Basis, ...
+                  'Grid'              , Grid, ...
+                  'CoeffsHandle'      , @Tools.Coeffs.ConstLapCoeffs, ...
+                  'CoeffsParams'      , struct('a',1,'b',1,'sigma',0), ...
+                  'ScattererHandle'   , @Tools.Scatterer.EllipticScatterer, ...
+                  'ScattererParams'   , struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil), ...
+                  'CollectRhs'        , CollectRhs, ...
+                  'DiffOp'            , DiffOp, ...
+                  'DiffOpParams'      , struct('BC_y1', 0,'BC_yn',  0,'BC_x1',0,'BC_xn',0, 'LinearSolverType', LinearSolverType, 'Order',Order), ...
+                  'SourceHandle'      , @Tools.Source.LaplaceSource_BL53_Interior, ...
+                  'SourceParams'      , [] ...
+                  ));
+              
 		%------------------------------------------------------------------
 
-		%exterior
 		
 		Q0 = IntPrb.Q0;
 		Q1 = IntPrb.Q1;

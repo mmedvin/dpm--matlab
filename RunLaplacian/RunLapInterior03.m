@@ -9,7 +9,7 @@ function RunLapInterior03
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-    Order=2;
+    Order=4;
     if Order==2 , ExpansionType=33; Stencil=5; else ExpansionType=35; Stencil=9; end
 
     BIn = 1e3;
@@ -44,8 +44,6 @@ for	   LinearSolverType = 4
 		
         Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
         
-		ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
-		ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil);
 
 		%------------------------------------------------------------------
         if Order==4
@@ -55,19 +53,20 @@ for	   LinearSolverType = 4
             %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
         end        
 		%------------------------------------------------------------------
-
-        
-		%------------------------------------------------------------------
-		InteriorCoeffsHandle = @Tools.Coeffs.LaplaceCoeffsEllps2;
-		InteriorCoeffsParams = struct('ca',1,'da',0,'ea',0,'WithB',1,'cb',1,'db',1,'eb',-2,'sigma',0);
-        %InteriorCoeffsParams = struct('ca',111,'da',0,'ea',0,'WithB',1,'cb',55,'db',0,'eb',-2,'sigma',0);
-		        
-        %DiffOp = @Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs;
         
 		DiffOpParamsInt = struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType, 'Order',Order);
 		
-		IntPrb = Solvers.InteriorHomoLaplacianSolver ...
-			(Basis,Grid,InteriorCoeffsHandle,InteriorCoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParamsInt);
+		IntPrb = Solvers.InteriorHomoLaplacianSolver(struct(...
+                 'Basis'             , Basis, ...
+                 'Grid'              , Grid, ...
+                 'CoeffsHandle'      , @Tools.Coeffs.LaplaceCoeffsEllps2, ...
+                 'CoeffsParams'      , struct('ca',1,'da',0,'ea',0,'WithB',1,'cb',1,'db',1,'eb',-2,'sigma',0), ...  %struct('ca',111,'da',0,'ea',0,'WithB',1,'cb',55,'db',0,'eb',-2,'sigma',0)
+                 'ScattererHandle'   ,  @Tools.Scatterer.EllipticScatterer, ...
+                 'ScattererParams'   , struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil), ...
+                 'CollectRhs'        , CollectRhs, ...
+                 'DiffOp'            , DiffOp, ...
+                 'DiffOpParams'      , struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType, 'Order',Order) ...
+                 )); ...
 									
 		%------------------------------------------------------------------
 	 
