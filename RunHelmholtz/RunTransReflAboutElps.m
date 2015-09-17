@@ -20,9 +20,7 @@ function RunTransReflAboutElps
   
     IncAng = 40;
     IncAng = IncAng*pi/180;    
-    
-    dk = 30;
-    
+        
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
 %     fprintf('Solving %s defraction problem, comparing using grid convergance, data is PlaneWave, scatterer is circle\n',Problem);
      fprintf('RunTransReflAboutElps \n');
@@ -30,50 +28,52 @@ kin = [15];
 kex = [1];
 
     for ki = 1 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
-    ExtWaveNumberAddParams = struct('k',kex(ki),'r0',1.6);
-    IntWaveNumberAddParams = struct('k',kin(ki),'r0',1.6);
-    k=ExtWaveNumberAddParams.k;
-    
-        
+    ExtWaveNumberParams = struct('k',kex(ki),'r0',1.6);
+    IntWaveNumberParams = struct('k',kin(ki),'r0',1.6);
+            
         UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0, 'Vark',true); % ,false);%
         f1      = @(phi) Uinc(UincParams,phi,IncAng,kin(ki));
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kin(ki));
             
 
-        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,@sin);%dfdn);
-        %[cn0ex,cn1ex,M] = FourierCoeff(f1,dfdn);
+        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
     
-        nmax=3;
+        nmax=4;
         for n=1:nmax %run different grids
             tic
             %build grid
             
-            p=4;%6;%3;%1;
+            p=5;%6;%3;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
             Nx=2^(n+p)+1;	Ny=2^(n+p)+1;
            
 %             BasisIndices        = -M:M;
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
                       
-            IntScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Interior
-            ExtScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Exterior
-            ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance);
-            
-			CollectRhs=0;
-			
-            ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ExtScattererClsHandle,ScattererAddParams,CollectRhs);
+            ScattererHandle = @Tools.Scatterer.EllipticScatterer;
+            ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'Stencil',9);
+            			
+            ExtPrb = Solvers.ExteriorSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', PlrGrid, ...
+                     'CoeffsHandle', @Tools.Coeffs.ConstantWaveNumber, ... 
+                     'CoeffsParams', ExtWaveNumberParams, ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',0 ... %i.e. no
+                     ));
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-
-            WaveNumberClsHandle = @Tools.Coeffs.WaveNumberElliptical;
             
-
-            %IntWaveNumberAddParams = k+dk;           
-            CollectRhs=1;
-            IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,IntScattererClsHandle,ScattererAddParams,CollectRhs);
+            IntPrb = Solvers.InteriorHomoSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', CrtsGrid, ...
+                     'CoeffsHandle', @Tools.Coeffs.WaveNumberElliptical, ... 
+                     'CoeffsParams', IntWaveNumberParams, ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',1 ... %i.e. yes
+                     ));
          
             if 1
                 IntQ = IntPrb.Q;
@@ -84,7 +84,7 @@ kex = [1];
                 
                 rhs = zeros(numel(ExtPrb.GridGamma) + numel(IntPrb.GridGamma),1);
                 % rhs(numel(IntPrb.GridGamma)+1:end,1)= -Uinc(UincParams,ExtPrb.Scatterer.th,IncAng,k);
-                uinc = Uinc(UincParams,ExtPrb.Scatterer.phi,IncAng,k);
+                uinc = Uinc(UincParams,ExtPrb.Scatterer.phi,IncAng,ExtWaveNumberParams.k);
                 rhs(numel(IntPrb.GridGamma)+1:end,1)= ExtPrb.Qcol2(uinc);
                 
                 cn = [ IntQ ; ExtQ ] \ rhs;
@@ -103,7 +103,7 @@ kex = [1];
                 %UincParams  =
                 %struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',PlrGrid.R);???
                 UincParams  = struct('ScattererType','circle','r',PlrGrid.R, 'Vark',false);
-                Uinc = Uinc(UincParams,PlrGrid.Theta,IncAng,k);
+                Uinc = Uinc(UincParams,PlrGrid.Theta,IncAng,ExtWaveNumberParams.k);
                 
                 
                 %tmp = Uinc(UincParams,PlrGrid.Theta,IncAng,k);
@@ -156,7 +156,8 @@ kex = [1];
                 tmp = Intu(1:2:end,1:2:end)-Intu1(1:2:end,1:2:end);
                 IntErr(n) =norm(tmp(:),inf);
                 
-                fprintf('kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',k,k+dk,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
+                fprintf('kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',...
+                    ExtWaveNumberParams.k,IntWaveNumberParams.k,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));

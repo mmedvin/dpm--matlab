@@ -100,8 +100,8 @@ rat=4/5;
             Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,105);
         end
       
-        WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
-        WaveNumberParams = struct('k',k,'r0',NHR);
+        %WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
+        %WaveNumberParams = struct('k',k,'r0',NHR);
                 
         for n=1:4 %run different grids
             tic
@@ -110,7 +110,7 @@ rat=4/5;
             p=6;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
            
-            Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
+            %Grid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
             
             if strcmpi(ScatType,'ellipse')
                 ScattererHandle  = @Tools.Scatterer.EllipticScatterer;               %External
@@ -126,8 +126,15 @@ rat=4/5;
             
 			CollectRhs = 0;
 			
-            ExtPrb =  Solvers.ExteriorSolver ...
-                (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs);
+            ExtPrb =  Solvers.ExteriorSolver( struct(...
+                      'Basis',Basis, ...
+                      'Grid', Tools.Grid.PolarGrids(r0,r1,Nr,Nth), ...
+                      'CoeffsHandle', @Tools.Coeffs.ConstantWaveNumber, ...
+                      'CoeffsParams', struct('k',k,'r0',NHR), ...
+                      'ScattererHandle',ScattererHandle, ...
+                      'ScattererParams', ScattererParams, ...
+                      'CollectRhs',0 ... %i.e. not
+                      ));
             
             Q0 = ExtPrb.Q0;%(:,1:2*M+1);
             Q1 = ExtPrb.Q1;%(:,2*M+2:4*M+2);

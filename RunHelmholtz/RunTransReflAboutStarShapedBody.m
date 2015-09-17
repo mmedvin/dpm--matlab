@@ -28,10 +28,10 @@ function RunTransReflAboutStarShapedBody
 %    r1=2.2;
 
    % star
-%     x1=-1.7; xn=1.7;
-%     y1=-1.7; yn=1.7;
-%     r0=0.3;
-%     r1=2.2;
+    x1=-1.7; xn=1.7;
+    y1=-1.7; yn=1.7;
+    r0=0.3;
+    r1=2.2;
 
 
    % submarine
@@ -53,8 +53,8 @@ function RunTransReflAboutStarShapedBody
     %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
     %Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',150));
-    Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',1,'p',150));
-    %Parameterization  = Tools.Parameterizations.ParametricStar();
+    %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',1,'p',150));
+    Parameterization  = Tools.Parameterizations.ParametricStar();
     
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
@@ -69,12 +69,7 @@ kex = [1 ,5 ,  5,  10];
     for ki = 2 %1:3
         
         ErrIntPre = 0;         ErrExtPre = 0;   ErrTotPre = 0;
-        
-    ExtWaveNumberAddParams = struct('k',kex(ki),'r0',1.6);
-    IntWaveNumberAddParams = struct('k',kin(ki),'r0',1.6);
-    %k=ExtWaveNumberAddParams.k;
-    
-        
+                    
         %UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0, 'Vark',true); % ,false);%
         UincParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
             
@@ -85,42 +80,49 @@ kex = [1 ,5 ,  5,  10];
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,tst_k);
             
 
-        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
+        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,@sin);
 	%Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
         %Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
 
         fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.M);
     
-        nmax=2;%3;
+        nmax=4;%3;
         for n=1:nmax %run different grids
             tic
             %build grid
             
-            p=6;%4;%6;%3;%1;
+            p=5;%4;%6;%3;%1;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
             Nx=2^(n+p)+1;	Ny=2^(n+p)+1;
            
 %             BasisIndices        = -M:M;
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            ExtWaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
                       
             ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
             ScattererParams  = UincParams;
             ScattererParams.Stencil=9;
             
-			CollectRhs=0;
-			
-            ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,ExtWaveNumberHandle,ExtWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
+            ExtPrb = Solvers.ExteriorSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', PlrGrid, ...
+                     'CoeffsHandle', @Tools.Coeffs.ConstantWaveNumber, ... 
+                     'CoeffsParams',  struct('k',kex(ki),'r0',1.6), ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',0 ... %i.e. no 
+                     ));
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-
-            %WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
-            IntWaveNumberHandle = @Tools.Coeffs.WaveNumberPolarR;%WaveNumberPolarR;%ConstantWaveNumber;
             
-            CollectRhs=1;
-            IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,IntWaveNumberHandle,IntWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
+            IntPrb = Solvers.InteriorHomoSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', CrtsGrid, ...
+                     'CoeffsHandle', @Tools.Coeffs.WaveNumberPolarR, ... %WaveNumberPolarR;%ConstantWaveNumber;
+                     'CoeffsParams', struct('k',kin(ki),'r0',1.6), ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',1 ... %i.e. yes
+                     )); ...
          
             if 1
                 IntQ = IntPrb.Q;

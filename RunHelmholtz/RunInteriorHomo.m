@@ -61,21 +61,8 @@ for k =1%[1,5,10,15,20,25]
 
 for n=1:4 %run different grids
 tic
-	%build grid
-    % 		Nx=2.^(n+1)+5;	Ny=2.^(n+1)+5;
     p=4;%3;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;
-	%dx=Lx/(Nx-1); 	dy=Ly/(Ny-1);
-    	
-    Grid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-	
-	% polar wavenumber isn't designed to work with ellipse scatterer
-	% polar/elliptical wavenumber works with polar scatterer in general, but the problem here become inhomoginious, 
-	% so generally to speak it is wrong place to use it here, mainly because of compariseon to exact here
-    %WaveNumberElliptical;%ConstantWaveNumber;%WaveNumberPolarR
-    WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
-    WaveNumberParams = struct('k',k,'r0',NHR);
-   
     
     if strcmpi(ScatType,'ellipse')        
         ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
@@ -90,8 +77,15 @@ tic
 
     CollectRhs = 1;
     
-    IntPrb =  Solvers.InteriorHomoSolver ... 
-        (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs);
+    IntPrb =  Solvers.InteriorHomoSolver( struct(...
+        'Basis',Basis, ...
+        'Grid', Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny), ...
+        'CoeffsHandle', @Tools.Coeffs.ConstantWaveNumber, ... %using another WN here would mean inhomogeneous problem, i.e. incompatiple here
+        'CoeffsParams', struct('k',k,'r0',NHR), ...
+        'ScattererHandle',ScattererHandle, ...
+        'ScattererParams', ScattererParams, ...
+        'CollectRhs',1 ... %i.e. yes
+        ));
     
     Q0 = IntPrb.Q0;%(:,1:2*M+1);
     Q1 = IntPrb.Q1;%(:,2*M+2:4*M+2);
