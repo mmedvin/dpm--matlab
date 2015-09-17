@@ -1,1 +1,94 @@
+RunAll
+Grid: r0=0.300000, r1=2.200000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1.800000e+00 b=1 
+ YHandle:Tools.Parameterizations.SubmarineY, params:  b=3.600000e-01 c=2 p=100 
+Dirichlet problem, cmpr using grid convergence, data is PlaneWave, scatterer is StarShapedScatterer, Basis is Fourier, Hnkl_n=3 
+k=1,M=105,N=257       x257       	 ErrTot=6.182893e-03	 rate=-Inf 	 time=2.492064e+01
+k=1,M=105,N=513       x513       	 ErrTot=6.053770e-04	 rate=3.35 	 time=4.631203e+01
+k=1,M=105,N=1025      x1025      	 ErrTot=3.614640e-05	 rate=4.07 	 time=1.343371e+02
+
+k=5,M=105,N=257       x257       	 ErrTot=1.812072e-02	 rate=-Inf 	 time=2.518277e+01
+k=5,M=105,N=513       x513       	 ErrTot=1.715830e-03	 rate=3.40 	 time=4.629901e+01
+k=5,M=105,N=1025      x1025      	 ErrTot=1.022777e-04	 rate=4.07 	 time=1.298827e+02
+
+k=10,M=105,N=257       x257       	 ErrTot=3.300385e-02	 rate=-Inf 	 time=2.459854e+01
+k=10,M=105,N=513       x513       	 ErrTot=3.143564e-03	 rate=3.39 	 time=4.473401e+01
+k=10,M=105,N=1025      x1025      	 ErrTot=1.765777e-04	 rate=4.15 	 time=1.301655e+02
+
+Internal Inhomogeneous problem inside ellipse of AR=2 
+Method:RunInteriorHomo-StarShapedScatterer,	  
+Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
+ YHandle:Tools.Parameterizations.AsinBtWD, params:  a=5.000000e-01 b=1 
+k=1,M=39,N=33        x33        	 ebinf=0|NaN  	etinf=0|NaN  	timeA=8.654800e-01	timeE=4.193418e-04
+k=1,M=39,N=65        x65        	 ebinf=1.832425e-04|-Inf 	etinf=4.247089e-04|-Inf 	timeA=1.348729e+00	timeE=2.168921e-03
+k=1,M=39,N=129       x129       	 ebinf=1.937271e-05|3.2417	etinf=2.223914e-05|4.2553	timeA=5.115212e+00	timeE=1.371658e-03
+k=1,M=39,N=257       x257       	 ebinf=2.180218e-06|3.1515	etinf=2.860614e-06|2.9587	timeA=2.016231e+01	timeE=5.613828e-03
+k=1,M=39,N=513       x513       	 ebinf=3.831082e-08|5.8306	etinf=1.761577e-07|4.0214	timeA=9.466790e+01	timeE=2.695920e-02
+
+Method:RunInteriorHomo-StarShapedScatterer,	  
+Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
+ YHandle:Tools.Parameterizations.AsinBtWD, params:  a=5.000000e-01 b=1 
+k=1,M=36,N=33  x33  	 ErrXi=8.303318e-09	 rate=-Inf  ErrTot=1.371835e-08	 rate=-Inf  timeA=4.988444e-01
+k=1,M=36,N=65  x65  	 ErrXi=4.974228e-10	 rate=4.06  ErrTot=8.535774e-10	 rate=4.01  timeA=1.310843e+00
+k=1,M=36,N=129 x129 	 ErrXi=1.531830e-11	 rate=5.02  ErrTot=5.326783e-11	 rate=4.00  timeA=4.690556e+00
+k=1,M=36,N=257 x257 	 ErrXi=4.536177e-12	 rate=1.76  ErrTot=5.755888e-12	 rate=3.21  timeA=1.814057e+01
+
+RunSimpleTransReflAboutCircle 
+Warning: Rank deficient, rank = 38, tol =  1.691893e-10. 
+> In RunSimpleTransReflAboutCircle (line 86)
+  In RunAll (line 4) 
+kex=1,kin=1,M=10,Nplr=33   x33	, Ncrt=33   x33	 ExtErr=3.010851e-08	 IntErr=2.670649e-06	 time=1.389561e-01
+kex=1,kin=1,M=10,Nplr=65   x65	, Ncrt=65   x65	 ExtErr=7.294260e-09	 IntErr=5.897701e-09	 time=4.868811e-01
+kex=1,kin=1,M=10,Nplr=129  x129	, Ncrt=129  x129	 ExtErr=4.531363e-10	 IntErr=4.476960e-10	 time=1.783724e+00
+
+ExtL =
+
+      -Inf
+    2.0453
+    4.0087
+
+
+IntL =
+
+      -Inf
+    8.8228
+    3.7196
+
+Trans/Refl problem about ellipse of FD=1.558846e+00, ,Eta0=5.493061e-01, a=1.800000e+00, b=9.000000e-01, AR=2 ,r0=1.000000e-01,r1=2.500000e+00,x=+/-2,y+/-=1.100000e+00
+b=0.90   ,kex=1,kin=3,M=19,Nplr=129  x129	, Ncrt=129  x129	 ExtErr=2.116877e-04	 IntErr=1.894752e-04	 time=2.894253e+00
+b=0.90   ,kex=1,kin=3,M=19,Nplr=257  x257	, Ncrt=257  x257	 ExtErr=7.290255e-06	 IntErr=6.754120e-06	 time=1.202423e+01
+b=0.90   ,kex=1,kin=3,M=19,Nplr=513  x513	, Ncrt=513  x513	 ExtErr=5.465508e-07	 IntErr=4.940537e-07	 time=5.415269e+01
+
+ExtL =
+
+      -Inf    4.8598    3.7375
+
+
+IntL =
+
+      -Inf    4.8101    3.7730
+
+RunTransReflAboutElps 
+kex=1,kin=15,M=38,Nplr=129  x129	, Ncrt=129  x129	 ExtErr=1.587319e-03	 IntErr=4.534998e-03	 time=5.137500e+00
+kex=1,kin=15,M=38,Nplr=257  x257	, Ncrt=257  x257	 ExtErr=6.567504e-05	 IntErr=7.524328e-05	 time=2.134895e+01
+kex=1,kin=15,M=38,Nplr=513  x513	, Ncrt=513  x513	 ExtErr=4.351834e-06	 IntErr=5.414909e-06	 time=9.606143e+01
+
+ExtL =
+
+      -Inf    4.5951    3.9156
+
+
+IntL =
+
+      -Inf    5.9134    3.7966
+
+RunTransReflAboutStarShapedBody, IncAngD: 0.000000, Grid:  x1=-1.700000, xn=1.700000, y1=-1.700000, yn=1.700000, r0=0.300000, r1=2.200000 
+ XHandle:Tools.Parameterizations.StarX, params:  
+ YHandle:Tools.Parameterizations.StarY, params:  
+ kin=10 kex=5 M=58 
+N=129       x129       	 ErrExt=1.842770e+00 rate=-Inf    ErrInt=2.193995e+01 rate=-Inf    ErrTot=2.193995e+01 rate=-Inf  	 time=9.302915e+00
+N=257       x257       	 ErrExt=1.940982e-02 rate=6.57    ErrInt=5.075819e-02 rate=8.76    ErrTot=5.075819e-02 rate=8.76  	 time=3.647388e+01
+N=513       x513       	 ErrExt=1.801126e-03 rate=3.43    ErrInt=1.373204e-03 rate=5.21    ErrTot=1.801126e-03 rate=4.82  	 time=1.590807e+02
 
