@@ -8,10 +8,8 @@ classdef ExteriorHomoLaplacianSolver < Solvers.InteriorHomoLaplacianSolver
 	end
 	
     methods
-        function obj = ExteriorHomoLaplacianSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParams)
-            obj = obj@Solvers.InteriorHomoLaplacianSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParams);     			
+        function obj = ExteriorHomoLaplacianSolver(Arguments)
+            obj = obj@Solvers.InteriorHomoLaplacianSolver(Arguments);     			
         end
         
         function u = P_Omega(obj,xi_gamma)

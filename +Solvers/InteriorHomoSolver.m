@@ -6,10 +6,8 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
     end
     
     methods
-        function obj = InteriorHomoSolver( ...
-                BasisIndices,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs)
-            obj = obj@Solvers.SuperHomoSolver( ...
-                BasisIndices,Grid,WaveNumberClsHandle,WaveNumberAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs);
+        function obj = InteriorHomoSolver(Arguments)
+            obj = obj@Solvers.SuperHomoSolver(Arguments);
             
             if  numel(obj.Coeffs.k)>1
                 GridK = Tools.Grid.CartesianGrid( ...
@@ -23,7 +21,7 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
                 [X,Y] = GridK.mesh();
                 
                 ScattK = struct('r',abs(X+1i.*Y));%ScattererClsHandle(GridK,obj.ScattererAddParams);
-                WNPlr= Tools.Coeffs.WaveNumberPolarR(ScattK,WaveNumberAddParams);
+                WNPlr= Tools.Coeffs.WaveNumberPolarR(ScattK,Arguments.CoeffsParams);
                 obj.k = sparse(WNPlr.k);
             else
                 obj.k = obj.Coeffs.k.*ones(obj.Grid.Size+2);
