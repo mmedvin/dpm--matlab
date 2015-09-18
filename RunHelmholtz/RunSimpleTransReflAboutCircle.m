@@ -33,6 +33,10 @@ function RunSimpleTransReflAboutCircle
         IntErr=zeros(nmax,1);
         ExtErr=zeros(nmax,1);
         
+        WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
+        ScattererHandle  = @Tools.Scatterer.PolarScatterer;
+        ScattererParams  = struct('r0',R0,'ExpansionType',15, 'Stencil', 9);
+        
         for n=0:nmax %run different grids
             tic
             %build grid
@@ -45,22 +49,28 @@ function RunSimpleTransReflAboutCircle
              Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
             
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
-            ExtWaveNumberAddParams = struct('k',k,'r0',NHR);                      
-            ScattererHandle  = @Tools.Scatterer.PolarScatterer;
-            ScattererParams  = struct('r0',R0,'ExpansionType',15);
-            
-			CollectRhs = 0;
-			
-            ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,WaveNumberHandle,ExtWaveNumberAddParams,ScattererHandle,ScattererParams,CollectRhs);
+            			
+            ExtPrb = Solvers.ExteriorSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', PlrGrid, ...
+                     'CoeffsHandle', WaveNumberHandle, ... 
+                     'CoeffsParams', struct('k',k,'r0',NHR), ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',0 ... %i.e. no
+                     ));
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-            IntWaveNumberParams = struct('k',k+dk,'r0',NHR);             
             
-			CollectRhs = 1;
-            IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,WaveNumberHandle,IntWaveNumberParams,ScattererHandle,ScattererParams,CollectRhs);
+            IntPrb = Solvers.InteriorHomoSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', CrtsGrid, ...
+                     'CoeffsHandle', WaveNumberHandle, ... 
+                     'CoeffsParams', struct('k',k+dk,'r0',NHR), ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',1 ... %i.e. yes
+                     ));
          
             if 1
                 ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %
@@ -260,46 +270,6 @@ function duinc = detaUinc(Params,phi,IncAng,k)
    % duinc = duinc./h;
 
 end
-
-
-
-function [cn0,cn1,M] = FourierCoeff(f,dfdr)
-cn0 =   quadgk(f,-pi,pi);
-cn1  =   quadgk(dfdr,-pi,pi);
-j=0;
-notstop=true;
-err=2*pi*(1e-10);
-while notstop
-    j=j+1;
-    g = @(x) f(x).*exp(-1i*j*x);
-    tcn0p =   quadgk(g,-pi,pi);
-    
-    g = @(x) f(x).*exp(-1i*(-j)*x);
-    tcn0m =   quadgk(g,-pi,pi);
-    
-    dg = @(x) dfdr(x).*exp(-1i*j*x);
-    tcn1p  =   quadgk(dg,-pi,pi);
-    
-    dg = @(x) dfdr(x).*exp(-1i*(-j)*x);
-    tcn1m  =   quadgk(dg,-pi,pi);
-    
-    
-    cn0 = [tcn0m; cn0 ;tcn0p];
-    cn1 = [tcn1m; cn1 ;tcn1p];
-    
-   % notstop  = abs(cn0(1))>err;
-    notstop  = abs(cn0(1))>err | abs(cn0(2))>err | ...
-                    abs(cn0(end))>err | abs(cn0(end-1))>err;
-   
-end
-cn0=cn0/(2*pi);
-cn1=cn1/(2*pi);
-M=j;
-
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 

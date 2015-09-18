@@ -90,7 +90,25 @@ classdef SuperHomoSolver < handle
 
     % constructor + the get methods for the properties
     methods      
-        
+        function obj = SuperHomoSolver(Arguments)		
+            if nargin == 0, error('Costructor called without args'); end
+			if isfield(Arguments,'CollectRhs'), obj.CollectRhs = Arguments.CollectRhs;	end
+            
+            obj.Grid = Arguments.Grid;
+            obj.Basis=Arguments.Basis;
+                    
+            obj.ScattererHandle = Arguments.ScattererHandle;
+            obj.ScattererParams = Arguments.ScattererParams;            
+            obj.Scatterer 		= obj.ScattererHandle(obj.Grid,obj.ScattererParams);
+            
+            obj.CoeffsHandle 	= Arguments.CoeffsHandle;
+            obj.CoeffsParams 	= Arguments.CoeffsParams;            
+            obj.Coeffs 			= obj.CoeffsHandle(obj.Scatterer.TheScatterer,obj.CoeffsParams);%TODO: Consider to remove TheScatterer
+
+            obj.f=zeros(obj.Grid.Nx,obj.Grid.Ny);
+        end        
+
+
         function q = get.Q(obj)           
             if obj.IsReadyQnW == false
                obj.calc_QnW();
@@ -155,36 +173,6 @@ classdef SuperHomoSolver < handle
             N=obj.Scatterer.Np;
         end
         
-        
-        function obj = SuperHomoSolver(Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs)
-            if nargin == 0, error('Costructor called without args'); end
-			if exist('CollectRhs','var'), obj.CollectRhs = CollectRhs;	end
-            
-            obj.Grid = Grid;
-                    
-            if isstruct(Basis)
-                obj.Basis=Basis;
-            else % support older versions
-                warning('you are using an old version of this class constructor') %#ok<WNTAG>
-                obj.Basis.Indices = Basis;
-                obj.Basis.Handle  = @FourierBasis;
-                obj.Basis.NBss = numel(obj.Basis.Indices);
-                obj.Basis.MoreParams = [];
-            end
-            
-            obj.ScattererHandle = ScattererHandle;
-            obj.ScattererParams = ScattererParams;            
-            obj.Scatterer = ScattererHandle(Grid,obj.ScattererParams);
-            
-            obj.CoeffsHandle = CoeffsHandle;
-            obj.CoeffsParams = CoeffsParams;            
-            obj.Coeffs = CoeffsHandle(obj.Scatterer.TheScatterer,obj.CoeffsParams);
-            
-            %obj.myW0= spalloc( obj.Grid.Nx*obj.Grid.Ny,obj.Basis.NBss,numel(obj.GridGamma)*obj.Basis.NBss); 
-            %obj.myW1= spalloc( obj.Grid.Nx*obj.Grid.Ny,obj.Basis.NBss,numel(obj.GridGamma)*obj.Basis.NBss);
-
-            obj.f=zeros(Grid.Nx,Grid.Ny);
-        end        
     end
     
     methods(Access = protected)

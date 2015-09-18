@@ -49,9 +49,7 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
             
             obj.MyGrid();
 			
-            if isfield(AddParams,'Stencil')
                 obj.Stencil = AddParams.Stencil;
-			end
             
             obj.SplitGrid(obj.Stencil);
             

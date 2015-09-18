@@ -12,7 +12,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
        %  Source;
          rhsf;  
          SourceHandle;
-		 SourceParams;
+		 SourceParams=[];
          myQf;
 		 myWf;
 		 myGF;
@@ -57,19 +57,15 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 
 		 end
          		 
-         function obj = SuperNonHomoSolver( ...
-             Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,SourceHandle,SourceParams)
+         function obj = SuperNonHomoSolver(Arguments)
              
-             obj = obj@Solvers.SuperHomoSolver( ...
-                 Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs);
-             obj.SourceHandle = SourceHandle;
-			  if exist('SourceParams','var')
-				  obj.SourceParams = SourceParams;
-			  else
-				  obj.SourceParams=[];
-			  end
-			 
-                                     
+             obj = obj@Solvers.SuperHomoSolver(Arguments);
+
+             obj.SourceHandle = Arguments.SourceHandle;
+             if isfield(Arguments,'SourceParams')
+                 obj.SourceParams = Arguments.SourceParams;
+             end
+			                                      
             % obj.Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.WaveNumberHandle,obj.WaveNumberParams);
                           
              obj.rhsf=spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));

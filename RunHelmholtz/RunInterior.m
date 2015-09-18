@@ -30,7 +30,7 @@ Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'ellipse';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'StarShapedScatterer';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -76,25 +76,25 @@ tic
         ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
         ScattererParams  = ExParams;
         ScattererParams.Stencil=9;
+        SourceParams     = [];
     end
-
-    
-    WaveNumberParams = struct('k',k,'r0',NHR);      
+   
     
 	CollectRhs=1;
     
-    IntPrb = Solvers.InteriorSolver ... 
-        (Basis,Grid,WaveNumberHandle,WaveNumberParams,ScattererHandle,ScattererParams,CollectRhs,Source,SourceParams);
-    
-    Q0 = IntPrb.Q0;%(:,1:2*M+1);
-    Q1 = IntPrb.Q1;%(:,2*M+2:4*M+2);
-    Qf = IntPrb.Qf;%(:,2*M+2:4*M+2);
-    
-    TrGF = IntPrb.TrGF;
-%     clear GLW
-    
-    cn1 =( Q1 \ ( -Q0*Basis.cn0 - TrGF - Qf)) ;
-    
+    IntPrb = Solvers.InteriorSolver(struct( ...
+            'Basis',Basis,...
+            'Grid',Grid, ...
+            'CoeffsHandle',WaveNumberHandle, ...
+            'CoeffsParams', struct('k',k,'r0',NHR), ...
+            'ScattererHandle',ScattererHandle, ...
+            'ScattererParams', ScattererParams, ...
+            'CollectRhs',1, ... %i.e. yes
+            'SourceHandle', Source, ...
+            'SourceParams', SourceParams ...
+            ));
+            
+    cn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 - IntPrb.TrGF - IntPrb.Qf)) ;    
         
     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
     xi(IntPrb.GridGamma) = ...

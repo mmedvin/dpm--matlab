@@ -6,10 +6,8 @@ classdef InteriorHomoLaplacianSolver < Solvers.SuperHomoSolver
     end
     
     methods
-        function obj = InteriorHomoLaplacianSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs,DiffOp,DiffOpParams)
-            obj = obj@Solvers.SuperHomoSolver( ...
-                Basis,Grid,CoeffsHandle,CoeffsParams,ScattererHandle,ScattererParams,CollectRhs);
+        function obj = InteriorHomoLaplacianSolver(Arguments)
+            obj = obj@Solvers.SuperHomoSolver(Arguments);
             
 %             if  numel(obj.Coeffs.a) + numel(obj.Coeffs.b) + numel(obj.Coeffs.sigma)>3
 %                 GridK = Tools.Grid.CartesianGrid( ...
@@ -31,15 +29,15 @@ classdef InteriorHomoLaplacianSolver < Solvers.SuperHomoSolver
             %BCinRhs=0;
             %obj.Op =  Tools.DifferentialOps.LaplacianOp(Grid,obj.OpCoeffs,BCinRhs);
 			
-			DiffOpParams.Grid=Grid;
-			DiffOpParams.CoeffsHandle=CoeffsHandle;
-			DiffOpParams.CoeffsParams =CoeffsParams;
+			Arguments.DiffOpParams.Grid         = Arguments.Grid;
+			Arguments.DiffOpParams.CoeffsHandle = Arguments.CoeffsHandle;
+			Arguments.DiffOpParams.CoeffsParams = Arguments.CoeffsParams;
             
-            if isfield(ScattererParams,'FocalDistance')
-                DiffOpParams.CoeffsParams.FocalDistance = ScattererParams.FocalDistance;
+            if isfield(Arguments.ScattererParams,'FocalDistance')
+                Arguments.DiffOpParams.CoeffsParams.FocalDistance = Arguments.ScattererParams.FocalDistance;
             end
             
-			obj.Op = DiffOp(DiffOpParams);
+			obj.Op = Arguments.DiffOp(Arguments.DiffOpParams);
         end
 		
 		function u = P_Omega(obj,xi_gamma)

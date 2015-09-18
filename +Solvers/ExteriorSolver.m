@@ -10,24 +10,13 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
     end
     
     methods
-        function obj = ExteriorSolver( ...
-                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs)                      
-            obj = obj@Solvers.SuperHomoSolver( ...
-                Basis,Grid,CoeffsClsHandle,CoeffsAddParams,ScattererClsHandle,ScattererAddParams,CollectRhs);
+        function obj = ExteriorSolver(Arguments)                      
+            obj = obj@Solvers.SuperHomoSolver(Arguments);
             
             obj.k=obj.Coeffs.k;
             
             obj.CreateDirectOperatorA1();
             obj.CreateSolverA2();
-            
-           % Ngg = numel(obj.GridGamma);
-            %obj.w0 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
-            %obj.w1 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
-            
-            %obj.f=zeros(Grid.Nx,Grid.Ny);
-            
-            %obj.myQ0 = zeros(Ngg,obj.Basis.NBss);
-            %obj.myQ1 = zeros(Ngg,obj.Basis.NBss);
             
         end
         

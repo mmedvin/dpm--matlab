@@ -8,7 +8,7 @@ function RunSimpleTransReflAboutElps
     %b=0.8;
     
     r0 = 0.1;%0.7*b;
-    r1 = 2.5; 1.8*a;
+    r1 = 2.5; %1.8*a;
     
     
 %     r0 = 0.6;
@@ -20,7 +20,7 @@ function RunSimpleTransReflAboutElps
    
   %  R0 =0.7;
 NHR = 1.6;
-   for b = 0.35 % [0.18, 0.35, 0.6,0.9] %[0.9,0.6,0.35,0.18,0.15]
+   for b = 0.9 % [0.18, 0.35, 0.6,0.9] %[0.9,0.6,0.35,0.18,0.15]
 
 IntErr=[];ExtErr=[];
 
@@ -40,10 +40,10 @@ fprintf('Trans/Refl problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d 
      
 
 
-for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
-    ExtWaveNumberAddParams = struct('k',k,'r0',NHR);
-    IntWaveNumberAddParams =  struct('k',2*k,'r0',NHR);
-   kmax = max(ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k );
+for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
+    ExtWaveNumberParams = struct('k',k,'r0',NHR);
+    IntWaveNumberParams =  struct('k',3*k,'r0',NHR);
+   kmax = max(ExtWaveNumberParams.k ,IntWaveNumberParams.k );
         UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);              
         f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);
@@ -52,32 +52,43 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
         
       %  [cn0ex,cn1ex,M] = FourierCoeff(f1,dfdn);
     
-        nmax=2;%7;%2
+        nmax=4;%7;%2
         for n=0:nmax %run different grids
             tic
             %build grid
             
-            p=4;%6;
+            p=5;
             Nr=2^(n+p)+1;	Nth=2^(n+p)+1;
             Nx=2^(n+p)+1;	Ny=2^(n+p)+1;
            
             %BasisIndices        = -M:M;
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
-            WaveNumberClsHandle = @Tools.Coeffs.ConstantWaveNumber;
+            WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
                                    
-            IntScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Interior
-            ExtScattererClsHandle  = @Tools.Scatterer.EllipticScatterer;%Exterior
-            ScattererAddParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance);
-            
-			CollectRhs=0;
-			
-            ExtPrb = Solvers.ExteriorSolver ...
-                (Basis,PlrGrid,WaveNumberClsHandle,ExtWaveNumberAddParams,ExtScattererClsHandle,ScattererAddParams,CollectRhs);
+            ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
+            ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDistance,'Stencil',9);
+            			
+            ExtPrb = Solvers.ExteriorSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', PlrGrid, ...
+                     'CoeffsHandle', WaveNumberHandle, ... 
+                     'CoeffsParams', ExtWaveNumberParams, ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',0 ... %i.e. no
+                     ));
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-			CollectRhs=1;
-            IntPrb = Solvers.InteriorHomoSolver ...
-                (Basis,CrtsGrid,WaveNumberClsHandle,IntWaveNumberAddParams,IntScattererClsHandle,ScattererAddParams,CollectRhs);
+
+            IntPrb = Solvers.InteriorHomoSolver( struct(...
+                     'Basis',Basis, ...
+                     'Grid', CrtsGrid, ...
+                     'CoeffsHandle', WaveNumberHandle, ... 
+                     'CoeffsParams', IntWaveNumberParams, ...
+                     'ScattererHandle',ScattererHandle, ...
+                     'ScattererParams', ScattererParams, ...
+                     'CollectRhs',1 ... %i.e. yes
+                     ));
          
             if 1
                 ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %
@@ -159,7 +170,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 IntErr(n) =norm(tmp(:),inf);
                 
                 fprintf('b=%-7.2f,kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',b, ...
-				ExtWaveNumberAddParams.k ,IntWaveNumberAddParams.k ,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
+				ExtWaveNumberParams.k ,IntWaveNumberParams.k ,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));
@@ -205,7 +216,7 @@ for k = 10%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 % XInt(IntPrb.Scatterer.Mm)=NaN;
                 %YInt(IntPrb.Scatterer.Mm)=NaN;
                 
-                filename = sprintf('TFElpsAR%dRing%d%dkin%dkex%dgrd%d',fix(10*a/b),fix(10*r0),fix(10*r1),IntWaveNumberAddParams.k,ExtWaveNumberAddParams.k,Nr);
+                filename = sprintf('TFElpsAR%dRing%d%dkin%dkex%dgrd%d',fix(10*a/b),fix(10*r0),fix(10*r1),IntWaveNumberParams.k,ExtWaveNumberParams.k,Nr);
                 ExScat = ExtPrb.Scatterer;
                 IntScat = IntPrb.Scatterer;
                 save(filename,'filename','a','b','XInt','XExt','YInt','YExt','tIntu','tExtu','Extu','Intu','Nm','Np','PlrGrid','CrtsGrid','ExScat','IntScat');
