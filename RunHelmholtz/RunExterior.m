@@ -77,7 +77,7 @@ rat=4/5;
 
 %for k= 6.*[2^(-4*rat),2^(-3*rat),2^(-2*rat),2^(-rat),1,2^(rat),2^(2*rat),2^(3*rat),2^(4*rat)]
 
-    for k =[1,5,10]%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
+    for k =1%[1,5,10]%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
 		
 		ErrPre = 0; 
 		
@@ -114,10 +114,10 @@ rat=4/5;
             
             if strcmpi(ScatType,'ellipse')
                 ScattererHandle  = @Tools.Scatterer.EllipticScatterer;               %External
-                ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
+                ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist,'Stencil',9);
             elseif strcmpi(ScatType,'circle')
                 ScattererHandle  = @Tools.Scatterer.PolarScatterer;                
-                ScattererParams  = struct('r0',R0,'ExpansionType',15);
+                ScattererParams  = struct('r0',R0,'ExpansionType',15,'Stencil',9);
             elseif strcmpi(ScatType,'StarShapedScatterer')
                 ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
                 ScattererParams  = ExParams;
@@ -133,7 +133,9 @@ rat=4/5;
                       'CoeffsParams', struct('k',k,'r0',NHR), ...
                       'ScattererHandle',ScattererHandle, ...
                       'ScattererParams', ScattererParams, ...
-                      'CollectRhs',0 ... %i.e. not
+                      'CollectRhs',0, ... %i.e. not
+                      'Extension', @Tools.Extensions.FirstExtension, ...
+                      'ExtensionParams',[] ...
                       ));
             
             Q0 = ExtPrb.Q0;%(:,1:2*M+1);

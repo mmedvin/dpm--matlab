@@ -43,12 +43,12 @@ fprintf('Trans/Refl problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d 
 for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
     ExtWaveNumberParams = struct('k',k,'r0',NHR);
     IntWaveNumberParams =  struct('k',3*k,'r0',NHR);
-   kmax = max(ExtWaveNumberParams.k ,IntWaveNumberParams.k );
-        UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);              
-        f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
-        dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);
-            
-	Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
+    kmax = max(ExtWaveNumberParams.k ,IntWaveNumberParams.k );
+    UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);
+    f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
+    dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);
+    
+    Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         
       %  [cn0ex,cn1ex,M] = FourierCoeff(f1,dfdn);
     
@@ -75,7 +75,9 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                      'CoeffsParams', ExtWaveNumberParams, ...
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
-                     'CollectRhs',0 ... %i.e. no
+                     'CollectRhs',0, ... %i.e. no
+                     'Extension', @Tools.Extensions.FirstExtension, ...
+                     'ExtensionParams',[] ...
                      ));
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
@@ -87,7 +89,9 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                      'CoeffsParams', IntWaveNumberParams, ...
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
-                     'CollectRhs',1 ... %i.e. yes
+                     'CollectRhs',1, ... %i.e. yes
+                     'Extension', @Tools.Extensions.FirstExtension, ...
+                     'ExtensionParams',[] ...
                      ));
          
             if 1

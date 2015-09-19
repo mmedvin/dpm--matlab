@@ -16,7 +16,7 @@ k=10,M=105,N=513       x513       	 ErrTot=3.143564e-03	 rate=3.39 	 time=4.4734
 k=10,M=105,N=1025      x1025      	 ErrTot=1.765777e-04	 rate=4.15 	 time=1.301655e+02
 
 Internal Inhomogeneous problem inside ellipse of AR=2 
-Method:RunInteriorHomo-StarShapedScatterer,	  
+Method:RunInterior-StarShapedScatterer,	  
 Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
  XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
  YHandle:Tools.Parameterizations.AsinBtWD, params:  a=5.000000e-01 b=1 
