@@ -1,4 +1,4 @@
-classdef FirstExtension < Tools.Extensions.SuperExtension
+classdef TwoTupleExtension < Tools.Extensions.SuperExtension
     properties
         Basis;
         Scatterer;
@@ -12,7 +12,7 @@ classdef FirstExtension < Tools.Extensions.SuperExtension
         GridGamma;
     end
     methods
-        function obj = FirstExtension(Arguments)
+        function obj = TwoTupleExtension(Arguments)
             obj.Basis     = Arguments.Basis;
             obj.Coeffs    = Arguments.Coeffs;
             obj.Scatterer = Arguments.Scatterer;
