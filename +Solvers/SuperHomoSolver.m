@@ -108,7 +108,6 @@ classdef SuperHomoSolver < handle
             obj.Coeffs 			= obj.CoeffsHandle(obj.Scatterer.TheScatterer,obj.CoeffsParams);%TODO: Consider to remove TheScatterer
             
             Arguments.ExtensionParams.Grid      = obj.Grid;
-            Arguments.ExtensionParams.GridGamma = obj.GridGamma;
             Arguments.ExtensionParams.Scatterer = obj.Scatterer;
             Arguments.ExtensionParams.Basis     = obj.Basis;
             Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
