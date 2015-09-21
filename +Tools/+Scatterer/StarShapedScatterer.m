@@ -123,7 +123,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             [y,dy] = obj.YHandle.Derivatives(obj.nrml_t);
             r_ = sqrt(x.^2 + y.^2);
             
-            [k,kn,knn,ks,kss] = WaveNumber.Derivatives();
+            [k,kn,knn,ks,kss] = WaveNumber.Derivatives(obj); %the obj should be sent as an argument here
             %%%%%%%%%%%%%%%%%%%%%%
 %             [k,kr,krr] = WaveNumber.Derivatives();
 %                         
@@ -142,7 +142,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
 %             ks  = (kx.*dx + ky.*dy)./h;
 %             kss = (kxx.*dx.^2 + 2*kxy.*dx.*dy + kyy.*dy.^2)./(h.^2) + curv.*kn;
 
-            [F,Fn,Fnn,Fs,Fss] = Source.Derivatives(obj);
+            [F,Fn,Fnn,Fs,Fss] = Source.Derivatives(obj); %the obj should be sent as an argument here
             %%%%%%%%%%%%%%%%%%%%%%
 %             [F,Fr,Frr,Ft,Ftt,Frt] = Source.Derivatives();
 %             
