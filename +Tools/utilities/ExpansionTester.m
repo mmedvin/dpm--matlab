@@ -69,7 +69,7 @@ dbk=dbstack();
 
 NoSource = Tools.Source.SuperHelmholtzSource();  %construct empty source           
 
-UincParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
+UincParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization,'Stencil',9);
 
 for k=1;%[0.1,0.5,1,2,3,5,10]
 
@@ -84,7 +84,7 @@ for k=1;%[0.1,0.5,1,2,3,5,10]
     Scatterer   = Tools.Scatterer.StarShapedScatterer(Grid,UincParams);    
     t           = Scatterer.BasisArg;
         
-    WaveNumberClsHandle = @Tools.Coeffs.WaveNumberPolarR;%ConstantWaveNumber; %@WaveNumberElliptical;
+    WaveNumberClsHandle = @Tools.Coeffs.WaveNumberStarShaped;%WaveNumberPolarR;%ConstantWaveNumber; %@WaveNumberElliptical;
     %WaveNumberAddParams.k = k;
     WaveNumberAddParams = struct('k',k,'r0',1.6);
 
@@ -100,15 +100,15 @@ for k=1;%[0.1,0.5,1,2,3,5,10]
     [x,xt,xtt,x3t,x4t] = Parameterization.XHandle.Derivatives(t);
     [y,yt,ytt,y3t,y4t] = Parameterization.YHandle.Derivatives(t);
     [hs,hst,hstt,hs3t] = MetricsAtScatterer.metrics(t);
-    [k,kr,krr] = Coeffs.Derivatives();
+    [K,kr,krr] = Coeffs.Derivatives(Scatterer);
     r = sqrt(x.^2+y.^2);
     
     
-    u   = exp(1i*k*x);
-    ut  = 1i*u.*(k.*xt + kr.*(x.*xt + y.*yt)./r);
-    utt = 1i*k*(ut.*xt + u.*xtt);
-    u3t = 1i*k*(utt.*xt + 2*ut.*xtt + u.*x3t);
-    u4t = 1i*k*(u3t.*xt + 3*utt.*xtt + 3*ut.*x3t + u.*x4t);
+    u   = exp(1i*K.*x);
+    ut  = 1i*u.*(K.*xt + kr.*(x.*xt + y.*yt)./r);
+    utt = 1i*K.*(ut.*xt + u.*xtt);
+    u3t = 1i*K.*(utt.*xt + 2*ut.*xtt + u.*x3t);
+    u4t = 1i*K.*(u3t.*xt + 3*utt.*xtt + 3*ut.*x3t + u.*x4t);
     %    u5t = 1i*k*(u4t.*xt + 4*u3t.*xtt + 6*utt.*x3t + 4*ut.*x4t + u.*x5t);
     %     u6t = 1i*k*(u5t.*xt + 5*u4t.*xtt + 10*u3t.*x3t + 10*utt.*x4t + 5*ut.*x5t + u.*x6t);
     
@@ -120,17 +120,17 @@ for k=1;%[0.1,0.5,1,2,3,5,10]
     %   Xi0.xi0tttttt  = u6t;
 
     
-    ux = 1i*k*u;
+    ux = 1i*K.*u;
     n_x = yt./hs; %(rt.*sin(t) + x)./hs;
     
     n_xt    = (ytt - n_x.*hst)./hs;
     n_xtt   = (y3t - 2*n_xt.*hst - n_x.*hstt)./hs;
     n_x3t   = (y4t - 3.*n_xtt.*hst - 3.*n_xt.*hstt - n_x.*hs3t )./hs;
     
-    uxt     = 1i*k*ut;
-    uxtt    = 1i*k*utt;
-    ux3t    = 1i*k*u3t;
-    ux4t    = 1i*k*u4t;
+    uxt     = 1i*K.*ut;
+    uxtt    = 1i*K.*utt;
+    ux3t    = 1i*K.*u3t;
+    ux4t    = 1i*K.*u4t;
     
     un      = ux.*n_x; % + uy.*n_y,  uy=0
     unt     = uxt.*n_x + ux.*n_xt;
@@ -173,7 +173,7 @@ for k=1;%[0.1,0.5,1,2,3,5,10]
     
     
     
-    exact = exp(1i*k*TstX);
+    exact = exp(1i*K.*TstX);
     
 	tmp = exact(:) - xi(:);
     err(n,1) = norm( tmp ,inf);

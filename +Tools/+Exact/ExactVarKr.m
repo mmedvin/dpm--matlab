@@ -46,7 +46,11 @@ classdef ExactVarKr < Tools.Exact.SuperExact
             
             ur     = obj.dudr;
             
-            [k,kr,krr] = obj.Coeffs.Derivatives('r');
+            try
+                [k,kr,krr] = obj.Coeffs.Derivatives();
+            catch
+                [k,kr,krr] = obj.Coeffs.Derivatives('r');
+            end
             r=obj.R;
             th=obj.Th;
             
@@ -61,7 +65,12 @@ classdef ExactVarKr < Tools.Exact.SuperExact
         
         function [s,sr,srr,s3r,st,stt,srt,srtt] = calc_s(obj)
             
-            [k,kr,krr,k3r,k4r,k5r] = obj.Coeffs.Derivatives('r');
+            try
+                [k,kr,krr,k3r,k4r,k5r]  = obj.Coeffs.Derivatives();
+            catch
+                [k,kr,krr,k3r,k4r,k5r] = obj.Coeffs.Derivatives('r');
+            end
+
              r=obj.R;
             th=obj.Th;
             

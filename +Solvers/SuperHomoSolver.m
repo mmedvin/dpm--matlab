@@ -96,8 +96,8 @@ classdef SuperHomoSolver < handle
             if nargin == 0, error('Costructor called without args'); end
 			if isfield(Arguments,'CollectRhs'), obj.CollectRhs = Arguments.CollectRhs;	end
             
-            obj.Grid = Arguments.Grid;
-            obj.Basis=Arguments.Basis;
+            obj.Grid            = Arguments.Grid;
+            obj.Basis           = Arguments.Basis;
                     
             obj.ScattererHandle = Arguments.ScattererHandle;
             obj.ScattererParams = Arguments.ScattererParams;            

@@ -65,9 +65,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
              if isfield(Arguments,'SourceParams')
                  obj.SourceParams = Arguments.SourceParams;
              end
-			                                      
-            % obj.Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.WaveNumberHandle,obj.WaveNumberParams);
-                          
+             
              obj.rhsf=spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
              obj.myGF = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
              

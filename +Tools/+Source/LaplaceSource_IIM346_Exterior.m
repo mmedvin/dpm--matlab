@@ -54,10 +54,7 @@ classdef LaplaceSource_IIM346_Exterior < Tools.Source.LaplaceSource_IIM346_Inter
 			
 			[F,Fn,~,Fnn] = obj.Derivatives();
 			
-% 			Coeffs	= obj.CoeffsClsrHndl(obj.Scatterer.TheScatterer,obj.CoeffsParams);
 			Exact	= Tools.Exact.ExLapCrclVarCoeffs346(obj.Scatterer, obj.ExParams);
-			
-			
 			
 			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
            % S(1:end,1)=	Exact.u(1:end,1);

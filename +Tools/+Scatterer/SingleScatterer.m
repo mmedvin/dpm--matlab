@@ -17,18 +17,6 @@ classdef SingleScatterer < Tools.Scatterer.SupperScatterer
         
               
     end
-        
-%     properties(Abstract = true,Access = public)
-%         BasisArg;
-%         TheScatterer;  
-%         MetricsAtScatterer;
-%         ScattererForSource;
-%         
-%         Inside;
-%         Outside;
-%     end
-   
-    
     
     methods(Abstract = true, Access = public)
         %  Grid = AnotherGrid(obj,Grid);

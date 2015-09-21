@@ -3,8 +3,8 @@ function RunInterior
 	% designed for elliptical scatterer and wavenumbers only
 
 x1=-1.2;xn=1.2;
-y1=-1.2;yn=1.2;
-%y1=-0.7;yn=0.7;
+%y1=-1.2;yn=1.2;
+y1=-0.7;yn=0.7;
 
 R0=1;
 
@@ -29,7 +29,7 @@ Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'circle';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'StarShapedScatterer';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -83,7 +83,7 @@ tic
         ScattererParams  = ExParams;
         ScattererParams.Stencil=9;
         SourceParams     = [];
-        Extension = @Tools.Extensions.TwoTupleExtension;
+        Extension        = @Tools.Extensions.TwoTupleExtension;
     end
    
         

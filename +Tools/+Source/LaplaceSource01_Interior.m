@@ -148,11 +148,6 @@ classdef LaplaceSource01_Interior < Tools.Source.SuperSource
 			%[F,Fn,~,Fnn] = obj.Derivatives();
             [F,Fn] = obj.Derivatives();
 			
-% 			Coeffs	= obj.CoeffsClsrHndl(obj.Scatterer.TheScatterer,obj.CoeffsParams);
-			%Exact	= Tools.Exact.ExLapElps01(obj.Scatterer, obj.ExParams);
-			
-			
-			
 			S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);
             S(1:end,1)=	0; %Exact.u(1:end,1);
             S(1,1:end)= 0; %Exact.u(1,1:end);
