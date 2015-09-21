@@ -22,7 +22,7 @@ classdef ConstantWaveNumber < Tools.Coeffs.AbstractCoeffs
         %             k5r = 0;
         %         end
         
-        function varargout = Derivatives(obj)
+        function varargout = Derivatives(obj,~)
             varargout(1)={obj.k};
             nout = nargout;
             varargout(2:nout)={0};

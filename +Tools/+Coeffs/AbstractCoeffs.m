@@ -3,6 +3,7 @@ classdef AbstractCoeffs < Tools.Common.FunctionWithDerivatives
     %   Detailed explanation goes here
     
     properties
+        IsConstant = true;
     end
     
     methods

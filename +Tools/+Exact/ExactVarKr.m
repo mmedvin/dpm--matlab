@@ -30,13 +30,13 @@ classdef ExactVarKr < Tools.Exact.SuperExact
         function obj = ExactVarKr(Scatterer, WaveNumber)
             obj = obj@Tools.Exact.SuperExact(Scatterer, WaveNumber);
             
-%             try
+            try
                 obj.R         = Scatterer.R;
                 obj.Th        = Scatterer.Th;
-%             catch
-%                 obj.R         = Scatterer.r;
-%                 obj.Th        = Scatterer.th;
-%             end
+            catch
+                obj.R         = Scatterer.r;
+                obj.Th        = Scatterer.th;
+            end
             obj.u  = obj.Exact(obj.R,obj.Th,obj.Coeffs.k);
             obj.dudr = obj.drExact(obj.R,obj.Th,obj.Coeffs.k,obj.Coeffs.kr);                       
         end
@@ -46,7 +46,7 @@ classdef ExactVarKr < Tools.Exact.SuperExact
             
             ur     = obj.dudr;
             
-            [k,kr,krr] = obj.Coeffs.Derivatives();
+            [k,kr,krr] = obj.Coeffs.Derivatives('r');
             r=obj.R;
             th=obj.Th;
             
@@ -61,7 +61,7 @@ classdef ExactVarKr < Tools.Exact.SuperExact
         
         function [s,sr,srr,s3r,st,stt,srt,srtt] = calc_s(obj)
             
-            [k,kr,krr,k3r,k4r,k5r] = obj.Coeffs.Derivatives();
+            [k,kr,krr,k3r,k4r,k5r] = obj.Coeffs.Derivatives('r');
              r=obj.R;
             th=obj.Th;
             

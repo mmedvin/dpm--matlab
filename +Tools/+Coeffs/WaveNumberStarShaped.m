@@ -106,7 +106,8 @@ classdef WaveNumberStarShaped < Tools.Coeffs.WaveNumberPolarR
         end
         
         function obj = WaveNumberStarShaped(Scatterer,Params)          
-            obj=obj@Tools.Coeffs.WaveNumberPolarR(Scatterer,Params);                                        
+            obj=obj@Tools.Coeffs.WaveNumberPolarR(Scatterer,Params);
+            obj.IsConstant=false;
         end
         
         

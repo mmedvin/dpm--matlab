@@ -9,7 +9,9 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
         function obj = InteriorSolver(Arguments)
             obj = obj@Solvers.SuperNonHomoSolver(Arguments);
                         
-            if  numel(obj.Coeffs.k)>1
+            if  obj.Coeffs.IsConstant
+                obj.k = sparse(obj.Coeffs.k.*ones(obj.Grid.Size+2));
+            else
                 GridK   = Tools.Grid.CartesianGrid( ...
                           obj.Grid.x1 - obj.Grid.dx , ...
                           obj.Grid.xn + obj.Grid.dx , ...
@@ -20,9 +22,7 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
                       
                 ScattK = struct('r',GridK.R);
                 WNPlr=Tools.Coeffs.WaveNumberPolarR(ScattK,Arguments.CoeffsParams);
-                obj.k = sparse(WNPlr.k);
-            else
-                obj.k = obj.Coeffs.k.*ones(obj.Grid.Size+2);
+                obj.k = sparse(WNPlr.k);            
             end
             
             obj.HlmSemA();%(x,y,k);

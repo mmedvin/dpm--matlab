@@ -4,11 +4,11 @@ function RunInteriorHomo
 
 
 x1=-1.2;xn=1.2;
-%y1=-1.2;yn=1.2;
+y1=-1.2;yn=1.2;
 
  %x1=-1.7;xn=1.2;
  %y1=-1.7;yn=1.7;
- y1=-.7;yn=.7;
+% y1=-.7;yn=.7;
 
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
@@ -30,7 +30,7 @@ Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'StarShapedScatterer'; %'ellipse';% 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'circle'; %'ellipse';% 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -67,12 +67,15 @@ tic
     if strcmpi(ScatType,'ellipse')        
         ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
         ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
+        Extension = @Tools.Extensions.TwoTupleExtension;
     elseif strcmpi(ScatType,'circle')
         ScattererHandle  = @Tools.Scatterer.PolarScatterer;
-        ScattererParams  = struct('r0',R0,'ExpansionType',25);
+        ScattererParams  = struct('r0',R0,'ExpansionType',25, 'Stencil', 9);
+        Extension = @Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension;%EBPolarHomoHelmholtz7OrderExtension;;
     elseif strcmpi(ScatType,'StarShapedScatterer')
         ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
         ScattererParams  = ExParams;
+        Extension = @Tools.Extensions.TwoTupleExtension;
     end
     
     IntPrb =  Solvers.InteriorHomoSolver( struct(...
@@ -83,7 +86,7 @@ tic
         'ScattererHandle',ScattererHandle, ...
         'ScattererParams', ScattererParams, ...
         'CollectRhs',1, ... %i.e. yes
-        'Extension', @Tools.Extensions.FirstExtension, ...
+        'Extension', Extension, ...
         'ExtensionParams',[] ...
         ));
     

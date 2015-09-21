@@ -28,16 +28,26 @@ classdef WaveNumberPolarR < Tools.Coeffs.AbstractCoeffs
     
     methods
         
-        function [k,kr,krr,k3r,k4r,k5r] = Derivatives(obj)
+        function [k,kr,krr,k3r,k4r,k5r] = Derivatives(obj,WhichOne)
             k = obj.k;
-            kr=obj.kr;
-            krr=obj.krr;
-            k3r=obj.k3r;
-            k4r=obj.k4r;
-            k5r=obj.k5r;
+            switch WhichOne
+                case 'r'
+                    kr=obj.kr;
+                    krr=obj.krr;
+                    k3r=obj.k3r;
+                    k4r=obj.k4r;
+                    k5r=obj.k5r;
+                case 't'
+                    kr=0;
+                    krr=0;
+                    k3r=0;
+                    k4r=0;
+                    k5r=0;
+            end
         end
         
         function obj=WaveNumberPolarR(Scatterer,Params)
+            obj.IsConstant=false;
             try
                 r  = Scatterer.R;
             catch

@@ -75,7 +75,7 @@ classdef WaveNumberElliptical < Tools.Coeffs.WaveNumberPolarR
         
         function obj = WaveNumberElliptical(Scatterer,Params)%,k0,r0) %(FocalDist,eta,phi,k0,r0)
             % consider reordering of arguments, so it's can be called as constant k....
-            
+            obj.IsConstant = false;
             [r,rn,rf,rnn,rff,r3n,r3f,r4n,r4f,rnf,rnff,rnnf,rnnff] = ... 
                 Tools.Coeffs.WaveNumberElliptical.chngcoord(Scatterer.FocalDistance,Scatterer.Eta,Scatterer.Phi);
             
