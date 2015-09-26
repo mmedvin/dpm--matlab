@@ -2,9 +2,10 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
     
     methods(Static)
 		function FBasis = BasisHelper(f,dfdr,err,~)%range)
-			%[cn0,cn1,M] = FourierBasis.FourierCoeff(f,dfdr);
-			if ~exist('err','var'),err = 10^(-10);end
-			if err < 1
+
+            if ~exist('err','var'),err = 10^(-10);end
+			
+            if err < 1
 				[cn0,cn1,M] = Tools.Basis.FourierBasis.FourierCoeffNew(f,dfdr,err);
 			else
 				M=err;
@@ -16,15 +17,8 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
 				dfth  = dfdr(th);
 				
 				%calc coeff
-				cn0 = Tools.Basis.FourierBasis.FftCoefs(fth,M1).';
-				%cn0 = fft(fth);
-				%cn0 = fftshift(cn0);
-				%cn0 = cn0(:)/M1;  %normalization
-				
+				cn0 = Tools.Basis.FourierBasis.FftCoefs(fth,M1).';				
 				cn1 = Tools.Basis.FourierBasis.FftCoefs(dfth,M1).';
-				%cn1 = fft(dfth);
-				%cn1 = fftshift(cn1);
-				%cn1 = cn1(:)/M1;  %normalization
 				
 			end
 			me = metaclass(Tools.Basis.FourierBasis);
@@ -53,14 +47,8 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
             
             %calc coeff
 			cn0 = Tools.Basis.FourierBasis.FftCoefs(fth,M1);
-            %cn0 = fft(fth);
-            %cn0 = fftshift(cn0);
-            %cn0 = cn0/M1;  %normalization            
             
-            cn1 = Tools.Basis.FourierBasis.FftCoefs(dfth,M1);
-			%cn1 = fft(dfth);
-            %cn1 = fftshift(cn1);
-            %cn1 = cn1/M1;  %normalization           
+            cn1 = Tools.Basis.FourierBasis.FftCoefs(dfth,M1);           
             
             Ml = find(abs(cn0) > err,1,'last');
             Mf = find(abs(cn0) > err,1,'first');

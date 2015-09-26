@@ -41,7 +41,7 @@ classdef SuperHomoSolver < handle
         
         
         Grid;   %Link to Grid Class instance
-        Basis;  %Link to Basis Class instance
+        %Basis;  %Link to Basis Class instance
                 
         
         % class handle for Scatterer class (information about the interface shape and more) + the parameters to be sent to its constructor
@@ -97,7 +97,7 @@ classdef SuperHomoSolver < handle
 			if isfield(Arguments,'CollectRhs'), obj.CollectRhs = Arguments.CollectRhs;	end
             
             obj.Grid            = Arguments.Grid;
-            obj.Basis           = Arguments.Basis;
+            %obj.Basis           = Arguments.Basis;
                     
             obj.ScattererHandle = Arguments.ScattererHandle;
             obj.ScattererParams = Arguments.ScattererParams;            
@@ -109,7 +109,7 @@ classdef SuperHomoSolver < handle
             
             Arguments.ExtensionParams.Grid      = obj.Grid;
             Arguments.ExtensionParams.Scatterer = obj.Scatterer;
-            Arguments.ExtensionParams.Basis     = obj.Basis;
+            Arguments.ExtensionParams.Basis     = Arguments.Basis;
             Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
             obj.Extension                       = Arguments.Extension(Arguments.ExtensionParams);
 
@@ -191,7 +191,9 @@ classdef SuperHomoSolver < handle
             
             obj.rhs = cell(size(tmp));
             for indx=1:numel(tmp)
-                obj.rhs{indx} = spalloc( obj.Grid.Nx*obj.Grid.Ny,obj.Basis.NBss,numel(obj.GridGamma)*obj.Basis.NBss);
+                [n,m]=size(obj.Extension.W{indx});
+                NNZ = nnz(obj.Extension.W{indx});
+                obj.rhs{indx} = spalloc( n,m,NNZ);
                 obj.rhs{indx}(obj.Scatterer.Mp,:) = tmp{indx};
             end
             
@@ -205,9 +207,9 @@ classdef SuperHomoSolver < handle
                  obj.NewQ   = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW, obj.Extension.W,'UniformOutput',false);
  
              else
-                 obj.Expand();
-                 for j = 1:obj.Basis.NBss
-                     for indx=1:numel(obj.Extension.W)
+                 obj.Expand();                 
+                 for indx=1:numel(obj.Extension.W)
+                     for j = 1:size(obj.Extension.W{indx},2)
                          GLW                    = obj.Solve(obj.Extension.W{indx}(:,j));
                          obj.NewQ{indx}(:,j)    = obj.Qcol(GLW,obj.Extension.W{indx}(:,j));
                      end
