@@ -44,7 +44,7 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
         
         function ExpandSource(obj,Source)
             obj.Wf                          = struct('GridGamma',obj.GridGamma, 'msk',obj.Scatterer.Mp,'W',...
-                                                        spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.GridGamma)));
+                                                        spalloc(obj.Grid.Nx*obj.Grid.Ny,1,numel(obj.Scatterer.GridGamma)));
             obj.Wf.W(obj.Scatterer.GridGamma) = obj.Expansion(obj.NoXi,obj.NoXi,Source);
         end
 

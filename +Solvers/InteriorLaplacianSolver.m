@@ -53,6 +53,8 @@ classdef InteriorLaplacianSolver < Solvers.SuperNonHomoSolver
     methods(Access = protected)
       
         function f = Lu(obj,u,msk)
+            if isstruct(u), msk=u.msk; u = u.W; end
+            
             if exist('msk','var');
 				%f = obj.Op.A(msk,:)*u;
 				f = obj.Op.ApplyOp(u,msk);

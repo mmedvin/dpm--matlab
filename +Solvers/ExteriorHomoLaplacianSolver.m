@@ -28,7 +28,7 @@ classdef ExteriorHomoLaplacianSolver < Solvers.InteriorHomoLaplacianSolver
     methods(Access = protected)
                 
         function Qj = Qcol(obj,GLW,w)
-            Qj = GLW(obj.GridGamma,:)-w(obj.GridGamma,:);
+            Qj = GLW(w.GridGamma,:)-w.W(w.GridGamma,:);
         end
         
 	end

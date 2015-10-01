@@ -64,8 +64,8 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
            u = obj.A\f;           
         end
                 
-        function Qj = Qcol(obj,GLW,~)
-            Qj = -GLW(obj.GridGamma,:);
+        function Qj = Qcol(obj,GLW,W)
+            Qj = -GLW(W.GridGamma,:);
         end
         
         function HlmSemA(obj)%(x,y,k)

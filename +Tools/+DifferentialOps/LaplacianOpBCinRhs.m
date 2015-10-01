@@ -164,17 +164,17 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 			
 		end
 		
-				function b = ApplyOp(obj,x,mask)
-			% returns matrix-vector multiplication result, i.e b = A*x
-			% if parameter 'mask' is esixts, a mask 'mask' is applied on the returned value b,
-			% more precisely b(mask) is returned, i.e. only the indices in 'mask'
-			
-			b = zeros(size(x));
-			b(obj.Inside,:) = obj.A*x(obj.Inside,:);
-			if exist('mask','var');
-				b=b(mask,:);
-			end
-		end
+        function b = ApplyOp(obj,x,mask)
+            % returns matrix-vector multiplication result, i.e b = A*x
+            % if parameter 'mask' is esixts, a mask 'mask' is applied on the returned value b,
+            % more precisely b(mask) is returned, i.e. only the indices in 'mask'
+            
+            b = zeros(size(x));
+            b(obj.Inside,:) = obj.A*x(obj.Inside,:);
+            if exist('mask','var');
+                b=b(mask,:);
+            end
+        end
 		
 		function u = Solve(obj,f,SolverType)
 			u = zeros(size(f));
