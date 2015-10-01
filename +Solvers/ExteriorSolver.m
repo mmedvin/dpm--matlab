@@ -63,7 +63,7 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
     methods(Access = protected)
         
         function f = Lu(obj,u,msk)
-            
+            if isstruct(u), u = u.W; end
             f = obj.A1*u;
             
             if exist('msk','var');

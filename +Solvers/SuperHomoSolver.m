@@ -15,7 +15,7 @@ classdef SuperHomoSolver < handle
         % Q = [Q0 | Q1], i.e. Q is matrix concatenation of matricex Q0 and Q1,
         % no data saved in Q,Q0,Q1 they are implemented via get method, the actual data is hidden in myQ0 and myQ1
         %
-        Q; Q0; Q1;
+        Q; Q0; Q1; 
         NewQ;
         
         % W is a choice of arbitrary function that have to satisfy Tr W = W|_gamma = xi_gamma, see ection 2.1.3. 
@@ -122,8 +122,17 @@ classdef SuperHomoSolver < handle
                obj.calc_QnW();
             end            
             %q=[obj.myQ0,obj.myQ1];
-            q=cell2mat(obj.NewQ);
+            q=obj.NewQ;
         end 
+      
+        function qj = Qj(obj,j)
+            if obj.IsReadyQnW == false
+                obj.calc_QnW();
+            end
+            
+            qj=obj.NewQ{j};%obj.myQ0;
+            
+        end
         
         function q0 = get.Q0(obj)
             if obj.IsReadyQnW == false
@@ -149,15 +158,24 @@ classdef SuperHomoSolver < handle
             end            
             
             %wold=[obj.myW0,obj.myW1];
-            w=cell2mat(obj.Extension.W);            
-		end 
+            w=obj.Extension.W;            
+        end 
+        
+        function wj = Wj(obj,j)
+            if obj.IsReadyQnW == false
+                obj.calc_QnW();
+            end
+            
+            wj=obj.Extension.W{j}.W; %obj.myW0;
+        end
+ 
         
        function w0 = get.W0(obj)           
             if obj.IsReadyQnW == false
                obj.calc_QnW();
             end            
             
-            w0=obj.Extension.W{1}; %obj.myW0;
+            w0=obj.Extension.W{1}.W; %obj.myW0;
 	   end 
 
 	   function w1 = get.W1(obj)
@@ -165,7 +183,7 @@ classdef SuperHomoSolver < handle
 			   obj.calc_QnW();
 		   end
 		   
-		   w1=obj.Extension.W{2};%myW1;
+		   w1=obj.Extension.W{2}.W;%myW1;
 	   end
 		
 		
@@ -187,14 +205,14 @@ classdef SuperHomoSolver < handle
     
         function Rhs(obj)
             obj.Expand();
-            tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp),obj.Extension.W,'UniformOutput',false);
+            tmp=cellfun(@(arg) obj.Lu(arg),obj.Extension.W,'UniformOutput',false);
             
             obj.rhs = cell(size(tmp));
             for indx=1:numel(tmp)
-                [n,m]=size(obj.Extension.W{indx});
-                NNZ = nnz(obj.Extension.W{indx});
+                [n,m]=size(obj.Extension.W{indx}.W);
+                NNZ = nnz(obj.Extension.W{indx}.W);
                 obj.rhs{indx} = spalloc( n,m,NNZ);
-                obj.rhs{indx}(obj.Scatterer.Mp,:) = tmp{indx};
+                obj.rhs{indx}(obj.Extension.W{indx}.msk,:) = tmp{indx};
             end
             
         end
@@ -209,9 +227,9 @@ classdef SuperHomoSolver < handle
              else
                  obj.Expand();                 
                  for indx=1:numel(obj.Extension.W)
-                     for j = 1:size(obj.Extension.W{indx},2)
-                         GLW                    = obj.Solve(obj.Extension.W{indx}(:,j));
-                         obj.NewQ{indx}(:,j)    = obj.Qcol(GLW,obj.Extension.W{indx}(:,j));
+                     for j = 1:size(obj.Extension.W{indx}.W,2)
+                         GLW                    = obj.Solve(obj.Extension.W{indx}.W(:,j));
+                         obj.NewQ{indx}(:,j)    = obj.Qcol(GLW,obj.Extension.W{indx}.W(:,j));
                      end
                  end
                  

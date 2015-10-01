@@ -76,7 +76,7 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
                      'CollectRhs',0, ... %i.e. no
-                     'Extension', @Tools.Extensions.FirstExtension, ...
+                     'Extension', @Tools.Extensions.TwoTupleExtension, ...
                      'ExtensionParams',[] ...
                      ));
 
@@ -90,14 +90,11 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
                      'CollectRhs',1, ... %i.e. yes
-                     'Extension', @Tools.Extensions.FirstExtension, ...
+                     'Extension', @Tools.Extensions.TwoTupleExtension, ...
                      'ExtensionParams',[] ...
                      ));
          
-            if 1
-                ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %
-                IntQ = IntPrb.Q;
-                
+            if 1             
                 UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',ExtPrb.Scatterer.eta);
                 
                 rhs = zeros(numel(ExtPrb.GridGamma) + numel(IntPrb.GridGamma),1);
@@ -105,18 +102,17 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 uinc = Uinc(UincParams,ExtPrb.Scatterer.phi,IncAng,k);
                 rhs(numel(IntPrb.GridGamma)+1:end,1)= ExtPrb.Qcol2(uinc);
                 
-                cn = [ IntQ ; ExtQ ] \ rhs;
+                cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
                 
                 %             cn0 = cn(1:2*M+1);
                 %             cn1 = cn(2*M+2:end);
                 
                 Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-                Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*cn;
+                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}.W(IntPrb.GridGamma,:),IntPrb.W{2}.W(IntPrb.GridGamma,:)]*cn;
                 Intu = IntPrb.P_Omega(Intxi);
                 
                 Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
-                Extxi(ExtPrb.GridGamma) = ExtPrb.W(ExtPrb.GridGamma,:)*cn ;%- uinc;
-                %Extxi(ExtPrb.GridGamma) = [ExtPrb.W(ExtPrb.GridGamma,:),uinc]*cn;
+                 Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}.W(ExtPrb.GridGamma,:),ExtPrb.W{2}.W(ExtPrb.GridGamma,:)]*cn ;%- uinc;
                 
                 UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',ExtPrb.Scatterer.Eta);
                 %UincParams  = struct('ScattererType','circle','r',PlrGrid.R);

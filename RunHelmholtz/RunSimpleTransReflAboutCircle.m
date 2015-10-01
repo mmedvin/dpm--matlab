@@ -58,7 +58,7 @@ function RunSimpleTransReflAboutCircle
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
                      'CollectRhs',0, ... %i.e. no
-                     'Extension', @Tools.Extensions.FirstExtension, ...
+                     'Extension', @Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension, ...
                      'ExtensionParams',[] ...
                      ));
 
@@ -72,13 +72,11 @@ function RunSimpleTransReflAboutCircle
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
                      'CollectRhs',1, ... %i.e. yes
-                     'Extension', @Tools.Extensions.FirstExtension, ...
+                     'Extension', @Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension, ...
                      'ExtensionParams',[] ...
                      ));
                  
             if 1
-                ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %
-                IntQ = IntPrb.Q;
                 
                 UincParams  = struct('ScattererType','circle','r',ExtPrb.Scatterer.r);
                 
@@ -87,17 +85,17 @@ function RunSimpleTransReflAboutCircle
                 uinc = Uinc(UincParams,ExtPrb.Scatterer.th,IncAng,k);
                 rhs(numel(IntPrb.GridGamma)+1:end,1)= ExtPrb.Qcol2(uinc);
                 
-                cn = [ IntQ ; ExtQ ] \ rhs;
+                cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
                 
                 %             cn0 = cn(1:2*M+1);
                 %             cn1 = cn(2*M+2:end);
                 
                 Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-                Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*cn;
+                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}.W(IntPrb.GridGamma,:),IntPrb.W{2}.W(IntPrb.GridGamma,:)]*cn;
                 Intu = IntPrb.P_Omega(Intxi);
                 
                 Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
-                Extxi(ExtPrb.GridGamma) = ExtPrb.W(ExtPrb.GridGamma,:)*cn ;%- uinc;
+                Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}.W(ExtPrb.GridGamma,:),ExtPrb.W{2}.W(ExtPrb.GridGamma,:)]*cn ;%- uinc;
                 %Extxi(ExtPrb.GridGamma) = [ExtPrb.W(ExtPrb.GridGamma,:),uinc]*cn;
                 
                 UincParams  = struct('ScattererType','circle','r',PlrGrid.R);

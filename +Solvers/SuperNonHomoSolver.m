@@ -133,7 +133,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
          end
                   
          function CreateRhsf(obj)             
-             obj.rhsf(obj.Scatterer.Mp) = obj.Lu(obj.Extension.Wf(:),obj.Scatterer.Mp);
+             obj.rhsf(obj.Extension.Wf.msk) = obj.Lu(obj.Extension.Wf.W(:),obj.Extension.Wf.msk);
          end
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 

@@ -1,4 +1,4 @@
-classdef SingleScatterer < Tools.Scatterer.SupperScatterer
+classdef SingleScatterer < Tools.Scatterer.SuperScatterer
       properties
         Grid;
         
@@ -8,9 +8,7 @@ classdef SingleScatterer < Tools.Scatterer.SupperScatterer
         Nm;
         
         GridGamma;
-        
-        Size;
-        
+                
         In; %can't find better name yet...
         Out;
         
@@ -34,11 +32,7 @@ classdef SingleScatterer < Tools.Scatterer.SupperScatterer
             end                                 
         end 
         
-        function sz = get.Size(obj)
-            
-            sz = obj.Grid.Size;
-            
-        end
+
         
         function in = get.In(obj)
             

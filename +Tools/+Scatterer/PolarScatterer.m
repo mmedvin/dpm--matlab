@@ -19,7 +19,7 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
     end
     
     properties(Access = private)
-        ExpansionType;
+        %ExpansionType;
     end
     
     methods
@@ -56,7 +56,7 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
             obj = obj@Tools.Scatterer.SingleScatterer(Grid);
             obj.r0 = Params.r0;
             
-            obj.ExpansionType = Params.ExpansionType;            
+            %obj.ExpansionType = Params.ExpansionType;            
             
             obj.MyGrid();
 			

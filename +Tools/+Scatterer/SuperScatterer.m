@@ -1,4 +1,4 @@
-classdef SupperScatterer < handle
+classdef SuperScatterer < handle
             
     properties(Abstract = true,Access = public)
         Grid;
@@ -8,9 +8,7 @@ classdef SupperScatterer < handle
         Np;
         Nm;
         
-        GridGamma;
-        
-        Size;
+        GridGamma;               
         
         In; %can't find better name yet...
         Out;
@@ -25,12 +23,22 @@ classdef SupperScatterer < handle
         Outside;
     end
    
-    
+    properties
+        Size;
+    end
     
     methods(Abstract = true, Access = public)
         %  Grid = AnotherGrid(obj,Grid);
         %res =
         Expansion(obj,Xi0,Xi1,F,WaveNumber);
         
-    end     
+    end   
+    
+    methods
+        function sz = get.Size(obj)
+            
+            sz = obj.Grid.Size;
+            
+        end
+    end
 end

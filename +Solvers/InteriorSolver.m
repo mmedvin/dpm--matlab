@@ -52,6 +52,7 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
     methods(Access = protected)
       
         function f = Lu(obj,u,msk)
+            if isstruct(u), msk=u.msk; u = u.W; end
             if exist('msk','var');
                 f = obj.A(msk,:)*u;
             else
