@@ -41,6 +41,7 @@ for k =1%[1,5,10,15,20,25]
                         'Exterior', Tools.Basis.FourierBasis.BasisHelper(@(th) f(th,2),@(th) dfdn(th,2)) ...
                        );
 	end
+fprintf('NBss: %d,%d,%d,%d\n',Basis.Interior.NBss0,Basis.Interior.NBss1,Basis.Exterior.NBss0,Basis.Exterior.NBss1);
 
 for n=1:4 %run different grids
 tic
@@ -68,7 +69,12 @@ tic
     
     InteriorCn1	= ( IntPrb.Q{1,2} \ ( -IntPrb.Q{1,1}*Basis.Interior.cn0)) ;
     ExteriorCn1 = ( IntPrb.Q{2,2} \ ( -IntPrb.Q{2,1}*Basis.Exterior.cn0)) ;
-            
+    
+
+    %Cn	= [ IntPrb.Q{1,2}, IntPrb.Q{2,2}] \ ([ -IntPrb.Q{1,1},-IntPrb.Q{2,1}]*[Basis.Interior.cn0, Basis.Exterior.cn0]) ;
+    %InteriorCn1 = Cn(1:Basis.Interior.NBss0);
+    %ExteriorCn1 = Cn(1+Basis.Interior.NBss0:end);
+    
     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
     xi(IntPrb.GridGamma{1}) = IntPrb.W{1,1}.W(IntPrb.GridGamma{1},:)*Basis.Interior.cn0 + IntPrb.W{1,2}.W(IntPrb.GridGamma{1},:)*InteriorCn1;
     xi(IntPrb.GridGamma{2}) = IntPrb.W{2,1}.W(IntPrb.GridGamma{2},:)*Basis.Exterior.cn0 + IntPrb.W{2,2}.W(IntPrb.GridGamma{2},:)*ExteriorCn1;
@@ -118,8 +124,8 @@ tic
     %t2=toc;
     
     ErrTot =norm(exact(:)-u(:),inf);
-    fprintf('k=%d,Int M=%d,Ext M=%d,N=%-4dx%-4d\t ErrXi=%d|%d\t rate=%-5.2f|%-5.2f ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
-        k,Basis.Interior.M,Basis.Exterior.M, Nx,Ny,ErrXi1,ErrXi2,log2(ErrXi1Pre/ErrXi1),log2(ErrXi2Pre/ErrXi2),ErrTot,log2(ErrPre/ErrTot),t1);
+    fprintf('k=%d,N=%-4dx%-4d\t ErrXi=%d|%d\t rate=%-5.2f|%-5.2f ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
+        k, Nx,Ny,ErrXi1,ErrXi2,log2(ErrXi1Pre/ErrXi1),log2(ErrXi2Pre/ErrXi2),ErrTot,log2(ErrPre/ErrTot),t1);
     ErrPre = ErrTot;
     ErrXi1Pre = ErrXi1;
     ErrXi2Pre = ErrXi2;

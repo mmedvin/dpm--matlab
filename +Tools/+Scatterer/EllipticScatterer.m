@@ -212,7 +212,7 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
              res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 ;%+ (obj.deta.^3).*unnn/6;
              
          end
-		function res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,Src,LapCoeffs)
+		function res = Expansion5thOrdrLap(obj,Xi0,Xi1,Src,LapCoeffs)
              %[xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
              %[xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
              
@@ -529,8 +529,76 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
               
              res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 + (obj.deta.^3).*unnn/6 + (obj.deta.^4).*unnnn/24;
 
-         end
-		
+        end
+        
+        function res = Expansion5thOrdrLap2(obj,Xi0,Xi1,Src,LapCoeffs)
+            %[xi0,xi0t,xi0tt,~,xi0tttt,xi0tttttt] = Xi0.Derivatives();
+            %[xi1,~,xi1tt,~,xi1tttt,~] = Xi1.Derivatives();
+            
+            [xi0,xi0f,xi0ff,xi0fff,xi0ffff] = Xi0.Derivatives();
+            [xi1,xi1f,xi1ff,xi1fff] = Xi1.Derivatives();
+            
+            [F,Fn,Fnn,Ff,Fff] = Src.Derivatives(); Fnf=0;
+            [a,an,ann,a3n,af,aff,a3f,anf,anff,annf] = LapCoeffs.Derivatives('a');
+            [b,bn,bnn,b3n,bf,bff,b3f,bnf,bnff,bnnf] = LapCoeffs.Derivatives('b');
+            sigma	= LapCoeffs.Derivatives('sigma');
+            [h,hn,hnn,h3n,h4n,hf,hff,h3f,h4f,hnf] = obj.MetricsAtScatterer.metrics();
+            
+            sigma_f=0;  sigma_ff=0; sigma_n=0; sigma_nf=0; sigma_nn=0;
+            
+            
+            h2 = h.^2;
+            h3 = h.^3;
+            h4 = h.^4;
+            
+            fd = obj.FocalDistance;
+            %fd4 = fd^4;
+            
+            x  = fd*cosh(obj.Eta0).*cos(obj.phi);
+            y  = fd*sinh(obj.Eta0).*sin(obj.phi);
+            xn = fd*sinh(obj.Eta0).*cos(obj.phi);
+            yn = fd*cosh(obj.Eta0).*sin(obj.phi);
+
+  
+            
+            
+            %assume a = b = const, sigma =0;
+            unn   = F.*h2./a - xi0ff;
+            unnn  = (h2.*Fn + 2*F.*h.*hn)./a - xi1ff;
+            unnff = (2*F.*(hf.^2) + h2.*Fff + 2*h.*(2.*Ff.*hf + F.*hff))./a - xi0ffff;
+            unnnn = (2*F.*(hn.^2) + h2.*Fnn  + 2*h.*(2*Fn.*hn    + F.*hnn))./a - unnff;
+            
+            
+%             unn  = ( (F + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 )./a ;
+%             
+%             %atm assumimg sigma is constant
+%             
+%             unnn =  (Fn.*h2 + 2*F.*h.*hn - an.*unn - bnf.*xi0f - bn.*xi0ff - ann.*xi1 - bf.*xi1f - b.*xi1ff)./a ...
+%                 ... ( (fn + sigma.*xi1).*h2 + (f + sigma.*xi0).*(2*h.*hn) -  bnf.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn )./a ...
+%                 - ( (F + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*(an./(a.^2));
+%             
+%             
+%             unnf = ( (Ff + sigma.*xi0f).*h2 + (F + sigma.*xi0).*(2*h.*hf) - bff.*xi0f - 2*bf.*xi0ff - b.*xi0fff - anf.*xi1  - an.*xi1f)./a ...
+%                 - ( (F + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*af./(a.^2);
+% 
+%             unnff= ( (Fff + sigma.*xi0f).*h2 + (Ff + sigma.*xi0f).*(3*h.*hf) + (F + sigma.*xi0).*(2*hf.^2 + 2*h.*hff) ...
+%                 - b3f.*xi0f - 3*bff.*xi0ff - 3*bf.*xi0fff - b.*xi0ffff - anff.*xi1 - 2*anf.*xi1f - an.*xi1ff)./a ...
+%                 - 2*( (Ff + sigma.*xi0f).*h2 + (F + sigma.*xi0).*(2*h.*hf) - bff.*xi0f - bf.*xi0ff - bf.*xi0ff - b.*xi0fff - anf.*xi1  - an.*xi1f).*af./(a.^2) ...
+%                 - ( (F + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*aff./(a.^2) ...
+%                 + 2*( (F + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*(af.^2)./(a.^3);
+% 
+%             unnnn= ( (Fnn + sigma.*unn).*h2 + (Fn + sigma.*xi1).*(3*h.*hn) + (F + sigma.*xi0).*(2*hn.^2 + 2*h.*hnn) ...
+%                 -  bnnf.*xi0f - 2*bnf.*xi1f - bf.*unnf - bnn.*xi0ff - 2*bn.*xi1ff - b.*unnff - a3n.*xi1 - 2*ann.*unn - an.*unnn )./a ...
+%                 - 2*( (Fn + sigma.*xi1).*h2 + (F + sigma.*xi0).*(2*h.*hn) -  bnf.*xi0f  -  bf.*xi1f - bn.*xi0ff - b.*xi1ff - ann.*xi1 - an.*unn ).*an./(a.^2)...
+%                 - ( (F + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*ann./(a.^2) ...
+%                 + 2*( (F + sigma.*xi0).*h2 -  bf.*xi0f - b.*xi0ff - an.*xi1 ).*(an.^2)./(a.^3);
+%                          
+%             
+            res = xi0 + obj.deta.*xi1 + (obj.deta.^2).*unn/2 + (obj.deta.^3).*unnn/6 + (obj.deta.^4).*unnnn/24;
+            
+        end
+
+        
         function res = Expansion(obj,Xi0,Xi1,Source,Coeffs)
 			
 			switch obj.ExpansionType
@@ -539,7 +607,9 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
 				case 33
 					res = Expansion3thOrdrLap(obj,Xi0,Xi1,Source,Coeffs);
 				case 35
-					res = Expansion5thOrdrHomoLap(obj,Xi0,Xi1,Source,Coeffs);
+					res = Expansion5thOrdrLap(obj,Xi0,Xi1,Source,Coeffs);
+                case 36
+                    res = Expansion5thOrdrLap2(obj,Xi0,Xi1,Source,Coeffs);
 			end
 			
 			

@@ -59,7 +59,7 @@ classdef LaplaceSource_IIM346_Interior < Tools.Source.SuperSource
 			
 			
 			
-			S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);
+			
            % S(1:end,1)=	0;%Exact.u(1:end,1);
            % S(1,1:end)= 0;%Exact.u(1,1:end);
            % S(1:end,end)= 0;%Exact.u(1:end,end);
@@ -71,6 +71,7 @@ classdef LaplaceSource_IIM346_Interior < Tools.Source.SuperSource
 			
 			%%tmp = obj.Derivatives();
 			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
+            S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);
 		end
 	end
 end

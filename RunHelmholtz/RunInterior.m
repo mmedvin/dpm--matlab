@@ -42,7 +42,7 @@ elseif strcmpi(ScatType,'StarShapedScatterer')
 end
 
 %fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
-fprintf('Method:RunInterior-%s,\t  \n',ScatType);
+fprintf('Method:RunInterior-%s,\t using %s Basis \n',ScatType,BType);
 fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
 
 for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
@@ -52,8 +52,11 @@ for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
     f   =@(th) Exact(th,k,ExParams);
     dfdn=@(th) drExact(th,k,ExParams);
 
-    Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
-
+    if strcmpi(BType,'Chebyshev')
+        Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
+    elseif strcmpi(BType,'Fourier')
+        Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
+    end
 for n=1:5 %run different grids
 tic
 	%build grid
@@ -182,7 +185,7 @@ tic
     t2=toc;
     
     
-        fprintf('k=%d,M=%d,N=%-10dx%-10d\t ebinf=%d|%-5.4f\tetinf=%d|%-5.4f\ttimeA=%d\ttimeE=%d\n',k,Basis.M, Nx,Ny,...
+        fprintf('k=%d,NBss0=%d,NBss1=%d,N=%-10dx%-10d\t ebinf=%d|%-5.4f\tetinf=%d|%-5.4f\ttimeA=%d\ttimeE=%d\n',k,Basis.NBss0,Basis.NBss1, Nx,Ny,...
         ebinf, log2(ebinfPre./ebinf), etinf,log2(etinfPre./etinf),t1,t2-t1);
     etinfPre = etinf;
     ebinfPre = ebinf;

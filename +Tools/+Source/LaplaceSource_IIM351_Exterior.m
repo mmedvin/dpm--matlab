@@ -71,25 +71,27 @@ classdef LaplaceSource_IIM351_Exterior < Tools.Source.SuperSource
 		function S = get.Source(obj)
  			S = spalloc(obj.Scatterer.Size(1),obj.Scatterer.Size(2),numel(obj.Scatterer.Np));
 			
-			[F,Fn,~,Fnn] = obj.Derivatives();
+			%[F,Fn,~,Fnn] = obj.Derivatives();
 			
-			Exact	= Tools.Exact.ExLapElps351(obj.Scatterer, obj.ExParams);
+			%Exact	= Tools.Exact.ExLapElps351(obj.Scatterer, obj.ExParams);
 
-            %S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
-            S=F;
-            S(1:end,1)=	Exact.u(1:end,1);
-            S(1,1:end)= Exact.u(1,1:end);
-            S(1:end,end)= Exact.u(1:end,end);
-            S(end,1:end)= Exact.u(end,1:end);
-			
+            
+            S= obj.Derivatives();
+%             S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
+%             S(1:end,1)=	Exact.u(1:end,1);
+%             S(1,1:end)= Exact.u(1,1:end);
+%             S(1:end,end)= Exact.u(1:end,end);
+%             S(end,1:end)= Exact.u(end,1:end);
+%  			
 %  			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
 %  										+ obj.Scatterer.deta.*Fn(obj.Scatterer.GridGamma) ...  
 %  										+ (obj.Scatterer.deta.^2).*Fnn(obj.Scatterer.GridGamma)/2;%taylor
 % 			
-%           S=F; 
+%             S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
+%            S=F; 
                                    
 			%%tmp = obj.Derivatives();
-			S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
+			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
 		end
 	end
 end

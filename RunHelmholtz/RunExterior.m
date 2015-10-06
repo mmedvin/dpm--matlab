@@ -97,7 +97,7 @@ rat=4/5;
         if strcmpi(BType,'Chebyshev')
             Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
         elseif strcmpi(BType,'Fourier')
-            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,105);
+            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,1e-06);%105);
         end
       
         %WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
@@ -183,7 +183,7 @@ rat=4/5;
                 %etinf(n) =norm(tmp(:),inf);
 				ErrTot = norm(tmp(:),inf);
                 %fprintf('k=%d,M=%d,N=%-10dx%-10d\t etinf=%d\ttime=%d\n',k,Basis.M, Nr,Nth,full(etinf(n)),t);
-				fprintf('k=%d,M=%d,N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t time=%d\n',k,Basis.M, Nr,Nth,ErrTot,log2(ErrPre/ErrTot),t);
+				fprintf('k=%d,NBss0=%d,NBss1=%d,N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t time=%d\n',k,Basis.NBss0,Basis.NBss1, Nr,Nth,ErrTot,log2(ErrPre/ErrTot),t);
 				
 				ErrPre = ErrTot;
 				

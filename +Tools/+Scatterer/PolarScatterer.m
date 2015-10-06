@@ -18,9 +18,9 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
         MetricsAtScatterer = Tools.Metrics.PolarMetrics;
     end
     
-    properties(Access = private)
-        %ExpansionType;
-    end
+%     properties(Access = private)
+%         ExpansionType;
+%     end
     
     methods
         

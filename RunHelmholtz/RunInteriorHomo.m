@@ -4,12 +4,17 @@ function RunInteriorHomo
 
 
 x1=-1.2;xn=1.2;
-y1=-1.2;yn=1.2;
+%y1=-1.2;yn=1.2;
 
  %x1=-1.7;xn=1.2;
  %y1=-1.7;yn=1.7;
-% y1=-.7;yn=.7;
+ y1=-.7;yn=.7;
 
+ %Kite
+  %  x1=-1.7;xn=1.2;
+  %  y1=-1.7;  yn=1.7;
+ 
+ 
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
 
@@ -56,7 +61,7 @@ for k =1%[1,5,10,15,20,25]
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,1e-11);
 	end
 
 for n=1:4 %run different grids
@@ -146,8 +151,8 @@ tic
     %t2=toc;
     
     ErrTot =norm(exact(:)-u(:),inf);
-    fprintf('k=%d,M=%d,N=%-4dx%-4d\t ErrXi=%d\t rate=%-5.2f ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
-        k,Basis.M, Nx,Ny,ErrXi,log2(ErrXiPre/ErrXi),ErrTot,log2(ErrPre/ErrTot),t1);
+    fprintf('k=%d,NBss0=%d,NBss1=%d,N=%-4dx%-4d\t ErrXi=%d\t rate=%-5.2f ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
+        k,Basis.NBss0,Basis.NBss1, Nx,Ny,ErrXi,log2(ErrXiPre/ErrXi),ErrTot,log2(ErrPre/ErrTot),t1);
     ErrPre = ErrTot;
     ErrXiPre = ErrXi;
     

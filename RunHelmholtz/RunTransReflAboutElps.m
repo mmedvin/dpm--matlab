@@ -157,8 +157,8 @@ kex = [1];
                 tmp = Intu(1:2:end,1:2:end)-Intu1(1:2:end,1:2:end);
                 IntErr(n) =norm(tmp(:),inf);
                 
-                fprintf('kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',...
-                    ExtWaveNumberParams.k,IntWaveNumberParams.k,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
+                fprintf('kex=%d,kin=%d,NBss0=%d,NBss1=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',...
+                    ExtWaveNumberParams.k,IntWaveNumberParams.k,Basis.NBss0,Basis.NBss1, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));

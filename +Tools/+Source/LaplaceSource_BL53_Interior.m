@@ -101,6 +101,8 @@ classdef LaplaceSource_BL53_Interior < Tools.Source.SuperSource
 			
  			S(obj.Scatterer.GridGamma)	= F + obj.Scatterer.deta.*Fn + (obj.Scatterer.deta.^2).*Fnn/2;%taylor
             S(obj.Scatterer.Inside) = Fin(obj.Scatterer.Inside);
+            
+            %S=Fin;%debug
 
 		end
 	end

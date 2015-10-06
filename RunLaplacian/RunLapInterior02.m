@@ -23,7 +23,7 @@ function RunLapInterior02
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,2);
 	end
 
 for	   LinearSolverType = 1
@@ -31,7 +31,7 @@ for	   LinearSolverType = 1
     
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 	
-    fprintf('Problem RunLapInterior02, M=%d, LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.M, LinearSolverType, BIn, BOut);
+    fprintf('Problem RunLapInterior02, NBss0=%d, NBss1=%d, LinearSolverType = %d, BIn=%d, BOut=%d\n', Basis.NBss0,Basis.NBss1, LinearSolverType, BIn, BOut);
         
 	for n=1:5 %run different grids
 		tic

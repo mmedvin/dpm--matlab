@@ -4,30 +4,79 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
 		function FBasis = BasisHelper(f,dfdr,err,~)%range)
 
             if ~exist('err','var'),err = 10^(-10);end
-			
-            if err < 1
-				[cn0,cn1,M] = Tools.Basis.FourierBasis.FourierCoeffNew(f,dfdr,err);
-			else
-				M=err;
-				
-				M1 = 2*M+1;
-				th=linspace(0,2*pi,M1+1);
-				th=th(1:M1);
-				fth   = f(th);
-				dfth  = dfdr(th);
-				
-				%calc coeff
-				cn0 = Tools.Basis.FourierBasis.FftCoefs(fth,M1).';				
-				cn1 = Tools.Basis.FourierBasis.FftCoefs(dfth,M1).';
-				
-			end
 			me = metaclass(Tools.Basis.FourierBasis);
-			FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
-							'Indices',  -M:M, ...
-							'cn0',cn0,'cn1',cn1,'M',M,'MoreParams',[],'NBss', 2*M+1);
-		end
+            
+            if err < 1
+                %[cn0,cn1,M] = Tools.Basis.FourierBasis.FourierCoeffNew(f,dfdr,err);
+                M=1023;
+                M1 = 2*M+1;                
+                th=linspace(0,2*pi,M1+1);
+                th=th(1:M1);
+                
+                fth   = f(th);
+                dfth  = dfdr(th);
+                
+                cn0 = Tools.Basis.FourierBasis.FftCoeffs(fth,M1).';
+                cn1 = Tools.Basis.FourierBasis.FftCoeffs(dfth,M1).';
+                
+                AllIndices = -M:M;
+                
+                Indices0 = (find(abs(cn0)>err));%find(abs(cn0)>err,1,'first'):find(abs(cn0)>err,1,'last'); %
+                Indices1 = (find(abs(cn1)>err));%find(abs(cn1)>err,1,'first'):find(abs(cn1)>err,1,'last'); %
+                %if isempty(Indices0), Indices0=Indices1; end
+                
+                FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
+                    'Indices0',  AllIndices(Indices0), 'cn0',cn0(Indices0), 'NBss0', numel(Indices0), ...
+                    'Indices1',  AllIndices(Indices1), 'cn1',cn1(Indices1), 'NBss1', numel(Indices1), ...
+                    'MoreParams',[], ...
+                    'Core',struct('M',M,'Indices0',Indices0,'Indices1',Indices1));
+            else
+                M=err;
+                
+                M1 = 2*M+1;
+                th=linspace(0,2*pi,M1+1);
+                th=th(1:M1);
+                fth   = f(th);
+                dfth  = dfdr(th);
+                
+                %calc coeff
+                cn0 = Tools.Basis.FourierBasis.FftCoeffs(fth,M1).';
+                cn1 = Tools.Basis.FourierBasis.FftCoeffs(dfth,M1).';
+                AllIndices = -M:M;
+                FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
+                    'Indices0',   -M:M, 'cn0',cn0, 'NBss0', 2*M+1, ...
+                    'Indices1',   -M:M, 'cn1',cn1, 'NBss1', 2*M+1, ...
+                    'MoreParams',[], ...
+                    'Core',struct('M',M,'Indices0',1:M1,'Indices1',1:M1));
+            end
+			
+            
+			%FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
+			%				'Indices',  -M:M, ...
+			%				'cn0',cn0,'cn1',cn1,'M',M,'MoreParams',[],'NBss', 2*M+1);
+        end
+
+        function Coefs = Coeffs(FuncHandle, Core,n)
+            siz = 2*Core.M+1;
+            phi=linspace(0,2*pi, siz+1);
+            phi = phi(1:siz);
+            vec = FuncHandle(phi);
+            
+            Coefs = fft(vec);
+            Coefs = fftshift(Coefs);
+            Coefs = Coefs/siz;  %normalization
+            
+            switch(n)
+                case 0
+                    Coefs = Coefs(Core.Indices0);
+                case 1
+                    Coefs = Coefs(Core.Indices1);
+                otherwise
+                    error('wrong n')
+            end
+        end
         
-		function Coefs = FftCoefs(vec, siz)
+		function Coefs = FftCoeffs(vec, siz)
 			if ~exist('siz','var'),siz = numel(vec);end
 			
 			Coefs = fft(vec);
@@ -67,7 +116,7 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
             M=(numel(cn0)-1)/2;                        
         end
         
-        function [cn0,cn1,M] = FourierCoeff(f,dfdr)
+        function [cn0,cn1,M] = FourierCoeffOld(f,dfdr)
             cn0 =   quadgk(f,-pi,pi);
             cn1  =   quadgk(dfdr,-pi,pi);
             j=0;

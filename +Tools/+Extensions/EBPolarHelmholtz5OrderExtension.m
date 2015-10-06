@@ -1,4 +1,4 @@
-classdef EBPolarHelmholtz5OrderExtension < Tools.Extensions.TwoTupleExtension 
+classdef EBPolarHelmholtz5OrderExtension < Tools.Extensions.SuperPolarTwoTupleExtension 
  % Equaion Based Polar Helmholtz 5 Order Extension
     
     methods

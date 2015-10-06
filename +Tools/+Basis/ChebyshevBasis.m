@@ -2,16 +2,46 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
     properties(Constant)
         epsilon = 2*0.00390625; %magic number, it is 2pi/512 translated to the [-1,1]
         use_epsilon = 1; % 0 or 1
+        M=2^10;
     end
     methods(Static)
         function CBasis = BasisHelper(f,dfdr,range)
-            [cn0,cn1,N] = Tools.Basis.ChebyshevBasis.ChebychevCoeff(f,dfdr,range);
+            %[cn0,cn1,N] = Tools.Basis.ChebyshevBasis.ChebychevCoeff(f,dfdr,range);
+            [cn0,cn1] = Tools.Basis.ChebyshevBasis.ChebychevCoeffNew(f,dfdr,range);
             me = metaclass(Tools.Basis.ChebyshevBasis);
+            %CBasis = struct('type','Chebyshev','Handle',str2func(me.Name),...
+            %                'Indices',  0:N-1, ...
+            %                'cn0',cn0.','cn1',cn1.','M',N,'MoreParams',range,'NBss', N);
+            
+            tmpIndices = 0:Tools.Basis.ChebyshevBasis.M-1;
+            err = 1e-8;
+            
+            Indices0 = (find(abs(cn0)>err));
+            Indices1 = (find(abs(cn1)>err));
+            
             CBasis = struct('type','Chebyshev','Handle',str2func(me.Name),...
-                            'Indices',  0:N-1, ...
-                            'cn0',cn0.','cn1',cn1.','M',N,'MoreParams',range,'NBss', N);
+                'Indices0',  tmpIndices(Indices0), 'cn0',cn0(Indices0), 'M0_0',min(Indices0), 'M0_1',max(Indices0), 'NBss0', numel(Indices0), ...
+                'Indices1',  tmpIndices(Indices1), 'cn1',cn1(Indices1), 'M1_0',min(Indices0), 'M1_1',max(Indices0), 'NBss1', numel(Indices1), ...
+                'MoreParams',range);
+
             
         end
+        
+        function [cn0,cn1] = ChebychevCoeffNew(f,dfdr,range)
+            %N=1024;
+            % x = cos(pi / N * (N-0.5 : -1 : 0.5));
+            
+            cn0 = Tools.Basis.ChebyshevBasis.chebyshevExpansion(f,range);
+            cn1 = Tools.Basis.ChebyshevBasis.chebyshevExpansion(dfdr,range);
+            
+%             err=(1e-14);
+%             cn1(abs(cn1) < err) = 0;
+%             N = find(cn1,1,'last');
+%             cn0 = cn0(1:N).';
+%             cn1 = cn1(1:N).';
+            
+        end
+        
         function [cn0,cn1,N] = ChebychevCoeff(f,dfdr,range)
             %N=1024;
             % x = cos(pi / N * (N-0.5 : -1 : 0.5));
@@ -33,7 +63,7 @@ classdef ChebyshevBasis < Tools.Basis.BasisFunctionWD
             % range is the range of theta for func taken as a 1x2 vector [a,b]
             % N is the number of coefficients returned
             
-            N=2^10;
+            N=Tools.Basis.ChebyshevBasis.M;
             x= Tools.Basis.ChebyshevBasis.chebroot(N); % roots of a large chebyshev polynomial
             
             %x = cos(pi / N * (N-0.5 : -1 : 0.5));

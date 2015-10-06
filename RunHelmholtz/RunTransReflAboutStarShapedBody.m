@@ -66,7 +66,7 @@ dbk=dbstack();
 kin = [3 ,10, 15,  20];
 kex = [1 ,5 ,  5,  10];
         
-    for ki = 2 %1:3
+    for ki = 1 %1:3
         
         ErrIntPre = 0;         ErrExtPre = 0;   ErrTotPre = 0;
                     
@@ -80,11 +80,11 @@ kex = [1 ,5 ,  5,  10];
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,tst_k);
             
 
-        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,@sin);
+        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,1e-5);
 	%Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
         %Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
 
-        fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.M);
+        fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d NBss0=%d NBss1=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.NBss0, Basis.NBss1);
     
         nmax=4;%3;
         for n=1:nmax %run different grids

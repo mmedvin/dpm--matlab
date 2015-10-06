@@ -12,6 +12,6 @@ classdef SuperExtension < handle
     methods(Access = public,Abstract=true)
         Expand(obj);
         ExpandSource(obj,Source);
-        ExpandedBasis(obj,n);
+        %ExpandedBasis(obj,n);
     end
 end
