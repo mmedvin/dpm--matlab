@@ -20,10 +20,8 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
             obj.Grid      = Arguments.Grid;
             
             obj.W         = cell(1,2);
-            obj.W{1}      = struct('GridGamma',obj.GridGamma, 'msk',obj.Scatterer.Mp,'W',...
-                                    spalloc( Arguments.Grid.Nx*Arguments.Grid.Ny, obj.Basis.NBss0, numel(obj.GridGamma)*obj.Basis.NBss0));
-            obj.W{2}      = struct('GridGamma',obj.GridGamma, 'msk',obj.Scatterer.Mp, 'W',...
-                                    spalloc( Arguments.Grid.Nx*Arguments.Grid.Ny, obj.Basis.NBss1, numel(obj.GridGamma)*obj.Basis.NBss1));
+            obj.W{1}      = spalloc( Arguments.Grid.Nx*Arguments.Grid.Ny, obj.Basis.NBss0, numel(obj.GridGamma)*obj.Basis.NBss0);
+            obj.W{2}      = spalloc( Arguments.Grid.Nx*Arguments.Grid.Ny, obj.Basis.NBss1, numel(obj.GridGamma)*obj.Basis.NBss1);
             
             obj.NoXi = obj.Basis.Handle();
         end
@@ -31,8 +29,8 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
             tmp1                      = arrayfun(@(n) obj.ExpandedBasis0(n), obj.Basis.Indices0, 'UniformOutput', false);
             tmp2                      = arrayfun(@(n) obj.ExpandedBasis1(n), obj.Basis.Indices1, 'UniformOutput', false);            
 
-            obj.W{1}.W(obj.GridGamma,:) = cell2mat(tmp1);
-            obj.W{2}.W(obj.GridGamma,:) = cell2mat(tmp2);
+            obj.W{1}(obj.GridGamma,:) = cell2mat(tmp1);
+            obj.W{2}(obj.GridGamma,:) = cell2mat(tmp2);
         end
         
         function xi0j = ExpandedBasis0(obj,n)
@@ -50,9 +48,8 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
         end
         
         function ExpandSource(obj,Source)
-            obj.Wf                          = struct('GridGamma',obj.GridGamma, 'msk',obj.Scatterer.Mp,'W',...
-                                                        spalloc(obj.Grid.Nx*obj.Grid.Ny,1,numel(obj.Scatterer.GridGamma)));
-            obj.Wf.W(obj.Scatterer.GridGamma) = obj.Expansion(obj.NoXi,obj.NoXi,Source);
+            obj.Wf                          = spalloc(obj.Grid.Nx*obj.Grid.Ny,1,numel(obj.Scatterer.GridGamma));
+            obj.Wf(obj.Scatterer.GridGamma) = obj.Expansion(obj.NoXi,obj.NoXi,Source);
         end
 
         function val = Expansion(obj,xi0,xi1,Src)

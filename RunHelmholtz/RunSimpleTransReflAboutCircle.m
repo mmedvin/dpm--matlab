@@ -91,11 +91,11 @@ function RunSimpleTransReflAboutCircle
                 %             cn1 = cn(2*M+2:end);
                 
                 Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}.W(IntPrb.GridGamma,:),IntPrb.W{2}.W(IntPrb.GridGamma,:)]*cn;
+                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
                 Intu = IntPrb.P_Omega(Intxi);
                 
                 Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
-                Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}.W(ExtPrb.GridGamma,:),ExtPrb.W{2}.W(ExtPrb.GridGamma,:)]*cn ;%- uinc;
+                Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
                 %Extxi(ExtPrb.GridGamma) = [ExtPrb.W(ExtPrb.GridGamma,:),uinc]*cn;
                 
                 UincParams  = struct('ScattererType','circle','r',PlrGrid.R);

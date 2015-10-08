@@ -45,9 +45,7 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
     
     methods(Access = protected)
       
-        function f = Lu(obj,u,msk)
-            if isstruct(u), msk = u.msk; u = u.W; end
-            
+        function f = Lu(obj,u,msk)            
             if exist('msk','var');
                 f = obj.A(msk,:)*u;
             else
@@ -60,7 +58,7 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
         end
                 
         function Qj = Qcol(obj,GLW,W)
-            Qj = -GLW(W.GridGamma,:);
+            Qj = -GLW(obj.GridGamma,:);
         end
         
         function HlmSemA(obj)%(x,y,k)

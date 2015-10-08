@@ -166,7 +166,7 @@ classdef SuperHomoSolver < handle
                 obj.calc_QnW();
             end
             
-            wj=obj.Extension.W{j}.W; %obj.myW0;
+            wj=obj.Extension.W{j}; %obj.myW0;
         end
  
         
@@ -175,7 +175,7 @@ classdef SuperHomoSolver < handle
                obj.calc_QnW();
             end            
             
-            w0=obj.Extension.W{1}.W; %obj.myW0;
+            w0=obj.Extension.W{1}; %obj.myW0;
 	   end 
 
 	   function w1 = get.W1(obj)
@@ -183,7 +183,7 @@ classdef SuperHomoSolver < handle
 			   obj.calc_QnW();
 		   end
 		   
-		   w1=obj.Extension.W{2}.W;%myW1;
+		   w1=obj.Extension.W{2};%myW1;
 	   end
 		
 		
@@ -205,14 +205,14 @@ classdef SuperHomoSolver < handle
     
         function Rhs(obj)
             obj.Expand();
-            tmp=cellfun(@(arg) obj.Lu(arg),obj.Extension.W,'UniformOutput',false);
+            tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp),obj.Extension.W,'UniformOutput',false);
             
             obj.rhs = cell(size(tmp));
             for indx=1:numel(tmp)
-                [n,m]=size(obj.Extension.W{indx}.W);
-                NNZ = nnz(obj.Extension.W{indx}.W);
+                [n,m]=size(obj.Extension.W{indx});
+                NNZ = nnz(obj.Extension.W{indx});
                 obj.rhs{indx} = spalloc( n,m,NNZ);
-                obj.rhs{indx}(obj.Extension.W{indx}.msk,:) = tmp{indx};
+                obj.rhs{indx}(obj.Scatterer.Mp,:) = tmp{indx};
             end
             
         end
@@ -227,9 +227,9 @@ classdef SuperHomoSolver < handle
              else
                  obj.Expand();                 
                  for indx=1:numel(obj.Extension.W)
-                     for j = 1:size(obj.Extension.W{indx}.W,2)
-                         GLW                    = obj.Solve(obj.Extension.W{indx}.W(:,j));
-                         obj.NewQ{indx}(:,j)    = obj.Qcol(GLW,obj.Extension.W{indx}.W(:,j));
+                     for j = 1:size(obj.Extension.W{indx},2)
+                         GLW                    = obj.Solve(obj.Extension.W{indx}(:,j));
+                         obj.NewQ{indx}(:,j)    = obj.Qcol(GLW,obj.Extension.W{indx}(:,j));
                      end
                  end
                  

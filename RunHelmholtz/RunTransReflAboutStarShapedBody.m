@@ -163,11 +163,11 @@ kex = [1 ,5 ,  5,  10];
                 cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
                 
                 Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}.W(IntPrb.GridGamma,:),IntPrb.W{2}.W(IntPrb.GridGamma,:)]*cn;
+                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
                 Intu = IntPrb.P_Omega(Intxi);
                 
                 Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
-                Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}.W(ExtPrb.GridGamma,:),ExtPrb.W{2}.W(ExtPrb.GridGamma,:)]*cn ;%- uinc;
+                Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
                 
                  UincParams2 = struct('ScattererType','StarShapedScatterer','r',PlrGrid.R);%,'Parameterization',Parameterization
                 Uinc = Uinc(UincParams2,PlrGrid.Theta,IncAng,kex(ki));

@@ -126,11 +126,11 @@ for	   LinearSolverType = 0
 		Extcn= cn((Basis.NBss0+Basis.NBss1+1):end); 
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = [IntPrb.W{1}.W(IntPrb.GridGamma,:),IntPrb.W{2}.W(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf.W(IntPrb.GridGamma);
+		Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf(IntPrb.GridGamma);
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
-		Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}.W(ExtPrb.GridGamma,:),ExtPrb.W{2}.W(ExtPrb.GridGamma,:)]*Extcn;%  + ExtPrb.Wf(ExtPrb.GridGamma));
+		Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*Extcn;%  + ExtPrb.Wf(ExtPrb.GridGamma));
 		Extu =  spalloc(Nx,Ny,length(ExtPrb.GridGamma));
 		tmp = ExtPrb.P_Omega(Extxi);
 		Extu(ExtPrb.Scatterer.Nm) = tmp(ExtPrb.Scatterer.Nm);

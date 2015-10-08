@@ -38,7 +38,7 @@ classdef NestedScatterer < Tools.Scatterer.SuperScatterer
             
             obj.BasisArg        = {obj.InteriorScatterer.BasisArg    , obj.ExteriorScatterer.BasisArg       };
             obj.TheScatterer    = {obj.InteriorScatterer.TheScatterer, obj.ExteriorScatterer.TheScatterer   };
-            obj.GridGamma       = {obj.InteriorScatterer.GridGamma   , obj.ExteriorScatterer.GridGamma      };
+            obj.GridGamma       = union(obj.InteriorScatterer.GridGamma   , obj.ExteriorScatterer.GridGamma );
             
             obj.Inside  = xor(obj.InteriorScatterer.Inside , obj.ExteriorScatterer.Inside  );
             obj.Outside = ~obj.Inside;

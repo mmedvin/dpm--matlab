@@ -67,19 +67,19 @@ tic
         'ExtensionParams', ExtentionParams ...
         ));
     
-    InteriorCn1	= ( IntPrb.Q{1,2} \ ( -IntPrb.Q{1,1}*Basis.Interior.cn0)) ;
-    ExteriorCn1 = ( IntPrb.Q{2,2} \ ( -IntPrb.Q{2,1}*Basis.Exterior.cn0)) ;
+    %InteriorCn1	= ( IntPrb.Q{1,2} \ ( -IntPrb.Q{1,1}*Basis.Interior.cn0)) ;
+    %ExteriorCn1 = ( IntPrb.Q{2,2} \ ( -IntPrb.Q{2,1}*Basis.Exterior.cn0)) ;
     
 
-    %Cn	= [ IntPrb.Q{1,2}, IntPrb.Q{2,2}] \ ([ -IntPrb.Q{1,1},-IntPrb.Q{2,1}]*[Basis.Interior.cn0, Basis.Exterior.cn0]) ;
-    %InteriorCn1 = Cn(1:Basis.Interior.NBss0);
-    %ExteriorCn1 = Cn(1+Basis.Interior.NBss0:end);
+    Cn	= [ IntPrb.Q{1,2}, IntPrb.Q{2,2}] \ ([ -IntPrb.Q{1,1},-IntPrb.Q{2,1}]*[Basis.Interior.cn0; Basis.Exterior.cn0]) ;
+    InteriorCn1 = Cn(1:Basis.Interior.NBss1);
+    ExteriorCn1 = Cn((1+Basis.Interior.NBss1):end);
     
     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-    xi(IntPrb.GridGamma{1}) = IntPrb.W{1,1}.W(IntPrb.GridGamma{1},:)*Basis.Interior.cn0 + IntPrb.W{1,2}.W(IntPrb.GridGamma{1},:)*InteriorCn1;
-    xi(IntPrb.GridGamma{2}) = IntPrb.W{2,1}.W(IntPrb.GridGamma{2},:)*Basis.Exterior.cn0 + IntPrb.W{2,2}.W(IntPrb.GridGamma{2},:)*ExteriorCn1;
+    xi(IntPrb.GridGamma) = IntPrb.W{1,1}(IntPrb.GridGamma,:)*Basis.Interior.cn0 + IntPrb.W{1,2}(IntPrb.GridGamma,:)*InteriorCn1 ...
+                         + IntPrb.W{2,1}(IntPrb.GridGamma,:)*Basis.Exterior.cn0 + IntPrb.W{2,2}(IntPrb.GridGamma,:)*ExteriorCn1;
 
-    
+                     
     if strcmpi(ScatType,'circle')
         ExParams2 =ExParams;
         ExParams2{1}.r = IntPrb.Scatterer.r{1};
@@ -88,10 +88,10 @@ tic
         xiex2 = Exact(IntPrb.Scatterer.th{2},k,ExParams2{2});
     end
     
-    ErrXi1 =norm(xiex1 -xi(IntPrb.GridGamma{1}),inf);
-    ErrXi2 =norm(xiex2 -xi(IntPrb.GridGamma{2}),inf);
-    %xi(IntPrb.GridGamma{1})=xiex1;
-    %xi(IntPrb.GridGamma{2})=xiex2;
+    ErrXi1 =norm(xiex1 -xi(IntPrb.Scatterer.InteriorScatterer.GridGamma),inf);
+    ErrXi2 =norm(xiex2 -xi(IntPrb.Scatterer.ExteriorScatterer.GridGamma),inf);
+    %xi(IntPrb.Scatterrer.InteriorScatterer.GridGamma)=xiex1;
+    %xi(IntPrb.Scatterrer.ExteriorScatterer.GridGamma)=xiex2;
     u = IntPrb.P_Omega(xi);
     
     t1=toc;

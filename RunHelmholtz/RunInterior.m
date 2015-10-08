@@ -108,7 +108,7 @@ tic
         
     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
     xi(IntPrb.GridGamma) = ...
-        IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*cn1 + IntPrb.Wf.W(IntPrb.GridGamma);
+        IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*cn1 + IntPrb.Wf(IntPrb.GridGamma);
    
 
     if strcmpi(ScatType,'circle')

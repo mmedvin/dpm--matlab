@@ -41,7 +41,7 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
     methods(Access = protected)
                 
         function Qj = Qcol(obj,GLW,w)
-            Qj = GLW(w.GridGamma,:)-w.W(w.GridGamma,:);
+            Qj = GLW(obj.GridGamma,:)-w(obj.GridGamma,:);
         end
         
 		function rhs = Bf(obj,F)
