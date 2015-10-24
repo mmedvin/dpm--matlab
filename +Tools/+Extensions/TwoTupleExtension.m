@@ -11,13 +11,19 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
         
         GridGamma;
         BasisArg;
+        
+        CoeffsHandle;
+        CoeffsParams
     end
     methods
         function obj = TwoTupleExtension(Arguments)
-            obj.Basis     = Arguments.Basis;
-            obj.Coeffs    = Arguments.Coeffs;
-            obj.Scatterer = Arguments.Scatterer;
-            obj.Grid      = Arguments.Grid;
+            obj.Basis           = Arguments.Basis;
+            %obj.Coeffs         = Arguments.Coeffs;
+            obj.Scatterer       = Arguments.Scatterer;
+            obj.CoeffsHandle 	= Arguments.CoeffsHandle;
+            obj.CoeffsParams    = Arguments.CoeffsParams;
+            obj.Coeffs          = Arguments.CoeffsHandle(obj.Scatterer.TheScatterer,Arguments.CoeffsParams);%TODO: Consider to remove TheScatterer
+            obj.Grid            = Arguments.Grid;
             
             obj.W         = cell(1,2);
             obj.W{1}      = spalloc( Arguments.Grid.Nx*Arguments.Grid.Ny, obj.Basis.NBss0, numel(obj.GridGamma)*obj.Basis.NBss0);
@@ -47,9 +53,11 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
             xi1j = obj.Expansion(obj.NoXi,    Xi      ,   obj.NoSource);       
         end
         
-        function ExpandSource(obj,Source)
-            obj.Wf                          = spalloc(obj.Grid.Nx*obj.Grid.Ny,1,numel(obj.Scatterer.GridGamma));
-            obj.Wf(obj.Scatterer.GridGamma) = obj.Expansion(obj.NoXi,obj.NoXi,Source);
+        function ExpandSource(obj,SourceHandle,SourceParams)
+            Source = SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,SourceParams);
+
+            obj.Wf                          = {spalloc(obj.Grid.Nx*obj.Grid.Ny,1,numel(obj.Scatterer.GridGamma))};
+            obj.Wf{1}(obj.Scatterer.GridGamma) = obj.Expansion(obj.NoXi,obj.NoXi,Source);
         end
 
         function val = Expansion(obj,xi0,xi1,Src)

@@ -1,6 +1,6 @@
 classdef InteriorSolver < Solvers.SuperNonHomoSolver
    
-    properties(Access = protected, AbortSet = true)
+    properties%(Access = protected, AbortSet = true)
         A;
         k;
     end
@@ -9,9 +9,9 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
         function obj = InteriorSolver(Arguments)
             obj = obj@Solvers.SuperNonHomoSolver(Arguments);
                         
-            if  obj.Coeffs.IsConstant
-                obj.k = sparse(obj.Coeffs.k.*ones(obj.Grid.Size+2));
-            else
+%             if  obj.Coeffs.IsConstant
+%                 obj.k = sparse(obj.Coeffs.k.*ones(obj.Grid.Size+2));
+%             else
                 GridK   = Tools.Grid.CartesianGrid( ...
                           obj.Grid.x1 - obj.Grid.dx , ...
                           obj.Grid.xn + obj.Grid.dx , ...
@@ -20,11 +20,14 @@ classdef InteriorSolver < Solvers.SuperNonHomoSolver
                           obj.Grid.yn + obj.Grid.dy , ...
                           obj.Grid.Ny + 2         ) ;
                       
-                ScattK = struct('r',GridK.R);
-                WNPlr=Tools.Coeffs.WaveNumberPolarR(ScattK,Arguments.CoeffsParams);
-                obj.k = sparse(WNPlr.k);            
-            end
+%                 ScattK = struct('r',GridK.R);
+%                 WNPlr=Tools.Coeffs.WaveNumberPolarR(ScattK,Arguments.CoeffsParams);
+%                 obj.k = sparse(WNPlr.k);            
+%             end
             
+            WN = obj.CoeffsHandle(GridK,Arguments.CoeffsParams);
+            obj.k = WN.k;
+
             obj.HlmSemA();%(x,y,k);
             
             

@@ -88,7 +88,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 if obj.CollectRhs
 				 obj.Rhs();
 				 				 
-                 GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,{obj.rhsf(:)},{obj.BF}],'UniformOutput',false);
+                 GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf(:),{obj.BF}],'UniformOutput',false);
                  obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW(1:end-1), [obj.Extension.W,{obj.Extension.Wf}],'UniformOutput',false);
                  
                  obj.myGF   = GLW{end};
@@ -126,14 +126,27 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
              
            %  HS = obj.Source(obj.FocalDist,obj.Eta0,obj.phi,obj.k0,obj.r0); %?????
            
-           Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
+          % Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
            
            %obj.myWf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);
-           obj.Extension.ExpandSource(Source);
+           %obj.Extension.ExpandSource(Source);
+           obj.Extension.ExpandSource(obj.SourceHandle,obj.SourceParams);
          end
                   
          function CreateRhsf(obj)             
-             obj.rhsf(obj.Scatterer.Mp) = obj.Lu(obj.Extension.Wf(:),obj.Scatterer.Mp);
+             %obj.rhsf(obj.Scatterer.Mp) = obj.Lu(obj.Extension.Wf(:),obj.Scatterer.Mp);
+             
+             tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp),obj.Extension.Wf,'UniformOutput',false);
+            
+            obj.rhsf = cell(size(tmp));
+            for indx=1:numel(tmp)
+                [n,m]=size(obj.Extension.Wf{indx});
+                NNZ = nnz(obj.Extension.Wf{indx});
+                obj.rhsf{indx} = spalloc( n,m,NNZ);
+                obj.rhsf{indx}(obj.Scatterer.Mp,:) = tmp{indx};
+            end
+
+             
          end
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 

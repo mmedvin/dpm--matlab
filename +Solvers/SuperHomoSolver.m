@@ -49,7 +49,7 @@ classdef SuperHomoSolver < handle
         ScattererParams;
         
         % an instance  + class handle for Coeffs class (coefficients of the equation) + the parameters to be sent to its constructor
-        Coeffs;
+        %Coeffs;
         CoeffsHandle;
         CoeffsParams;
         
@@ -105,12 +105,15 @@ classdef SuperHomoSolver < handle
             
             obj.CoeffsHandle 	= Arguments.CoeffsHandle;
             obj.CoeffsParams 	= Arguments.CoeffsParams;            
-            obj.Coeffs 			= obj.CoeffsHandle(obj.Scatterer.TheScatterer,obj.CoeffsParams);%TODO: Consider to remove TheScatterer
+            %obj.Coeffs 			= obj.CoeffsHandle(obj.Scatterer.TheScatterer,obj.CoeffsParams);%TODO: Consider to remove TheScatterer
             
-            Arguments.ExtensionParams.Grid      = obj.Grid;
-            Arguments.ExtensionParams.Scatterer = obj.Scatterer;
-            Arguments.ExtensionParams.Basis     = Arguments.Basis;
-            Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
+            Arguments.ExtensionParams.Grid          = obj.Grid;
+            Arguments.ExtensionParams.Scatterer     = obj.Scatterer;
+            Arguments.ExtensionParams.Basis         = Arguments.Basis;
+            Arguments.ExtensionParams.CoeffsHandle 	= Arguments.CoeffsHandle;
+             Arguments.ExtensionParams.CoeffsParams	= Arguments.CoeffsParams;            
+
+            %Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
             obj.Extension                       = Arguments.Extension(Arguments.ExtensionParams);
 
             obj.f=zeros(obj.Grid.Nx,obj.Grid.Ny);

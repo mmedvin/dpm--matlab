@@ -36,7 +36,7 @@ classdef PolarScatterer < Tools.Scatterer.SingleScatterer
         end
         
         function TS = get.TheScatterer(obj)
-            TS = struct('r',obj.r0,'th',obj.th);
+            TS = struct('r',obj.r0,'th',obj.th);%*ones(size(obj.th))
         end
                 
 %         function S4S = get.ScattererForSource(obj)

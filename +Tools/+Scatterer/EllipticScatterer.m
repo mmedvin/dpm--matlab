@@ -74,7 +74,8 @@ classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
         end
         
         function TS = get.TheScatterer(obj)
-            TS = struct('FocalDistance',obj.FocalDistance,'Eta',obj.Eta0,'Phi',obj.phi,'GridGamma',obj.GridGamma);
+            TS = struct('FocalDistance',obj.FocalDistance,'Eta',obj.Eta0,'Phi',obj.phi,'GridGamma',obj.GridGamma, ...
+                 'R', sqrt((obj.FocalDistance.*cosh(obj.Eta0).*cos(obj.phi)).^2 + (obj.FocalDistance.*sinh(obj.Eta0).*sin(obj.phi)).^2) );
         end
         
         function I = get.Inside(obj)            

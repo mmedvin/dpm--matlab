@@ -5,6 +5,9 @@ classdef WaveNumberPolarR < Tools.Coeffs.AbstractCoeffs
         k;kr;krr;k3r;k4r;k5r;
     end
     
+    properties (Access=protected)
+        NoDerivatives=false;
+    end        
     methods(Static = true)
         function [k,kr] = kkr(r,r0,k0)
             p = (r - r0).*r;
@@ -29,6 +32,7 @@ classdef WaveNumberPolarR < Tools.Coeffs.AbstractCoeffs
     methods
         
         function [k,kr,krr,k3r,k4r,k5r] = Derivatives(obj,WhichOne)
+            assert(~obj.NoDerivatives);
             k = obj.k;
             switch WhichOne
                 case 'r'
@@ -47,10 +51,9 @@ classdef WaveNumberPolarR < Tools.Coeffs.AbstractCoeffs
         end
         
         function obj=WaveNumberPolarR(Scatterer,Params)
-            obj.IsConstant=false;
-            try
+            if isa(Scatterer, 'Tools.Grid.Grids') || isa(Scatterer, 'Tools.Scatterer.SingleScatterer') 
                 r  = Scatterer.R;
-            catch
+            else
                 r = Scatterer.r;
             end
             r0 = Params.r0;
@@ -74,14 +77,16 @@ classdef WaveNumberPolarR < Tools.Coeffs.AbstractCoeffs
                 g5r = c.*720.*(pr.^5 + 10.*p.*(pr.^3) + 10.*pr.*(p.^2)).*p;
                 
                 obj.k0=Params.k;
-                obj.k   = obj.k0.*exp(-g);
-                obj.kr  =-obj.k.*gr;
-                obj.krr = obj.k.*(gr.^2 - grr);
-                obj.k3r =-obj.k.*(gr.^3 - 3.*gr.*grr + g3r);
-                obj.k4r = obj.k.*(gr.^4 - 6.*(gr.^2).*grr + 3.*(grr.^2) + 4.*gr.*g3r - g4r);
-                obj.k5r =-obj.k.*(gr.^5 - 10.*(gr.^3).*grr + 10.*(gr.^2).*g3r - 10.*grr.*g3r + 5.*gr.*(3.*(grr.^2) - g4r) + g5r);
-            else
-                error('Wavenumber constructor called with wrong number of arguments')
+                if ~obj.NoDerivatives;
+                    obj.k   = sparse(obj.k0.*exp(-g));
+                    obj.kr  =-obj.k.*gr;
+                    obj.krr = obj.k.*(gr.^2 - grr);
+                    obj.k3r =-obj.k.*(gr.^3 - 3.*gr.*grr + g3r);
+                    obj.k4r = obj.k.*(gr.^4 - 6.*(gr.^2).*grr + 3.*(grr.^2) + 4.*gr.*g3r - g4r);
+                    obj.k5r =-obj.k.*(gr.^5 - 10.*(gr.^3).*grr + 10.*(gr.^2).*g3r - 10.*grr.*g3r + 5.*gr.*(3.*(grr.^2) - g4r) + g5r);
+                end
+           else
+               error('Wavenumber constructor called with wrong number of arguments')
             end
         end
         

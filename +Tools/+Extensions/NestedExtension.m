@@ -26,12 +26,11 @@ classdef NestedExtension < Tools.Extensions.SuperExtension
 
         end  
         
-        function ExpandSource(obj,Source)
-            keyboard;
-            obj.Wf= {
-                        obj.InteriorExtension.ExpandSource(Source{1}), ...
-                        obj.ExteriorExtension.ExpandSource(Source{2})
-                    };
+        function ExpandSource(obj,SourceHandle,SourceParams)
+            %keyboard;
+            obj.InteriorExtension.ExpandSource(SourceHandle,SourceParams);
+            obj.ExteriorExtension.ExpandSource(SourceHandle,SourceParams);
+            obj.Wf= [  obj.InteriorExtension.Wf; obj.ExteriorExtension.Wf ];
         end
         
         function Expand(obj)

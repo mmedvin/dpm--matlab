@@ -9,6 +9,8 @@ classdef NestedPolarScatterer < Tools.Scatterer.NestedScatterer
         th;
         R;
         Th;
+        
+        TheScatterer;
     end
     
     methods
@@ -23,6 +25,13 @@ classdef NestedPolarScatterer < Tools.Scatterer.NestedScatterer
             obj      = obj@Tools.Scatterer.NestedScatterer(Arguments);            
             obj.r0   = Params.r0;
             obj.r1   = Params.r1;
+            
+            obj.TheScatterer = struct('r', union(...
+                                                  obj.InteriorScatterer.TheScatterer.r *ones(size(obj.InteriorScatterer.TheScatterer.th)), ...
+                                                  obj.ExteriorScatterer.TheScatterer.r *ones(size(obj.ExteriorScatterer.TheScatterer.th))  ...
+                                                 ),...
+                                      'th', union(obj.InteriorScatterer.TheScatterer.th,obj.ExteriorScatterer.TheScatterer.th));
+                        
         end
 %         function L = get.Inside(obj)
 %             L = (obj.R >= obj.r0) && (obj.R <= obj.r1);

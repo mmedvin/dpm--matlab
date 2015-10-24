@@ -98,7 +98,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             %y = obj.YHandle.Derivatives(obj.ScatParamToGridAng);
             
             z=x+1i*y;
-            TS = struct('R',abs(z),'Th',angle(z));
+            TS = struct('r',abs(z),'th',angle(z));
             %TS = struct('r',obj.RAtScatParamToGridAng(obj.GridGamma));%,'Th',obj.th);
             
         end

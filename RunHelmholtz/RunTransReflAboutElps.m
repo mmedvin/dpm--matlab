@@ -32,8 +32,8 @@ kex = [1];
     IntWaveNumberParams = struct('k',kin(ki),'r0',1.6);
             
         UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0, 'Vark',true); % ,false);%
-        f1      = @(phi) Uinc(UincParams,phi,IncAng,kin(ki));
-        dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kin(ki));
+        f1      = @(phi) full(Uinc(UincParams,phi,IncAng,kin(ki)));
+        dfdn    = @(phi) full(detaUinc(UincParams,phi,IncAng,kin(ki)));
             
 
         Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);

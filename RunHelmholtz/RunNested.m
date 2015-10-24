@@ -1,11 +1,18 @@
-function RunInterior
-	%inhomogenious helmholtz equation with elliptical scatterer and variable wavenumber
-	% designed for elliptical scatterer and wavenumbers only
+function RunNested
 
+
+x1=-2.2;xn=2.2;
+y1=-2.2;yn=2.2;
+%y1=-0.7;yn=0.7;
 
 R0=1;
+R1=2;
 
-NHR = 1.8;%1.6;
+%kite
+%x1=-1.7;xn=1.2;
+%y1=-1.7;yn=1.7;
+
+NHR = 1.6;%1.6;
 % k=1;
 a=1;
 b=0.5;
@@ -28,47 +35,36 @@ ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
 if strcmpi(ScatType,'ellipse')
     ExParams  = struct('ScattererType','ellipse','eta',Eta0,'FocalDistance',FocalDist,'r0',NHR);
-    x1=-1.2;xn=1.2;
-    y1=-0.7;yn=0.7;
 elseif strcmpi(ScatType,'circle')
-    ExParams  = struct('ScattererType','circle','r',R0,'r0',NHR);
-    x1=-1.2;xn=1.2;
-    y1=-1.2;yn=1.2;
+    ExParams{1}  = struct('ScattererType','circle', 'r', R0,'r0',NHR);
+    ExParams{2}  = struct('ScattererType','circle', 'r', R1,'r0',NHR);
 elseif strcmpi(ScatType,'StarShapedScatterer')
     ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization,'r0',NHR);
-    
-    if isa( Parameterization,'Tools.Parameterizations.ParametricEllipse')
-        x1=-1.2;xn=1.2;
-        y1=-1.2;yn=1.2;
-    elseif isa( Parameterization,'Tools.Parameterizations.ParametricKite')
-        x1=-1.7;xn=1.2;
-        y1=-1.7;yn=1.7;
-    elseif isa( Parameterization,'Tools.Parameterizations.ParametricSubmarine')
-        x1=-2.2; xn=2.2;
-        y1=-0.6; yn=1.2;
-    elseif isa( Parameterization,'Tools.Parameterizations.ParametricStar')
-        x1=-1.7; xn=1.7;
-        y1=-1.7; yn=1.7;
-    end
 end
 
 %fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
-fprintf('Method:RunInterior-%s,\t using %s Basis \n',ScatType,BType);
+fprintf('Method:RunInterior-%s,\t using %s Basis, r0=%d,r1=%d \n',ScatType,BType,R0,R1);
 fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
 
 for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
 
     ebinfPre=0; etinfPre=0; etinf = 0; ebinf = 0;
     
-    f   =@(th) Exact(th,k,ExParams);
-    dfdn=@(th) drExact(th,k,ExParams);
+    f   =@(th,n) Exact  (th,k,ExParams{n});
+    dfdn=@(th,n) drExact(th,k,ExParams{n});
 
-    if strcmpi(BType,'Chebyshev')
-        Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
+	if strcmpi(BType,'Chebyshev')
+		Basis = struct( 'Interior', Tools.Basis.ChebyshevBasis.BasisHelper(@(th) f(th,1),@(th) dfdn(th,1),ChebyshevRange), ...
+                        'Exterior', Tools.Basis.ChebyshevBasis.BasisHelper(@(th) f(th,2),@(th) dfdn(th,2),ChebyshevRange) ...
+                       );
     elseif strcmpi(BType,'Fourier')
-        Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
-    end
-for n=1:5 %run different grids
+		Basis = struct( 'Interior', Tools.Basis.FourierBasis.BasisHelper(@(th) f(th,1),@(th) dfdn(th,1)), ...
+                        'Exterior', Tools.Basis.FourierBasis.BasisHelper(@(th) f(th,2),@(th) dfdn(th,2)) ...
+                       );
+	end
+fprintf('NBss: %d,%d,%d,%d\n',Basis.Interior.NBss0,Basis.Interior.NBss1,Basis.Exterior.NBss0,Basis.Exterior.NBss1);
+
+for n=1:4 %run different grids
 tic
 	%build grid
     p=4;
@@ -78,11 +74,12 @@ tic
 
     if strcmpi(ScatType,'circle')
         WaveNumberHandle = @Tools.Coeffs.WaveNumberPolarR;
-        ScattererHandle  = @Tools.Scatterer.PolarScatterer;
-        ScattererParams  = struct('r0',R0, 'Stencil', 9);
+        ScattererHandle  = @Tools.Scatterer.NestedPolarScatterer;
+        ScattererParams  = struct('r0',R0,'r1',R1, 'Stencil', 9);
         Source           = @Tools.Source.HelmholtzSourceR;
         SourceParams     =  [];
-        Extension = @Tools.Extensions.EBPolarHelmholtz5OrderExtension;
+        Extension        = @Tools.Extensions.NestedExtension;
+        ExtentionParams  = struct('IntExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension,'ExtExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension);
     elseif strcmpi(ScatType,'ellipse')
         WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
         ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
@@ -103,30 +100,40 @@ tic
         
     IntPrb = Solvers.InteriorSolver(struct( ...
             'Basis'             , Basis,...
-            'Grid'              , Grid    , ...
+            'Grid'              , Grid, ...
             'CoeffsHandle'      , WaveNumberHandle, ...
-            'CoeffsParams'      , struct('k',k,'r0',NHR, 'FocalDistance',FocalDist), ...
+            'CoeffsParams'      , struct('k',k,'r0',NHR), ...
             'ScattererHandle'   , ScattererHandle, ...
             'ScattererParams'   , ScattererParams, ...
             'CollectRhs'        , 1, ... %i.e. yes
             'SourceHandle'      , Source, ...
             'SourceParams'      , SourceParams, ...
             'Extension'         , Extension, ...
-            'ExtensionParams'   , [] ...
+            'ExtensionParams'   , ExtentionParams ...
             ));
-            
-    cn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 - IntPrb.TrGF - IntPrb.Qf)) ;    
         
-    xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-    xi(IntPrb.GridGamma) = ...
-        IntPrb.W0(IntPrb.GridGamma,:)*Basis.cn0 + IntPrb.W1(IntPrb.GridGamma,:)*cn1 + IntPrb.Wf{1}(IntPrb.GridGamma);
-   
+     Cn	= [ IntPrb.Q{1,2}, IntPrb.Q{2,2}] \ ([ -IntPrb.Q{1,1},-IntPrb.Q{2,1}]*[Basis.Interior.cn0; Basis.Exterior.cn0]  - IntPrb.TrGF - IntPrb.Qf)  ;
+     InteriorCn1 = Cn(1:Basis.Interior.NBss1);
+     ExteriorCn1 = Cn((1+Basis.Interior.NBss1):end);
 
-    if strcmpi(ScatType,'circle')
-        ExParams2 = ExParams;
-        ExParams2.r = IntPrb.Scatterer.r;
-        xiex = Exact(IntPrb.Scatterer.th,k,ExParams2);
-        ebinf =norm(xiex -xi(IntPrb.GridGamma),inf);
+     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));     
+     xi(IntPrb.GridGamma) = IntPrb.W{1,1}(IntPrb.GridGamma,:)*Basis.Interior.cn0 + IntPrb.W{1,2}(IntPrb.GridGamma,:)*InteriorCn1 ...
+                          + IntPrb.W{2,1}(IntPrb.GridGamma,:)*Basis.Exterior.cn0 + IntPrb.W{2,2}(IntPrb.GridGamma,:)*ExteriorCn1 ...
+                          + IntPrb.Wf(IntPrb.GridGamma);
+
+
+     if strcmpi(ScatType,'circle')
+         ExParams2 = ExParams;
+         ExParams2{1}.r = IntPrb.Scatterer.r{1};
+         ExParams2{2}.r = IntPrb.Scatterer.r{2};
+         xiex1 = Exact(IntPrb.Scatterer.th{1},k,ExParams2{1});
+         xiex2 = Exact(IntPrb.Scatterer.th{2},k,ExParams2{2});
+         
+         ErrXi1 =norm(xiex1 -xi(IntPrb.Scatterer.InteriorScatterer.GridGamma),inf);
+         ErrXi2 =norm(xiex2 -xi(IntPrb.Scatterer.ExteriorScatterer.GridGamma),inf);
+         %xi(IntPrb.Scatterrer.InteriorScatterer.GridGamma)=xiex1;
+         %xi(IntPrb.Scatterrer.ExteriorScatterer.GridGamma)=xiex2;
+
     elseif strcmpi(ScatType,'ellipse')
         ExParams2 = ExParams;
         ExParams2.eta = IntPrb.Scatterer.eta;
@@ -196,10 +203,11 @@ tic
     t2=toc;
     
     
-        fprintf('k=%d,NBss0=%d,NBss1=%d,N=%-10dx%-10d\t ebinf=%d|%-5.4f\tetinf=%d|%-5.4f\ttimeA=%d\ttimeE=%d\n',k,Basis.NBss0,Basis.NBss1, Nx,Ny,...
-        ebinf, log2(ebinfPre./ebinf), etinf,log2(etinfPre./etinf),t1,t2-t1);
+        fprintf('k=%d,NBss0=%d,NBss1=%d,N=%-10dx%-10d\t ErrXi=%d|%d\t rate=%-5.2f|%-5.2f etinf=%d|%-5.4f\ttimeA=%d\ttimeE=%d\n', ...
+                 k,Basis.NBss0,Basis.NBss1, Nx,Ny,ErrXi1,ErrXi2,log2(ErrXi1Pre/ErrXi1),log2(ErrXi2Pre/ErrXi2), etinf,log2(etinfPre./etinf),t1,t2-t1);
     etinfPre = etinf;
-    ebinfPre = ebinf;
+    ErrXi1Pre = ErrXi1;
+    ErrXi2Pre = ErrXi2;
     
 end
 

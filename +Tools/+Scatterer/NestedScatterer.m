@@ -18,7 +18,7 @@ classdef NestedScatterer < Tools.Scatterer.SuperScatterer
         
         %%%%%%%%%%%%%
         BasisArg;
-        TheScatterer;  
+        %TheScatterer;  
         MetricsAtScatterer=0;
         
         InteriorScatterer;
@@ -35,9 +35,12 @@ classdef NestedScatterer < Tools.Scatterer.SuperScatterer
             obj.Grid = Arguments.Grid;
             obj.InteriorScatterer = Arguments.InteriorScatterer(Arguments.Grid,Arguments.IntScatParams);
             obj.ExteriorScatterer = Arguments.ExteriorScatterer(Arguments.Grid,Arguments.ExtScatParams);
+
+            %obj.InteriorScatterer.r=-obj.InteriorScatterer.r;
+            %obj.ExteriorScatterer.r=-obj.ExteriorScatterer.r;
             
             obj.BasisArg        = {obj.InteriorScatterer.BasisArg    , obj.ExteriorScatterer.BasisArg       };
-            obj.TheScatterer    = {obj.InteriorScatterer.TheScatterer, obj.ExteriorScatterer.TheScatterer   };
+            % obj.TheScatterer    = {obj.InteriorScatterer.TheScatterer, obj.ExteriorScatterer.TheScatterer   };
             obj.GridGamma       = union(obj.InteriorScatterer.GridGamma   , obj.ExteriorScatterer.GridGamma );
             
             obj.Inside  = xor(obj.InteriorScatterer.Inside , obj.ExteriorScatterer.Inside  );

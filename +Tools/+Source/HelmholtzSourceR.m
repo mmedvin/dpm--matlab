@@ -3,7 +3,7 @@ classdef HelmholtzSourceR < Tools.Source.SuperHelmholtzSource
         Source;%Fn;Ff;Fnn;Fff;    % WN;
     end
     
-    properties(Access = protected)       
+    properties%(Access = protected)       
         Scatterer; 
         Exact;
         IsExactReady=false;

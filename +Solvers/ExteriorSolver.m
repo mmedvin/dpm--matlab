@@ -1,6 +1,6 @@
 classdef ExteriorSolver < Solvers.SuperHomoSolver
 
-    properties(Access = protected, AbortSet = true)
+    properties%(Access = protected, AbortSet = true)
         A1;
         A2;
         k;
@@ -13,7 +13,7 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
         function obj = ExteriorSolver(Arguments)                      
             obj = obj@Solvers.SuperHomoSolver(Arguments);
             
-            obj.k=obj.Coeffs.k;
+            obj.k=Arguments.CoeffsParams.k;%supposed to be constant obj.Coeffs.k;
             
             obj.CreateDirectOperatorA1();
             obj.CreateSolverA2();

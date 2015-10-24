@@ -1,5 +1,8 @@
 classdef PolarGrids < Tools.Grid.Grids
-    properties
+    properties(Constant, Access = public)
+        Name = 'Polar';
+    end
+    properties       
         r;
         theta;
         R;

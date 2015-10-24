@@ -1,6 +1,6 @@
 classdef InteriorHomoSolver < Solvers.SuperHomoSolver
    
-    properties(Access = protected, AbortSet = true)
+    properties%(Access = protected, AbortSet = true)
         A;
         k;
     end
@@ -9,7 +9,10 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
         function obj = InteriorHomoSolver(Arguments)
             obj = obj@Solvers.SuperHomoSolver(Arguments);
             
-            if  numel(obj.Coeffs.k)>1
+            %if  numel(obj.Coeffs.k)>1
+%             if obj.CoeffsHandle.IsConstant
+%                 obj.k = obj.Coeffs.k.*ones(obj.Grid.Size+2);
+%             else
                 GridK = Tools.Grid.CartesianGrid( ...
                     obj.Grid.x1 - obj.Grid.dx , ...
                     obj.Grid.xn + obj.Grid.dx , ...
@@ -18,15 +21,16 @@ classdef InteriorHomoSolver < Solvers.SuperHomoSolver
                     obj.Grid.yn + obj.Grid.dy , ...
                     obj.Grid.Ny + 2         ) ;
                 
-                [X,Y] = GridK.mesh();
-                
-                ScattK = struct('r',abs(X+1i.*Y));%ScattererClsHandle(GridK,obj.ScattererAddParams);
-                WNPlr= Tools.Coeffs.WaveNumberPolarR(ScattK,Arguments.CoeffsParams);
-                obj.k = sparse(WNPlr.k);
-            else
-                obj.k = obj.Coeffs.k.*ones(obj.Grid.Size+2);
-            end
+%                 [X,Y] = GridK.mesh();
+%                 
+%                 ScattK = struct('r',abs(X+1i.*Y));%ScattererClsHandle(GridK,obj.ScattererAddParams);
+%                 WNPlr= Tools.Coeffs.WaveNumberPolarR(ScattK,Arguments.CoeffsParams);
+%                 obj.k = sparse(WNPlr.k);            
+%            end
             
+            WN = obj.CoeffsHandle(GridK,Arguments.CoeffsParams);
+            obj.k = WN.k;
+
             obj.HlmSemA();
             
         end

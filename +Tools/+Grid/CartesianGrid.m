@@ -1,4 +1,8 @@
 classdef CartesianGrid < Tools.Grid.Grids
+    properties(Constant, Access = public)
+        Name = 'Cartesian';
+    end
+    
     properties
         X;
         Y;        
