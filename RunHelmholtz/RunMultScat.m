@@ -1,33 +1,47 @@
-function RunSimpleMultScat
-    nmax=5;
+function RunMultScat
+    nmax=4;
     want2plot = 0;
     
+    Parameterization  = Tools.Parameterizations.ParametricStar();
+    
+    %    x1=-1.7;xn=1.2;
+%    y1=-1.7;  yn=1.7;
+%    r0=0.8;
+%    r1=2.2;
+    
+    
     Boundaries=struct( ...
-                            'Interior', struct('x1',-0.7, 'xn', 0.7, 'y1',-0.7,'yn',0.7), ...
-                            'Medium'  , struct('x1',-1.2, 'xn', 1.2, 'y1',-1.2,'yn',1.2), ...
-                            'Exterior', struct('r1', 0.8, 'rn', 1.5) ...
+                            'Interior', struct('x1',-1.7, 'xn', 1.7, 'y1',-1.7,'yn',1.7), ...
+                            'Medium'  , struct('x1',-2.2, 'xn', 2.2, 'y1',-2.2,'yn',2.2), ...
+                            'Exterior', struct('r1', 1.8, 'rn', 2.2) ...
                       ); 
         
-    R0 = 0.5;
-    R1 = 1;
+    R0 = 1;
+    R1 = 2;
     
     NHR = struct('Interior', 1.6, 'Medium', 1.6);
     
     IncAng = Tools.Common.Angles(40,'degrees');
         
-    ScatType = 'circle';
+    ScatType = 'StarShapedScatterer';%'circle';
     BType    = 'Fourier';
     
     K = { struct( 'Interior',10,'Medium', 5, 'Exterior',1) ,  struct( 'Interior',1,'Medium',2, 'Exterior',1), struct( 'Interior',5,'Medium', 5, 'Exterior',5)};
 
-    fprintf('RunSimpleMultScat, Incident Angle = %d deg \n', IncAng.Degrees);
+    dbk=dbstack();
+    
+    fprintf('%s, Incident Angle = %d deg \n', dbk(1).name,IncAng.Degrees);
 
-    for k = 1:3 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
-            
+    for k = 1 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
+           
         if strcmpi(ScatType,'circle')
             UincParams{1}  = struct('ScattererType','circle', 'r', R0);
-            UincParams{2}  = struct('ScattererType','circle', 'r', R1);            
+        elseif strcmpi(ScatType,'StarShapedScatterer')
+            UincParams{1}  = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization);
+            fprintf('%s\n',Parameterization.Print);
         end
+        
+        UincParams{2}  = struct('ScattererType','circle', 'r', R1);
         
         f      = @(phi) Uinc    (UincParams{1}, phi, IncAng.Radians, K{k}.Interior);
         dfdn   = @(phi) detaUinc(UincParams{1}, phi, IncAng.Radians, K{k}.Interior);
@@ -54,18 +68,34 @@ function RunSimpleMultScat
         
         TotErrPre=0;IntErrPre=0; MedErrPre=0; ExtErrPre=0;
         
-        %WaveNumberHandle = struct('Interior', @Tools.Coeffs.ConstantWaveNumber               , 'Medium', @Tools.Coeffs.WaveNumberPolarR          , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
-        %WaveNumberHandle = struct('Interior', @Tools.Coeffs.WaveNumberPolarR               , 'Medium', @Tools.Coeffs.ConstantWaveNumber          , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
-        WaveNumberHandle = struct('Interior', @Tools.Coeffs.WaveNumberPolarR               , 'Medium', @Tools.Coeffs.WaveNumberPolarR          , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
-        %WaveNumberHandle = struct('Interior', @Tools.Coeffs.ConstantWaveNumber              , 'Medium', @Tools.Coeffs.ConstantWaveNumber       , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
-        WaveNumberParams = struct('Interior', struct('k',K{k}.Interior,'r0',NHR.Interior)  , 'Medium', struct('k',K{k}.Medium,'r0',NHR.Medium) , 'Exterior', struct('k',K{k}.Exterior)         );
+        if strcmpi(ScatType,'circle')
+            %WaveNumberHandle = struct('Interior', @Tools.Coeffs.ConstantWaveNumber               , 'Medium', @Tools.Coeffs.WaveNumberPolarR          , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
+            %WaveNumberHandle = struct('Interior', @Tools.Coeffs.WaveNumberPolarR               , 'Medium', @Tools.Coeffs.ConstantWaveNumber          , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
+            WaveNumberHandle = struct('Interior', @Tools.Coeffs.WaveNumberPolarR               , 'Medium', @Tools.Coeffs.WaveNumberPolarR          , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
+            %WaveNumberHandle = struct('Interior', @Tools.Coeffs.ConstantWaveNumber              , 'Medium', @Tools.Coeffs.ConstantWaveNumber       , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
+            WaveNumberParams = struct('Interior', struct('k',K{k}.Interior,'r0',NHR.Interior)  , 'Medium', struct('k',K{k}.Medium,'r0',NHR.Medium) , 'Exterior', struct('k',K{k}.Exterior)         );
 
-        ScattererHandle  = struct('Interior', @Tools.Scatterer.PolarScatterer              , 'Medium', @Tools.Scatterer.NestedPolarScatterer   , 'Exterior', @Tools.Scatterer.PolarScatterer  );
-        ScattererParams  = struct('Interior', struct('r0', R0, 'Stencil', 9)               , 'Medium', struct('r0',R0,'r1',R1, 'Stencil', 9)   , 'Exterior', struct('r0', R1, 'Stencil', 9)   );
-                
-        Extension       = @Tools.Extensions.NestedExtension;        
-        ExtentionParams = struct('IntExtension',@Tools.Extensions.EBPolarHelmholtz5OrderExtension,'ExtExtension',@Tools.Extensions.EBPolarHelmholtz5OrderExtension);
-        
+            ScattererHandle  = struct('Interior', @Tools.Scatterer.PolarScatterer              , 'Medium', @Tools.Scatterer.NestedPolarScatterer   , 'Exterior', @Tools.Scatterer.PolarScatterer  );
+            ScattererParams  = struct('Interior', struct('r0', R0, 'Stencil', 9)               , 'Medium', struct('r0',R0,'r1',R1, 'Stencil', 9)   , 'Exterior', struct('r0', R1, 'Stencil', 9)   );
+            
+            Extension       = @Tools.Extensions.NestedExtension;
+            ExtentionParams = struct('IntExtension',@Tools.Extensions.EBPolarHelmholtz5OrderExtension,'ExtExtension',@Tools.Extensions.EBPolarHelmholtz5OrderExtension);
+        elseif strcmpi(ScatType,'StarShapedScatterer')
+            
+            WaveNumberHandle = struct('Interior', @Tools.Coeffs.WaveNumberStarShaped           , 'Medium', @Tools.Coeffs.WaveNumberStarShaped      , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
+            %WaveNumberHandle = struct('Interior', @Tools.Coeffs.ConstantWaveNumber              , 'Medium', @Tools.Coeffs.ConstantWaveNumber       , 'Exterior', @Tools.Coeffs.ConstantWaveNumber  );
+            WaveNumberParams = struct('Interior', struct('k',K{k}.Interior,'r0',NHR.Interior)  , 'Medium', struct('k',K{k}.Medium,'r0',NHR.Medium) , 'Exterior', struct('k',K{k}.Exterior)         );
+
+            
+            ScattererHandle  = struct('Interior', @Tools.Scatterer.StarShapedScatterer  , 'Medium', @Tools.Scatterer.NestedStarShapeInCircleScat                   , 'Exterior', @Tools.Scatterer.PolarScatterer  );
+            ScattererParams  = struct('Interior', UincParams{1}                         , 'Medium', struct('StarShapedParams',UincParams{1},'r1',R1, 'Stencil', 9) , 'Exterior', struct('r0', R1, 'Stencil', 9)   );
+            ScattererParams.Interior.Stencil=9;
+            ScattererParams.Medium.StarShapedParams.Stencil=9;
+            
+            Extension       = @Tools.Extensions.NestedExtension;
+            ExtentionParams = struct('IntExtension',@Tools.Extensions.TwoTupleExtension,'ExtExtension',@Tools.Extensions.EBPolarHelmholtz5OrderExtension);
+        end
+               
         fprintf('Int xy: (%-2.2f,%-2.2f)x(%-2.2f,%-2.2f), Med xy: (%-2.2f,%-2.2f)x(%-2.2f,%-2.2f), Ext (%-2.2f,%-2.2f)\n',  Boundaries.Interior.x1, Boundaries.Interior.xn, Boundaries.Interior.y1, Boundaries.Interior.yn, ...
                                                                                                  Boundaries.Medium.x1  , Boundaries.Medium.xn  , Boundaries.Medium.y1  , Boundaries.Medium.yn  , ...
                                                                                                  Boundaries.Exterior.r1,Boundaries.Exterior.rn);
@@ -79,7 +109,7 @@ function RunSimpleMultScat
             tic
             %build grid
             
-            p=4;%3;%1;
+            p=5;%3;%1;
             N = struct('Interior',struct('Nx',2^(n+p)+1,'Ny',2^(n+p)+1),'Medium',struct('Nx',2^(n+p)+1,'Ny',2^(n+p)+1),'Exterior',struct('Nr', 2^(n+p)+1,'Nth', 2^(n+p)+1));           
                                      
             Grids.Exterior = Tools.Grid.PolarGrids(Boundaries.Exterior.r1,Boundaries.Exterior.rn,N.Exterior.Nr,N.Exterior.Nth);
@@ -283,27 +313,62 @@ function RunSimpleMultScat
 end
 
 
-function uinc = Uinc(Params,phi,IncAng,k)  
+function [uinc,uinc_t,uinc_tt,uinc_3t,uinc_4t] = Uinc(Params,phi,IncAng,k)  
     
+    IsStarshaped = false;
+
     if strcmpi(Params.ScattererType,'ellipse')
          x = Params.FocalDistance * cosh(Params.eta) .* cos(phi);
          y = Params.FocalDistance * sinh(Params.eta) .* sin(phi);
     elseif strcmpi(Params.ScattererType,'circle')
         x = Params.r .* cos(phi);
         y = Params.r .* sin(phi);
+    elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+        IsStarshaped = true;
+        try
+            x = Params.Parameterization.XHandle.Derivatives(phi);
+            y = Params.Parameterization.YHandle.Derivatives(phi);
+        catch
+            x = Params.r.*cos(phi);
+            y = Params.r.*sin(phi);
+        end
+
     end
  
     uinc = exp( 1i.* k .* (x.*cos(IncAng) + y.*sin(IncAng)) );
+    
+    if nargout > 1 && IsStarshaped
+        %try
+        [x,xt,xtt,x3t,x4t] = Params.Parameterization.XHandle.Derivatives(phi);
+        [y,yt,ytt,y3t,y4t] = Params.Parameterization.YHandle.Derivatives(phi);
+        %catch
+        %x = Params.r.*cos(phi);
+        %y = Params.r.*sin(phi);
+        %end
+        
+        uinc_t  = 1i .* k .*  uinc    .* (xt .*cos(IncAng) + yt .*sin(IncAng));
+        uinc_tt = 1i .* k .* (uinc_t  .* (xt .*cos(IncAng) + yt .*sin(IncAng)) +     uinc    .* (xtt.*cos(IncAng) + ytt.*sin(IncAng)) );
+        uinc_3t = 1i .* k .* (uinc_tt .* (xt .*cos(IncAng) + yt .*sin(IncAng)) + 2 * uinc_t  .* (xtt.*cos(IncAng) + ytt.*sin(IncAng)) + uinc .* (x3t.*cos(IncAng) + y3t.*sin(IncAng)));
+        uinc_4t = 1i .* k .* (uinc_3t .* (xt .*cos(IncAng) + yt .*sin(IncAng)) + 3 * uinc_tt .* (xtt.*cos(IncAng) + ytt.*sin(IncAng)) ...
+            +       3  *  uinc_t  .* (x3t.*cos(IncAng) + y3t.*sin(IncAng)) +     uinc    .* (x4t.*cos(IncAng) + y4t.*sin(IncAng)));
+    end
+
 end
 
 function duinc = detaUinc(Params,phi,IncAng,k)
     
+    IsStarshaped = false;
+
     if strcmpi(Params.ScattererType,'ellipse')
         dx = Params.FocalDistance * sinh(Params.eta) .* cos(phi);
         dy = Params.FocalDistance * cosh(Params.eta) .* sin(phi);
     elseif strcmpi(Params.ScattererType,'circle')
         dx = cos(phi);
         dy = sin(phi);
+    elseif strcmpi(Params.ScattererType,'StarShapedScatterer')
+        IsStarshaped = true;
+        [x,dx] = Params.Parameterization.XHandle.Derivatives(phi);
+        [y,dy] = Params.Parameterization.YHandle.Derivatives(phi);
     end
     
    
@@ -313,6 +378,35 @@ function duinc = detaUinc(Params,phi,IncAng,k)
     duinc = 1i .* k .*  uinc .* (dx.*cos(IncAng) + dy.*sin(IncAng));
  %   h = FocalDist*sqrt(sinh(eta).^2 + sin(phi).^2);
    % duinc = duinc./h;
+   
+   if IsStarshaped
+       
+       h = sqrt(dx.^2 + dy.^2);
+       duinc = 1i .* k .*  uinc .* (dy.*cos(IncAng) - dx.*sin(IncAng))./h;
+       
+       if nargout > 1
+           [x,xt,xtt,x3t,x4t] = Params.Parameterization.XHandle.Derivatives(phi);
+           [y,yt,ytt,y3t,y4t] = Params.Parameterization.YHandle.Derivatives(phi);
+           
+           [uinc,uinc_t,uinc_tt] = Uinc(Params,phi,IncAng,k);
+           
+           ht  = (xt.*xtt + yt.*ytt)./h;
+           htt = (xtt.^2 + ytt.^2 + xt.*x3t + yt.*y3t - ht.^2)./h;
+           h3t = (3*xtt.*x3t + 3*ytt.*y3t + xt.*x4t + yt.*y4t +  - 3*ht.*htt)./h;
+           
+           duinc_t = 1i .* k .* ( uinc_t  .* (yt .*cos(IncAng) - xt .*sin(IncAng))./h  + uinc   .* (ytt.*cos(IncAng) - xtt.*sin(IncAng))./h + uinc   .* (yt .*cos(IncAng) - xt .*sin(IncAng)).*(-ht./(h.^2)) );
+           duinc_tt = 1i .* k .*( uinc_tt .* (yt .*cos(IncAng) - xt .*sin(IncAng))./h  + uinc_t .* (ytt.*cos(IncAng) - xtt.*sin(IncAng))./h + uinc_t .* (yt .*cos(IncAng) - xt .*sin(IncAng)).*(-ht./(h.^2)) ...
+               +uinc_t  .* (ytt.*cos(IncAng) - xtt.*sin(IncAng))./h  + uinc   .* (y3t.*cos(IncAng) - x3t.*sin(IncAng))./h + uinc   .* (ytt.*cos(IncAng) - xtt.*sin(IncAng)).*(-ht./(h.^2)) ...
+               +uinc_t  .* (yt .*cos(IncAng) - xt .*sin(IncAng)).*(-ht./(h.^2))  + uinc .* (ytt.*cos(IncAng) - xtt.*sin(IncAng)).*(-ht./(h.^2))  + uinc .* (yt.*cos(IncAng) - xt.*sin(IncAng)).*((2*ht.^2)./(h.^3) - htt./(h.^2)) ...
+               );
+           
+           
+           
+           
+       end
+       
+   end
+
 
 end
 

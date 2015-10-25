@@ -1,6 +1,6 @@
 classdef InteriorSolver < Solvers.SuperNonHomoSolver
    
-    properties%(Access = protected, AbortSet = true)
+    properties(Access = protected, AbortSet = true)
         A;
         k;
     end

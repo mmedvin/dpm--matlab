@@ -66,7 +66,7 @@ dbk=dbstack();
 kin = [3 ,10, 15,  20];
 kex = [1 ,5 ,  5,  10];
         
-    for ki = 1 %1:3
+    for ki = 2 %1:3
         
         ErrIntPre = 0;         ErrExtPre = 0;   ErrTotPre = 0;
                     

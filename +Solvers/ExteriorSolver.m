@@ -1,6 +1,6 @@
 classdef ExteriorSolver < Solvers.SuperHomoSolver
 
-    properties%(Access = protected, AbortSet = true)
+    properties(AbortSet = true)%Access = protected, AbortSet = true)
         A1;
         A2;
         k;

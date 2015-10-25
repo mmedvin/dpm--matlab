@@ -58,7 +58,7 @@ classdef WaveNumberStarShaped < Tools.Coeffs.WaveNumberPolarR
     methods
         function [k,kn,knn,ks,kss,k5r] = Derivatives(obj,Scatterer)
             
-            if exist('Scatterer','var')
+            if isa(Scatterer,'Tools.Scatterer.StarShapedScatterer')%exist('Scatterer','var')
                 if obj.FirstTime
                     obj.FirstTime =0;
                     [x,dx] = Scatterer.XHandle.Derivatives(Scatterer.BasisArg);
