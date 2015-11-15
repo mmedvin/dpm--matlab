@@ -57,10 +57,7 @@ classdef LaplaceSource01_Exterior < Tools.Source.LaplaceSource01_Interior
 			%[F,Fn,~,Fnn] = obj.Derivatives();
             [F,Fn] = obj.Derivatives();
 			
-% 			Coeffs	= obj.CoeffsClsrHndl(obj.Scatterer.TheScatterer,obj.CoeffsParams);
 			Exact	= Tools.Exact.ExLapElps01(obj.Scatterer, obj.ExParams);
-			
-			
 			
 			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
             S(1:end,1)  = Exact.u(1:end,1);

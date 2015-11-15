@@ -54,16 +54,9 @@ classdef LaplaceSource_IIM346_Exterior < Tools.Source.LaplaceSource_IIM346_Inter
 			
 			[F,Fn,~,Fnn] = obj.Derivatives();
 			
-% 			Coeffs	= obj.CoeffsClsrHndl(obj.Scatterer.TheScatterer,obj.CoeffsParams);
 			Exact	= Tools.Exact.ExLapCrclVarCoeffs346(obj.Scatterer, obj.ExParams);
 			
 			
-			
-			S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
-           % S(1:end,1)=	Exact.u(1:end,1);
-           % S(1,1:end)= Exact.u(1,1:end);
-           % S(1:end,end)= Exact.u(1:end,end);
-           % S(end,1:end)= Exact.u(end,1:end);
 			
 			S(obj.Scatterer.GridGamma)	= F(obj.Scatterer.GridGamma) ...
 										+ obj.Scatterer.dr.*Fn(obj.Scatterer.GridGamma) ;%...  
@@ -71,7 +64,14 @@ classdef LaplaceSource_IIM346_Exterior < Tools.Source.LaplaceSource_IIM346_Inter
 			
 			%%tmp = obj.Derivatives();
 			%S(obj.Scatterer.Inside) = F(obj.Scatterer.Inside);   %was obj.Source(ETA<=obj.Eta0) = tmp(ETA<=obj.Eta0);
-		end
+            S(obj.Scatterer.Outside) = F(obj.Scatterer.Outside);
+
+            S(1:end,1)=	Exact.u(1:end,1);
+            S(1,1:end)= Exact.u(1,1:end);
+            S(1:end,end)= Exact.u(1:end,end);
+            S(end,1:end)= Exact.u(end,1:end);
+
+        end
 	end
 end
 

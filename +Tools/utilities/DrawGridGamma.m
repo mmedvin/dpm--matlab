@@ -1,7 +1,7 @@
 % use when stop on brake point in scatterer
 
 %% starshaped body mode
-figure
+%figure
 hold on
 
 try
@@ -154,20 +154,30 @@ axis equal
 
 
 %% circle mode
-r = obj.Grid.r;
+
+try
+    X=obj.Grid.X;
+    Y=obj.Grid.Y ;
+catch
+
+ r = obj.Grid.r;
  th = [obj.Grid.theta,2*pi];
  [R,Th]=meshgrid(r,th);
-
+ 
  X=R.*cos(Th);
  Y=R.*sin(Th);
   mesh(X,Y,ones(size(X)));
+end
+
+ % mesh(X,Y,ones(size(X)), 'EdgeAlpha',0.7);%'LineStyle',':');%,'EdgeAlpha',0.7
+%  light('FaceColor', 'interp')
 
 tPhi=0:0.001:2*pi;
-hold
-plot(obj.r0.*cos(tPhi),obj.r0.*sin(tPhi))
+%hold
+plot(obj.r0.*cos(tPhi),obj.r0.*sin(tPhi),'b','LineWidth',2)
 
 
-plot(obj.r.*cos(obj.th),obj.r.*sin(obj.th),'b.')
+plot(obj.r.*cos(obj.th),obj.r.*sin(obj.th),'b.','MarkerSize',10)
 
   
 h=gca;
@@ -182,6 +192,10 @@ hold off
 %         [obj.FocalDistance*sinh(obj.Eta0).*sin(obj.phi(m)),obj.FocalDistance*sinh(obj.eta(m)).*sin(obj.phi(m))]);
 % end
 
+
+	%view(0,-90) %kite
+    view(180,-90)
+	
 
 axis equal
 

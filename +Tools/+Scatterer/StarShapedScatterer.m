@@ -2,7 +2,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
-   properties
+   properties(AbortSet = true)
        
        MetricsAtScatterer;
        
@@ -98,7 +98,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             %y = obj.YHandle.Derivatives(obj.ScatParamToGridAng);
             
             z=x+1i*y;
-            TS = struct('R',abs(z),'Th',angle(z));
+            TS = struct('r',abs(z),'th',angle(z));
             %TS = struct('r',obj.RAtScatParamToGridAng(obj.GridGamma));%,'Th',obj.th);
             
         end
@@ -123,7 +123,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             [y,dy] = obj.YHandle.Derivatives(obj.nrml_t);
             r_ = sqrt(x.^2 + y.^2);
             
-            [k,kn,knn,ks,kss] = WaveNumber.Derivatives(obj); %the obj should be sent as an argument here
+            [k,kn,knn,ks,kss] = WaveNumber.Derivatives(obj);
             %%%%%%%%%%%%%%%%%%%%%%
 %             [k,kr,krr] = WaveNumber.Derivatives();
 %                         
@@ -142,7 +142,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
 %             ks  = (kx.*dx + ky.*dy)./h;
 %             kss = (kxx.*dx.^2 + 2*kxy.*dx.*dy + kyy.*dy.^2)./(h.^2) + curv.*kn;
 
-            [F,Fn,Fnn,Fs,Fss] = Source.Derivatives(obj); %the obj should be sent as an argument here
+            [F,Fn,Fnn,Fs,Fss] = Source.Derivatives(obj);
             %%%%%%%%%%%%%%%%%%%%%%
 %             [F,Fr,Frr,Ft,Ftt,Frt] = Source.Derivatives();
 %             
