@@ -80,11 +80,11 @@ kex = [1 ,5 ,  5,  10];
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,tst_k);
             
 
-        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,@sin);
+        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,1e-5);
 	%Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
         %Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
 
-        fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d M=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.M);
+        fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d NBss0=%d NBss1=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.NBss0, Basis.NBss1);
     
         nmax=4;%3;
         for n=1:nmax %run different grids
@@ -109,7 +109,9 @@ kex = [1 ,5 ,  5,  10];
                      'CoeffsParams',  struct('k',kex(ki),'r0',1.6), ...
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
-                     'CollectRhs',0 ... %i.e. no 
+                     'CollectRhs',0, ... %i.e. no 
+                     'Extension', @Tools.Extensions.TwoTupleExtension, ...
+                     'ExtensionParams',[] ...
                      ));
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
@@ -117,16 +119,16 @@ kex = [1 ,5 ,  5,  10];
             IntPrb = Solvers.InteriorHomoSolver( struct(...
                      'Basis',Basis, ...
                      'Grid', CrtsGrid, ...
-                     'CoeffsHandle', @Tools.Coeffs.WaveNumberPolarR, ... %WaveNumberPolarR;%ConstantWaveNumber;
+                     'CoeffsHandle', @Tools.Coeffs.WaveNumberStarShaped, ... %ConstantWaveNumber;
                      'CoeffsParams', struct('k',kin(ki),'r0',1.6), ...
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
-                     'CollectRhs',1 ... %i.e. yes
+                     'CollectRhs',1, ... %i.e. yes
+                     'Extension', @Tools.Extensions.TwoTupleExtension, ...
+                     'ExtensionParams',[] ...
                      )); ...
          
             if 1
-                IntQ = IntPrb.Q;
-                ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %
                 
                 
                 %UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',ExtPrb.Scatterer.eta, 'Vark',false);
@@ -158,14 +160,14 @@ kex = [1 ,5 ,  5,  10];
                 
                 %rhs(numel(IntPrb.GridGamma)+1:end,1)= ExtPrb.Qcol2(Xi0,Xi1);
 
-                cn = [ IntQ ; ExtQ ] \ rhs;
+                cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
                 
                 Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-                Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*cn;
+                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
                 Intu = IntPrb.P_Omega(Intxi);
                 
                 Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
-                Extxi(ExtPrb.GridGamma) = ExtPrb.W(ExtPrb.GridGamma,:)*cn ;
+                Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
                 
                  UincParams2 = struct('ScattererType','StarShapedScatterer','r',PlrGrid.R);%,'Parameterization',Parameterization
                 Uinc = Uinc(UincParams2,PlrGrid.Theta,IncAng,kex(ki));

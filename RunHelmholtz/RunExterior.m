@@ -77,7 +77,7 @@ rat=4/5;
 
 %for k= 6.*[2^(-4*rat),2^(-3*rat),2^(-2*rat),2^(-rat),1,2^(rat),2^(2*rat),2^(3*rat),2^(4*rat)]
 
-    for k =[1,5,10]%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
+    for k =1%[1,5,10]%[1,10,25] %[3,5,15,30]%[1,10,25]  %[1,5,10,15,20,25] % [1,3,5,10]
 		
 		ErrPre = 0; 
 		
@@ -97,7 +97,7 @@ rat=4/5;
         if strcmpi(BType,'Chebyshev')
             Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
         elseif strcmpi(BType,'Fourier')
-            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,105);
+            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,1e-06);%105);
         end
       
         %WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
@@ -114,26 +114,31 @@ rat=4/5;
             
             if strcmpi(ScatType,'ellipse')
                 ScattererHandle  = @Tools.Scatterer.EllipticScatterer;               %External
-                ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist);
+                ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist,'Stencil',9);
+                Extension = @Tools.Extensions.TwoTupleExtension;
             elseif strcmpi(ScatType,'circle')
                 ScattererHandle  = @Tools.Scatterer.PolarScatterer;                
-                ScattererParams  = struct('r0',R0,'ExpansionType',15);
+                ScattererParams  = struct('r0',R0,'ExpansionType',15,'Stencil',9);
+                Extension        = @Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension;%EBPolarHomoHelmholtz7OrderExtension;;
             elseif strcmpi(ScatType,'StarShapedScatterer')
                 ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
                 ScattererParams  = ExParams;
                 ScattererParams.Stencil = 9;
+                Extension = @Tools.Extensions.TwoTupleExtension;
 			end
             
 			CollectRhs = 0;
 			
             ExtPrb =  Solvers.ExteriorSolver( struct(...
-                      'Basis',Basis, ...
-                      'Grid', Tools.Grid.PolarGrids(r0,r1,Nr,Nth), ...
-                      'CoeffsHandle', @Tools.Coeffs.ConstantWaveNumber, ...
-                      'CoeffsParams', struct('k',k,'r0',NHR), ...
-                      'ScattererHandle',ScattererHandle, ...
-                      'ScattererParams', ScattererParams, ...
-                      'CollectRhs',0 ... %i.e. not
+                      'Basis'           , Basis, ...
+                      'Grid'            , Tools.Grid.PolarGrids(r0,r1,Nr,Nth), ...
+                      'CoeffsHandle'    , @Tools.Coeffs.ConstantWaveNumber, ...
+                      'CoeffsParams'    , struct('k',k,'r0',NHR), ...
+                      'ScattererHandle' , ScattererHandle, ...
+                      'ScattererParams' , ScattererParams, ...
+                      'CollectRhs'      , 0, ... %i.e. not
+                      'Extension'       , Extension, ...
+                      'ExtensionParams' , [] ...
                       ));
             
             Q0 = ExtPrb.Q0;%(:,1:2*M+1);
@@ -181,7 +186,7 @@ rat=4/5;
                 %etinf(n) =norm(tmp(:),inf);
 				ErrTot = norm(tmp(:),inf);
                 %fprintf('k=%d,M=%d,N=%-10dx%-10d\t etinf=%d\ttime=%d\n',k,Basis.M, Nr,Nth,full(etinf(n)),t);
-				fprintf('k=%d,M=%d,N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t time=%d\n',k,Basis.M, Nr,Nth,ErrTot,log2(ErrPre/ErrTot),t);
+				fprintf('k=%d,NBss0=%d,NBss1=%d,N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t time=%d\n',k,Basis.NBss0,Basis.NBss1, Nr,Nth,ErrTot,log2(ErrPre/ErrTot),t);
 				
 				ErrPre = ErrTot;
 				

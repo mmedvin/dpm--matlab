@@ -1,0 +1,83 @@
+RunAll
+Grid: r0=0.300000, r1=2.200000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1.800000e+00 b=1 
+ YHandle:Tools.Parameterizations.SubmarineY, params:  b=3.600000e-01 c=2 p=100 
+Dirichlet problem, cmpr using grid convergence, data is PlaneWave, scatterer is StarShapedScatterer, Basis is Fourier, Hnkl_n=3 
+k=1,NBss0=17,NBss1=215,N=257       x257       	 ErrTot=6.218910e-03	 rate=-Inf 	 time=1.318840e+01
+k=1,NBss0=17,NBss1=215,N=513       x513       	 ErrTot=5.665546e-04	 rate=3.46 	 time=2.409015e+01
+k=1,NBss0=17,NBss1=215,N=1025      x1025      	 ErrTot=3.557197e-05	 rate=3.99 	 time=7.053964e+01
+
+Internal Inhomogeneous problem inside ellipse of AR=2 
+Method:RunInterior-StarShapedScatterer,	 using Fourier Basis 
+Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
+ YHandle:Tools.Parameterizations.AsinBtWD, params:  a=5.000000e-01 b=1 
+k=1,NBss0=65,NBss1=79,N=33        x33        	 ebinf=0|NaN  	etinf=0|NaN  	timeA=8.336899e-01	timeE=6.047613e-04
+k=1,NBss0=65,NBss1=79,N=65        x65        	 ebinf=5.747133e-06|-Inf 	etinf=2.050924e-05|-Inf 	timeA=1.291874e+00	timeE=1.731084e-03
+k=1,NBss0=65,NBss1=79,N=129       x129       	 ebinf=2.456419e-07|4.5482	etinf=1.265936e-06|4.0180	timeA=4.763368e+00	timeE=1.391684e-03
+k=1,NBss0=65,NBss1=79,N=257       x257       	 ebinf=8.459529e-09|4.8598	etinf=7.769702e-08|4.0262	timeA=1.911922e+01	timeE=5.512125e-03
+k=1,NBss0=65,NBss1=79,N=513       x513       	 ebinf=4.042950e-10|4.3871	etinf=4.837786e-09|4.0054	timeA=8.428414e+01	timeE=2.602563e-02
+
+Method:RunInteriorHomo-StarShapedScatterer,	  
+Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
+ YHandle:Tools.Parameterizations.AsinBtWD, params:  a=5.000000e-01 b=1 
+k=1,NBss0=23,NBss1=81,N=33  x33  	 ErrXi=7.623911e-09	 rate=-Inf  ErrTot=1.371709e-08	 rate=-Inf  timeA=3.637123e-01
+k=1,NBss0=23,NBss1=81,N=65  x65  	 ErrXi=5.092437e-10	 rate=3.90  ErrTot=8.537899e-10	 rate=4.01  timeA=8.631099e-01
+k=1,NBss0=23,NBss1=81,N=129 x129 	 ErrXi=1.822111e-11	 rate=4.80  ErrTot=5.324341e-11	 rate=4.00  timeA=3.137711e+00
+k=1,NBss0=23,NBss1=81,N=257 x257 	 ErrXi=1.423419e-12	 rate=3.68  ErrTot=2.872813e-12	 rate=4.21  timeA=1.268305e+01
+
+RunSimpleTransReflAboutCircle 
+Warning: Rank deficient, rank = 39, tol =  2.005579e-10. 
+> In RunSimpleTransReflAboutCircle (line 88)
+  In RunAll (line 4) 
+kex=1,kin=1,NBss0=23, NBss1=25,Nplr=33   x33	, Ncrt=33   x33	 ExtErr=2.502318e-08	 IntErr=2.587257e-06	 time=1.966391e-01
+kex=1,kin=1,NBss0=23, NBss1=25,Nplr=65   x65	, Ncrt=65   x65	 ExtErr=7.434621e-09	 IntErr=5.919752e-09	 time=5.087333e-01
+kex=1,kin=1,NBss0=23, NBss1=25,Nplr=129  x129	, Ncrt=129  x129	 ExtErr=4.512744e-10	 IntErr=4.470853e-10	 time=1.861168e+00
+kex=1,kin=1,NBss0=23, NBss1=25,Nplr=257  x257	, Ncrt=257  x257	 ExtErr=1.755107e-11	 IntErr=1.773251e-11	 time=8.159638e+00
+
+ExtL =
+
+      -Inf    1.7509    4.0422    4.6844
+
+
+IntL =
+
+      -Inf    8.7717    3.7269    4.6561
+
+Trans/Refl problem about ellipse of FD=1.558846e+00, ,Eta0=5.493061e-01, a=1.800000e+00, b=9.000000e-01, AR=2 ,r0=1.000000e-01,r1=2.500000e+00,x=+/-2,y+/-=1.100000e+00
+b=0.90   ,kex=1,kin=3,NBss0=37,NBss1=39,Nplr=129  x129	, Ncrt=129  x129	 ExtErr=2.098644e-04	 IntErr=1.866497e-04	 time=2.657379e+00
+b=0.90   ,kex=1,kin=3,NBss0=37,NBss1=39,Nplr=257  x257	, Ncrt=257  x257	 ExtErr=7.274498e-06	 IntErr=6.557067e-06	 time=1.099619e+01
+b=0.90   ,kex=1,kin=3,NBss0=37,NBss1=39,Nplr=513  x513	, Ncrt=513  x513	 ExtErr=5.452938e-07	 IntErr=4.853700e-07	 time=5.061098e+01
+
+ExtL =
+
+      -Inf    4.8505    3.7377
+
+
+IntL =
+
+      -Inf    4.8311    3.7559
+
+RunTransReflAboutElps 
+kex=1,kin=15,NBss0=71,NBss1=77,Nplr=129  x129	, Ncrt=129  x129	 ExtErr=1.226466e-03	 IntErr=1.455246e-03	 time=4.727746e+00
+kex=1,kin=15,NBss0=71,NBss1=77,Nplr=257  x257	, Ncrt=257  x257	 ExtErr=6.567958e-05	 IntErr=7.524711e-05	 time=1.978356e+01
+kex=1,kin=15,NBss0=71,NBss1=77,Nplr=513  x513	, Ncrt=513  x513	 ExtErr=4.351788e-06	 IntErr=5.415009e-06	 time=9.009005e+01
+
+ExtL =
+
+      -Inf    4.2229    3.9158
+
+
+IntL =
+
+      -Inf    4.2735    3.7966
+
+RunTransReflAboutStarShapedBody, IncAngD: 0.000000, Grid:  x1=-1.700000, xn=1.700000, y1=-1.700000, yn=1.700000, r0=0.300000, r1=2.200000 
+ XHandle:Tools.Parameterizations.StarX, params:  
+ YHandle:Tools.Parameterizations.StarY, params:  
+ kin=3 kex=1 NBss0=43 NBss1=159 
+N=129       x129       	 ErrExt=2.560074e-02 rate=-Inf    ErrInt=2.556807e-02 rate=-Inf    ErrTot=2.560074e-02 rate=-Inf  	 time=7.676263e+00
+N=257       x257       	 ErrExt=1.393415e-03 rate=4.20    ErrInt=1.415610e-03 rate=4.17    ErrTot=1.415610e-03 rate=4.18  	 time=3.001580e+01
+N=513       x513       	 ErrExt=5.025255e-05 rate=4.79    ErrInt=6.488959e-05 rate=4.45    ErrTot=6.488959e-05 rate=4.45  	 time=1.342882e+02
+

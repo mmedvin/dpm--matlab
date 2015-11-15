@@ -10,6 +10,11 @@ x1=-1.2;xn=1.2;
  %y1=-1.7;yn=1.7;
  y1=-.7;yn=.7;
 
+ %Kite
+  %  x1=-1.7;xn=1.2;
+  %  y1=-1.7;  yn=1.7;
+ 
+ 
 Lx=xn-x1;Ly=yn-y1;
 ebinf=[];etinf=[];
 
@@ -30,7 +35,7 @@ Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'StarShapedScatterer'; %'ellipse';% 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'ellipse'; %'StarShapedScatterer';% 'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -56,7 +61,7 @@ for k =1%[1,5,10,15,20,25]
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,1e-11);
 	end
 
 for n=1:4 %run different grids
@@ -67,24 +72,27 @@ tic
     if strcmpi(ScatType,'ellipse')        
         ScattererHandle  = @Tools.Scatterer.EllipticScatterer;
         ScattererParams  = struct('Eta0',Eta0,'FocalDistance',FocalDist,'ExpansionType',25, 'Stencil', 9);
+        Extension = @Tools.Extensions.TwoTupleExtension;
     elseif strcmpi(ScatType,'circle')
         ScattererHandle  = @Tools.Scatterer.PolarScatterer;
-        ScattererParams  = struct('r0',R0,'ExpansionType',25);
+        ScattererParams  = struct('r0',R0, 'Stencil', 9);
+        Extension        = @Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension;%EBPolarHomoHelmholtz7OrderExtension;;
     elseif strcmpi(ScatType,'StarShapedScatterer')
         ScattererHandle  = @Tools.Scatterer.StarShapedScatterer;
         ScattererParams  = ExParams;
+        Extension = @Tools.Extensions.TwoTupleExtension;
     end
-
-    CollectRhs = 1;
     
     IntPrb =  Solvers.InteriorHomoSolver( struct(...
-        'Basis',Basis, ...
-        'Grid', Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny), ...
-        'CoeffsHandle', @Tools.Coeffs.ConstantWaveNumber, ... %using another WN here would mean inhomogeneous problem, i.e. incompatiple here
-        'CoeffsParams', struct('k',k,'r0',NHR), ...
-        'ScattererHandle',ScattererHandle, ...
-        'ScattererParams', ScattererParams, ...
-        'CollectRhs',1 ... %i.e. yes
+                'Basis'             , Basis, ...
+                'Grid'              , Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny), ...
+                'CoeffsHandle'      , @Tools.Coeffs.ConstantWaveNumber, ... %using another WN here would mean inhomogeneous problem, i.e. incompatiple here
+                'CoeffsParams'      , struct('k',k,'r0',NHR), ...
+                'ScattererHandle'   ,ScattererHandle, ...
+                'ScattererParams'   , ScattererParams, ...
+                'CollectRhs'        , 1, ... %i.e. yes
+                'Extension'         , Extension, ...
+                'ExtensionParams'   , [] ...
         ));
     
     Q0 = IntPrb.Q0;%(:,1:2*M+1);
@@ -143,8 +151,8 @@ tic
     %t2=toc;
     
     ErrTot =norm(exact(:)-u(:),inf);
-    fprintf('k=%d,M=%d,N=%-4dx%-4d\t ErrXi=%d\t rate=%-5.2f ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
-        k,Basis.M, Nx,Ny,ErrXi,log2(ErrXiPre/ErrXi),ErrTot,log2(ErrPre/ErrTot),t1);
+    fprintf('k=%d,NBss0=%d,NBss1=%d,N=%-4dx%-4d\t ErrXi=%d\t rate=%-5.2f ErrTot=%d\t rate=%-5.2f timeA=%d\n',...
+        k,Basis.NBss0,Basis.NBss1, Nx,Ny,ErrXi,log2(ErrXiPre/ErrXi),ErrTot,log2(ErrPre/ErrTot),t1);
     ErrPre = ErrTot;
     ErrXiPre = ErrXi;
     

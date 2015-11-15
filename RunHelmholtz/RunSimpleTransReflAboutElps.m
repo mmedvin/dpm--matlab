@@ -43,12 +43,12 @@ fprintf('Trans/Refl problem about ellipse of FD=%d, ,Eta0=%d, a=%d, b=%d, AR=%d 
 for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
     ExtWaveNumberParams = struct('k',k,'r0',NHR);
     IntWaveNumberParams =  struct('k',3*k,'r0',NHR);
-   kmax = max(ExtWaveNumberParams.k ,IntWaveNumberParams.k );
-        UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);              
-        f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
-        dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);
-            
-	Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
+    kmax = max(ExtWaveNumberParams.k ,IntWaveNumberParams.k );
+    UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',Eta0);
+    f1      = @(phi) Uinc(UincParams,phi,IncAng,kmax);
+    dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,kmax);
+    
+    Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn);
         
       %  [cn0ex,cn1ex,M] = FourierCoeff(f1,dfdn);
     
@@ -75,7 +75,9 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                      'CoeffsParams', ExtWaveNumberParams, ...
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
-                     'CollectRhs',0 ... %i.e. no
+                     'CollectRhs',0, ... %i.e. no
+                     'Extension', @Tools.Extensions.TwoTupleExtension, ...
+                     'ExtensionParams',[] ...
                      ));
 
             CrtsGrid                = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
@@ -87,13 +89,12 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                      'CoeffsParams', IntWaveNumberParams, ...
                      'ScattererHandle',ScattererHandle, ...
                      'ScattererParams', ScattererParams, ...
-                     'CollectRhs',1 ... %i.e. yes
+                     'CollectRhs',1, ... %i.e. yes
+                     'Extension', @Tools.Extensions.TwoTupleExtension, ...
+                     'ExtensionParams',[] ...
                      ));
          
-            if 1
-                ExtQ = ExtPrb.Q;%[ExtPrb.Q0,-ExtPrb.Q1]; %
-                IntQ = IntPrb.Q;
-                
+            if 1             
                 UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',ExtPrb.Scatterer.eta);
                 
                 rhs = zeros(numel(ExtPrb.GridGamma) + numel(IntPrb.GridGamma),1);
@@ -101,18 +102,17 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 uinc = Uinc(UincParams,ExtPrb.Scatterer.phi,IncAng,k);
                 rhs(numel(IntPrb.GridGamma)+1:end,1)= ExtPrb.Qcol2(uinc);
                 
-                cn = [ IntQ ; ExtQ ] \ rhs;
+                cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
                 
                 %             cn0 = cn(1:2*M+1);
                 %             cn1 = cn(2*M+2:end);
                 
                 Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-                Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*cn;
+                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
                 Intu = IntPrb.P_Omega(Intxi);
                 
                 Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
-                Extxi(ExtPrb.GridGamma) = ExtPrb.W(ExtPrb.GridGamma,:)*cn ;%- uinc;
-                %Extxi(ExtPrb.GridGamma) = [ExtPrb.W(ExtPrb.GridGamma,:),uinc]*cn;
+                 Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
                 
                 UincParams  = struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',ExtPrb.Scatterer.Eta);
                 %UincParams  = struct('ScattererType','circle','r',PlrGrid.R);
@@ -169,8 +169,8 @@ for k = 1%[1, 5,15];%15%[1,3,5,10]%[1,5,10,15,20,25]
                 tmp = Intu(1:2:end,1:2:end)-Intu1(1:2:end,1:2:end);
                 IntErr(n) =norm(tmp(:),inf);
                 
-                fprintf('b=%-7.2f,kex=%d,kin=%d,M=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',b, ...
-				ExtWaveNumberParams.k ,IntWaveNumberParams.k ,Basis.M, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
+                fprintf('b=%-7.2f,kex=%d,kin=%d,NBss0=%d,NBss1=%d,Nplr=%-5dx%d\t, Ncrt=%-5dx%d\t ExtErr=%d\t IntErr=%d\t time=%d\n',b, ...
+				ExtWaveNumberParams.k ,IntWaveNumberParams.k ,Basis.NBss0,Basis.NBss1, Nr,Nth,Nx,Ny,full(ExtErr(n)),full(IntErr(n)),t);
             end
             
             Extu0=spalloc(Nr*2-1,Nth*2-2,nnz(Extu));
