@@ -3,13 +3,13 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
     methods(Static)
 		function FBasis = BasisHelper(f,dfdr,err,~)%range)
 
-            if ~exist('err','var'),err = 10^(-10);end
+            if ~exist('err','var'),err(1) = 10^(-10); err(2) = 10^(-10);end
 			me = metaclass(Tools.Basis.FourierBasis);
             
-            if err < 1
+            if err(1) < 1
                 %[cn0,cn1,M] = Tools.Basis.FourierBasis.FourierCoeffNew(f,dfdr,err);
-                M=1023;
-                M1 = 2*M+1;                
+                K=1023;
+                M1 = 2*K+1;                
                 th=linspace(0,2*pi,M1+1);
                 th=th(1:M1);
                 
@@ -19,35 +19,40 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
                 cn0 = Tools.Basis.FourierBasis.FftCoeffs(fth,M1).';
                 cn1 = Tools.Basis.FourierBasis.FftCoeffs(dfth,M1).';
                 
-                AllIndices = -M:M;
+                AllIndices = -K:K;
                 
-                Indices0 = (find(abs(cn0)>err));%find(abs(cn0)>err,1,'first'):find(abs(cn0)>err,1,'last'); %
-                Indices1 = (find(abs(cn1)>err));%find(abs(cn1)>err,1,'first'):find(abs(cn1)>err,1,'last'); %
+                Indices0 = (find(abs(cn0)>err(1)));%find(abs(cn0)>err,1,'first'):find(abs(cn0)>err,1,'last'); %
+                Indices1 = (find(abs(cn1)>err(2)));%find(abs(cn1)>err,1,'first'):find(abs(cn1)>err,1,'last'); %
                 %if isempty(Indices0), Indices0=Indices1; end
                 
                 FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
                     'Indices0',  AllIndices(Indices0), 'cn0',cn0(Indices0), 'NBss0', numel(Indices0), ...
                     'Indices1',  AllIndices(Indices1), 'cn1',cn1(Indices1), 'NBss1', numel(Indices1), ...
                     'MoreParams',[], ...
-                    'Core',struct('M',M,'Indices0',Indices0,'Indices1',Indices1));
+                    'Core',struct('M1',K,'M2',K,'Indices0',Indices0,'Indices1',Indices1));
             else
-                M=err;
+                K1=err(1);
+                K2=err(2);
                 
-                M1 = 2*M+1;
-                th=linspace(0,2*pi,M1+1);
-                th=th(1:M1);
-                fth   = f(th);
-                dfth  = dfdr(th);
+                M11 = 2*K1+1;
+                th1=linspace(0,2*pi,M11+1);
+                th1=th1(1:M11);
+                fth   = f(th1);
+                
+                M12 = 2*K2+1;
+                th2=linspace(0,2*pi,M12+1);
+                th2=th2(1:M12);
+                dfth  = dfdr(th2);
                 
                 %calc coeff
-                cn0 = Tools.Basis.FourierBasis.FftCoeffs(fth,M1).';
-                cn1 = Tools.Basis.FourierBasis.FftCoeffs(dfth,M1).';
-                AllIndices = -M:M;
+                cn0 = Tools.Basis.FourierBasis.FftCoeffs(fth,M11).';
+                cn1 = Tools.Basis.FourierBasis.FftCoeffs(dfth,M12).';
+                %AllIndices = -K:K;
                 FBasis = struct('type','Fourier','Handle',str2func(me.Name),...
-                    'Indices0',   -M:M, 'cn0',cn0, 'NBss0', 2*M+1, ...
-                    'Indices1',   -M:M, 'cn1',cn1, 'NBss1', 2*M+1, ...
+                    'Indices0',   -K1:K1, 'cn0',cn0, 'NBss0', 2*K1+1, ...
+                    'Indices1',   -K2:K2, 'cn1',cn1, 'NBss1', 2*K2+1, ...
                     'MoreParams',[], ...
-                    'Core',struct('M',M,'Indices0',1:M1,'Indices1',1:M1));
+                    'Core',struct('M1',K1,'M2',K2,'Indices0',1:M11,'Indices1',1:M12));
             end
 			
             
@@ -57,7 +62,16 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
         end
 
         function Coefs = Coeffs(FuncHandle, Core,n)
-            siz = 2*Core.M+1;
+            switch(n)
+                case 0
+                    siz = 2*Core.M1+1;
+                    Indices = Core.Indices0;
+                case 1
+                    siz = 2*Core.M2+1;
+                    Indices = Core.Indices1;
+                otherwise
+                    error('wrong n')
+             end
             phi=linspace(0,2*pi, siz+1);
             phi = phi(1:siz);
             vec = FuncHandle(phi);
@@ -66,15 +80,9 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
             Coefs = fftshift(Coefs);
             Coefs = Coefs/siz;  %normalization
             
-            switch(n)
-                case 0
-                    Coefs = Coefs(Core.Indices0);
-                case 1
-                    Coefs = Coefs(Core.Indices1);
-                otherwise
-                    error('wrong n')
-            end
-        end
+ 
+            Coefs = Coefs(Indices);
+         end
         
 		function Coefs = FftCoeffs(vec, siz)
 			if ~exist('siz','var'),siz = numel(vec);end

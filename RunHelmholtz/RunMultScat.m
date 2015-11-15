@@ -1,5 +1,5 @@
 function RunMultScat
-    nmax=4;
+    nmax=2;
     want2plot = 0;
     
     Parameterization  = Tools.Parameterizations.ParametricStar();
@@ -13,7 +13,7 @@ function RunMultScat
     Boundaries=struct( ...
                             'Interior', struct('x1',-1.7, 'xn', 1.7, 'y1',-1.7,'yn',1.7), ...
                             'Medium'  , struct('x1',-2.2, 'xn', 2.2, 'y1',-2.2,'yn',2.2), ...
-                            'Exterior', struct('r1', 1.8, 'rn', 2.2) ...
+                            'Exterior', struct('r1', 1.8, 'rn', 2.5) ...
                       ); 
         
     R0 = 1;
@@ -26,13 +26,13 @@ function RunMultScat
     ScatType = 'StarShapedScatterer';%'circle';
     BType    = 'Fourier';
     
-    K = { struct( 'Interior',10,'Medium', 5, 'Exterior',1) ,  struct( 'Interior',1,'Medium',2, 'Exterior',1), struct( 'Interior',5,'Medium', 5, 'Exterior',5)};
-
+    %K = { struct( 'Interior',10,'Medium', 5, 'Exterior',1) ,  struct( 'Interior',1,'Medium',5, 'Exterior',1), struct( 'Interior',1,'Medium', 5, 'Exterior',10)};
+    K = { struct( 'Interior',10,'Medium', 5, 'Exterior',1) ,  struct( 'Interior',15,'Medium',10, 'Exterior',5), struct( 'Interior',20,'Medium', 15, 'Exterior',10)};
     dbk=dbstack();
     
     fprintf('%s, Incident Angle = %d deg \n', dbk(1).name,IncAng.Degrees);
 
-    for k = 1 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
+    for k = 3 %[1, 5,20,25];%[1,3,5,10]%[1,5,10,15,20,25]
            
         if strcmpi(ScatType,'circle')
             UincParams{1}  = struct('ScattererType','circle', 'r', R0);
@@ -54,15 +54,15 @@ function RunMultScat
         
         if strcmpi(BType,'Fourier')
             if K{k}.Interior ~= K{k}.Medium
-                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) f(th) - g(th,1),@(th) dfdn(th) - dgdn(th,1),1e-5);
+                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) f(th) - g(th,1),@(th) dfdn(th) - dgdn(th,1),[1e-5,1e-5]);
             else
-                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,1) ,@(th) dgdn(th,1),1e-5);
+                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,1) ,@(th) dgdn(th,1),[1e-5,1e-5]);
             end
             
             if K{k}.Exterior ~= K{k}.Medium
-                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) - h(th),@(th) dgdn(th,2) - dhdn(th),1e-5);
+                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) - h(th),@(th) dgdn(th,2) - dhdn(th),[1e-5,1e-5]);
             else
-                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) ,@(th) dgdn(th,2),1e-5);
+                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) ,@(th) dgdn(th,2),[1e-5,1e-5]);
             end
         end
         
@@ -279,8 +279,8 @@ function RunMultScat
                 [XMed,YMed,tMedu] = Tools.Common.MaskU(Grids.Medium  ,MedPrb.Scatterer.Mm,Medu);
                 
                 figure; Tools.Common.mPcolor([XInt,XMed,XExt],[YInt,YMed,YExt],full(abs([tIntu,tMedu,tExtu])),'total field, abs')
-                %figure; Tools.Common.mPcolor([XInt,XMed,XExt],[YInt,YMed,YExt],full(real([tIntu,tMedu,tExtu])),'total field, real')
-                %figure; Tools.Common.mPcolor([XInt,XMed,XExt],[YInt,YMed,YExt],full(imag([tIntu,tMedu,tExtu])),'total field, imag')
+                figure; Tools.Common.mPcolor([XInt,XMed,XExt],[YInt,YMed,YExt],full(real([tIntu,tMedu,tExtu])),'total field, real')
+                figure; Tools.Common.mPcolor([XInt,XMed,XExt],[YInt,YMed,YExt],full(imag([tIntu,tMedu,tExtu])),'total field, imag')
                 
                 if 1 % debug, draw wave number
                     [XExt,YExt,KExt] = Tools.Common.MaskU(Grids.Exterior,ExtPrb.Scatterer.Mp,ExtPrb.k*ones(size(Grids.Exterior.R)));
