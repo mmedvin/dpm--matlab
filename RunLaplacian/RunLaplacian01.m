@@ -54,12 +54,12 @@ function RunLaplacian01
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,g,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
         
-        Basis0 = Tools.Basis.FourierBasis.BasisHelper(fn,gn);
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,g);
-        if Basis0.NBss > Basis.NBss
-            Basis = Tools.Basis.FourierBasis.BasisHelper(f,g,Basis0.NBss);
-        end
-        clear Basis0;
+     %   Basis0 = Tools.Basis.FourierBasis.BasisHelper(fn,gn);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(@(phi) f(phi)-g(phi),@(phi) fn(phi)-gn(phi));
+%         if Basis0.NBss > Basis.NBss
+%             Basis = Tools.Basis.FourierBasis.BasisHelper(f,g,Basis0.NBss);
+%         end
+ %       clear Basis0;
 	end
 
 for	   LinearSolverType = 0
@@ -68,7 +68,7 @@ for	   LinearSolverType = 0
     %ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0; 
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 
-    fprintf('Problem01, M=%d, LinearSolverType = %d, elps_a=%d, elps_b=%d\n', Basis.M, LinearSolverType, a, b);
+    fprintf('Problem01, NBss0=%d, NBss1=%d, LinearSolverType = %d, elps_a=%d, elps_b=%d\n', Basis.NBss0, Basis.NBss1, LinearSolverType, a, b);
     
     
 	for n=1:5 %run different grids
@@ -99,7 +99,9 @@ for	   LinearSolverType = 0
                  'DiffOp'            , DiffOp, ...
                  'DiffOpParams'      , struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType), ...
                  'SourceHandle'      , @Tools.Source.LaplaceSource01_Interior, ...
-                 'SourceParams'      , ExParams ...
+                 'SourceParams'      , ExParams, ...
+                 'Extension'         , @Tools.Extensions.TwoTupleExtension, ...
+                 'ExtensionParams',[] ...
                  ));   
         
         %------------------------------------------------------------------
@@ -155,45 +157,51 @@ for	   LinearSolverType = 0
                   'DiffOp'            , DiffOp, ... 
                   'DiffOpParams'      , DiffOpParamsExt, ...
                   'SourceHandle'      , @Tools.Source.LaplaceSource01_Exterior, ...
-                  'SourceParams'      , ExParams ...
-                  ));   ...
+                  'SourceParams'      , ExParams, ...
+                  'Extension'         , @Tools.Extensions.TwoTupleExtension, ...
+                  'ExtensionParams',[] ...
+                  ));
 							
 		%------------------------------------------------------------------
 	if 1
-		Zeros1=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
-        Zeros2=spalloc(numel(ExtPrb.GridGamma),Basis.NBss,0);
-		Eye = speye(Basis.NBss);
-		Zeros3=spalloc(Basis.NBss,Basis.NBss,0);
-		
+		Zeros1_0=spalloc(numel(IntPrb.GridGamma),Basis.NBss0,0);
+        Zeros1_1=spalloc(numel(IntPrb.GridGamma),Basis.NBss1,0);
+        Zeros2_0=spalloc(numel(ExtPrb.GridGamma),Basis.NBss0,0);
+        Zeros2_1=spalloc(numel(ExtPrb.GridGamma),Basis.NBss1,0);
+
+        Eye0 = speye(Basis.NBss0);
+        Eye1 = speye(Basis.NBss1);
+        Zeros3_0=spalloc(Basis.NBss1,Basis.NBss0,0);
+        Zeros3_1=spalloc(Basis.NBss0,Basis.NBss1,0);
+        
 		nGGInt = numel(IntPrb.GridGamma);
         nGGExt = numel(ExtPrb.GridGamma);
-		rhs = zeros(nGGInt + nGGExt + 2*Basis.NBss,1);
+		rhs = zeros(nGGInt + nGGExt + Basis.NBss0+Basis.NBss1,1);
 		rhs(1:nGGInt)	= (-IntPrb.TrGF -IntPrb.Qf);
 		rhs(nGGInt+1:(nGGInt+nGGExt))= (-ExtPrb.TrGF -ExtPrb.Qf);
 
         Exact	= Tools.Exact.ExLapElps01(IntPrb.Scatterer, ExParams);
 		
-		[ICu,ICun] = Exact.InterfaceCondition(Basis.NBss); 
-		ICuc = Tools.Basis.FourierBasis.FftCoefs(ICu, Basis.NBss);
-		ICunc = Tools.Basis.FourierBasis.FftCoefs(ICun, Basis.NBss);
+		ICuc = Tools.Basis.FourierBasis.Coeffs(@Exact.InterfaceConditionU, Basis.Core,0);
+		ICunc = Tools.Basis.FourierBasis.Coeffs(@Exact.InterfaceConditionUn, Basis.Core,1);
 		
-		rhs((nGGInt + nGGExt+1):(nGGInt + nGGExt+Basis.NBss))= ICuc;
-		rhs((nGGInt + nGGExt+Basis.NBss+1):end)= ICunc;
+		rhs((nGGInt + nGGExt+1):(nGGInt + nGGExt+Basis.NBss0))= ICuc;
+		rhs((nGGInt + nGGExt+Basis.NBss0+1):end)= ICunc;
 		
- 		cn = [IntPrb.Q0, IntPrb.Q1, Zeros1,      Zeros1    ;   
-			  Zeros2,     Zeros2,     ExtPrb.Q0,  ExtPrb.Q1; 
-			  Eye,       Zeros3,   -Eye,        Zeros3; 
-			  Zeros3,    Eye,       Zeros3,    -Eye]\rhs;
+ 		cn = [IntPrb.Q0, IntPrb.Q1, Zeros1_0 , Zeros1_1   ;   
+			  Zeros2_0 , Zeros2_1 , ExtPrb.Q0, ExtPrb.Q1  ; 
+			  Eye0     , Zeros3_1 ,-Eye0     , Zeros3_1   ; 
+			  Zeros3_0 , Eye1     , Zeros3_0 ,-Eye1         ]\rhs;
 
-		Intcn=cn(1:2*Basis.NBss);
-		Extcn= cn(2*Basis.NBss+1:end); 
+		Intcn=cn(1:Basis.NBss0+Basis.NBss1);
+		Extcn= cn(Basis.NBss0+Basis.NBss1+1:end); 
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*Intcn + IntPrb.Wf(IntPrb.GridGamma);
+		Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf(IntPrb.GridGamma);
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
-		Extxi(ExtPrb.GridGamma) = (ExtPrb.W(ExtPrb.GridGamma,:)*Extcn  + ExtPrb.Wf(ExtPrb.GridGamma));
+		Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*Extcn  + ExtPrb.Wf(ExtPrb.GridGamma);
 		Extu =  spalloc(Nx,Ny,length(ExtPrb.GridGamma));
 		tmp = ExtPrb.P_Omega(Extxi);
 		Extu(ExtPrb.Scatterer.Nm) = tmp(ExtPrb.Scatterer.Nm);

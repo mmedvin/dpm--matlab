@@ -9,7 +9,7 @@ function RunLapInterior03
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-    Order=4;
+    Order=2;
     if Order==2 , ExpansionType=33; Stencil=5; else ExpansionType=35; Stencil=9; end
 
     BIn = 1e3;
@@ -34,7 +34,7 @@ for	   LinearSolverType = 4
     
     ErrUInfPre = 0; ErrU2Pre = 0; ErrUxInfPre = 0; ErrUx2Pre = 0; ErrUyInfPre = 0; ErrUy2Pre = 0; ErrUxxInfPre = 0; ErrUxx2Pre = 0; ErrUyyInfPre = 0; ErrUyy2Pre = 0; ErrUxyInfPre = 0; ErrUxy2Pre = 0;
 	errBpre = 0;
-    fprintf('Problem RunLapInterior03, M=%d, LinearSolverType = %d, Order=%d\n', Basis.M, LinearSolverType,Order);
+    fprintf('Problem RunLapInterior03, NBss0=%d, NBss1=%d, LinearSolverType = %d, Order=%d\n', Basis.NBss0,Basis.NBss1, LinearSolverType,Order);
         
 	for n=1:6 %run different grids
 		tic
@@ -65,8 +65,10 @@ for	   LinearSolverType = 4
                  'ScattererParams'   , struct('Eta0',Eta0,'FocalDistance',FocalDistance,'ExpansionType',ExpansionType, 'Stencil', Stencil), ...
                  'CollectRhs'        , CollectRhs, ...
                  'DiffOp'            , DiffOp, ...
-                 'DiffOpParams'      , struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType, 'Order',Order) ...
-                 )); ...
+                 'DiffOpParams'      , struct('BC_x1',0,'BC_xn', 0,'BC_y1',0,'BC_yn',0, 'LinearSolverType', LinearSolverType, 'Order',Order), ...
+                 'Extension'         , @Tools.Extensions.TwoTupleExtension, ...
+                 'ExtensionParams',[] ...
+                 ));
 									
 		%------------------------------------------------------------------
 	 

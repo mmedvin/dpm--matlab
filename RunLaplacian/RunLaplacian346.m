@@ -29,7 +29,7 @@ for	LinearSolverType = 0
 
 	ErrIntPre = 0; 	ErrExtPre = 0;	ErrTotPre = 0; ErrUPre = 0; ErrUrPre = 0; ErrUrrPre = 0;
 	
-	fprintf('Problem 3.46, M=%d, LinearSolverType = %d, r0=%-4.2f, C=%-6.3d,B=%-6.3d\n', Basis.M, LinearSolverType, ExParams.r0,ExParams.C,ExParams.B);
+	fprintf('Problem 3.46, NBss0=%d, NBss1=%d, LinearSolverType = %d, r0=%-4.2f, C=%-6.3d,B=%-6.3d\n', Basis.NBss0, Basis.NBss1, LinearSolverType, ExParams.r0,ExParams.C,ExParams.B);
 	
 	for n=1:5 %run different grids
 		tic
@@ -41,7 +41,7 @@ for	LinearSolverType = 0
 		Grid             = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 		SourceParams     = ExParams;
 		ScattererHandle  = @Tools.Scatterer.PolarScatterer;
-		ScattererParams  = struct('r0',ExParams.r0,'ExpansionType',33,'Stencil',5);
+		ScattererParams  = struct('r0',ExParams.r0,'Stencil',5);
 
 		%------------------------------------------------------------------
 				
@@ -70,7 +70,9 @@ for	LinearSolverType = 0
                  'DiffOp'            , DiffOp, ...
                  'DiffOpParams'      , DiffOpParams, ...
                  'SourceHandle'      , @Tools.Source.LaplaceSource_IIM346_Interior, ...
-                 'SourceParams'      , ExParams ...
+                 'SourceParams'      , ExParams, ...
+                 'Extension'         , @Tools.Extensions.EBPolarLaplace3OrderExtension, ...
+                 'ExtensionParams',[] ...
                  )); 
 						
 		ExtPrb =  Solvers.ExteriorLaplacianSolver( struct(...
@@ -84,36 +86,41 @@ for	LinearSolverType = 0
                   'DiffOp'            , DiffOp, ... 
                   'DiffOpParams'      , DiffOpParams, ...
                   'SourceHandle'      , @Tools.Source.LaplaceSource_IIM346_Exterior, ...
-                  'SourceParams'      , ExParams ...
+                  'SourceParams'      , ExParams, ...
+                  'Extension'         , @Tools.Extensions.EBPolarLaplace3OrderExtension, ...
+                  'ExtensionParams',[] ...
                   )); 
 							
 		%------------------------------------------------------------------
 	if 1
-		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss,0);
-		Eye = speye(Basis.NBss);
-		Zeros2=spalloc(Basis.NBss,Basis.NBss,0);
+		Zeros=spalloc(numel(IntPrb.GridGamma),Basis.NBss0,0);
+		Eye = speye(Basis.NBss0);
+		Zeros2=spalloc(Basis.NBss0,Basis.NBss0,0);
 		
 		nGG = numel(IntPrb.GridGamma);
-		rhs = zeros(2*nGG + Basis.NBss,1);
+		rhs = zeros(2*nGG + Basis.NBss0,1);
 		rhs(1:nGG)	= (-IntPrb.TrGF -IntPrb.Qf);
 		rhs(nGG+1:2*nGG)= (-ExtPrb.TrGF -ExtPrb.Qf);
 		
 		IC = - (ExParams.C + 2*(ExParams.r0^2).*(1 - ExParams.B + ExParams.r0.^2))./(ExParams.B.*ExParams.r0);
-		ICc = Tools.Basis.FourierBasis.FftCoefs(IC*ones(Basis.NBss,1), Basis.NBss);
+		ICc = Tools.Basis.FourierBasis.FftCoeffs(IC*ones(Basis.NBss0,1), Basis.NBss0);
 		
 		rhs(2*nGG+1:end)= ICc;
 		
- 		cn = [IntPrb.Q0,IntPrb.Q1,Zeros;   ExtPrb.Q0,Zeros,ExtPrb.Q1; Zeros2, Eye, -Eye]\rhs;
+        % [u]=0, [u_n] = IC
+ 		cn = [  IntPrb.Q0, IntPrb.Q1, Zeros;   
+                ExtPrb.Q0, Zeros    , ExtPrb.Q1; 
+                Zeros2   , Eye      , -Eye      ]\rhs;
 
-		Intcn=cn(1:2*Basis.NBss);
-		Extcn=[cn(1:Basis.NBss); cn(2*Basis.NBss+1:end)]; 
+		Intcn=cn(1:Basis.NBss0+Basis.NBss1);
+		Extcn=[cn(1:Basis.NBss0); cn(Basis.NBss0+Basis.NBss1+1:end)]; 
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = IntPrb.W(IntPrb.GridGamma,:)*Intcn + IntPrb.Wf(IntPrb.GridGamma);
+		Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf(IntPrb.GridGamma);
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
-		Extxi(ExtPrb.GridGamma) = (ExtPrb.W(ExtPrb.GridGamma,:)*Extcn  + ExtPrb.Wf(ExtPrb.GridGamma));
+		Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*Extcn + ExtPrb.Wf(ExtPrb.GridGamma);
 
 		Extu = spalloc(Nx,Ny,numel(ExtPrb.Scatterer.Nm));
 		tmp = ExtPrb.P_Omega(Extxi);

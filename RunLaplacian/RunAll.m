@@ -1,12 +1,12 @@
 RunLapBL53;
-RunLapBL53_pWD;
-RunLapBL53Int;
-RunLapBL53WD;
+%RunLapBL53_pWD;
+%RunLapBL53Int;
+%RunLapBL53WD;
 
 RunLapBL54;
-RunLapBL54_pWD;
-RunLapBL54Int;
-RunLapBL54WD;
+%RunLapBL54_pWD;
+%RunLapBL54Int;
+%RunLapBL54WD;
 
 RunLapExterior;
 RunLapInterior;
