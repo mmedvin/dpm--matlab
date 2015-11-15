@@ -77,6 +77,49 @@ end
 	
     methods
         
+        function ICu = InterfaceConditionU(obj,phi)
+            
+            x  = obj.FocalDistance*cosh(obj.Eta0).*cos(phi);
+            y  = obj.FocalDistance*sinh(obj.Eta0).*sin(phi);
+            xn = obj.FocalDistance*sinh(obj.Eta0).*cos(phi);
+            yn = obj.FocalDistance*cosh(obj.Eta0).*sin(phi);
+            
+            
+            c1 = obj.Coeffs.CoeffsIn.Derivatives('c',x,y);
+            d1 = obj.Coeffs.CoeffsIn.Derivatives('d',x,y);
+
+            c0 = obj.Coeffs.CoeffsOut.Derivatives('c',x,y);
+            d0 = obj.Coeffs.CoeffsOut.Derivatives('d',x,y);            
+            
+            ICu = sin(c1.*x).*sin(d1.*y) - sin(c0.*x).*sin(d0.*y);
+                        
+        end
+        
+        function ICun = InterfaceConditionUn(obj,phi)
+                              
+            x  = obj.FocalDistance*cosh(obj.Eta0).*cos(phi);
+            y  = obj.FocalDistance*sinh(obj.Eta0).*sin(phi);
+            xn = obj.FocalDistance*sinh(obj.Eta0).*cos(phi);
+            yn = obj.FocalDistance*cosh(obj.Eta0).*sin(phi);
+            
+            
+            [c1,c1y] = obj.Coeffs.CoeffsIn.Derivatives('c',x,y);
+            [d1,d1x] = obj.Coeffs.CoeffsIn.Derivatives('d',x,y);
+
+            [c0,c0y] = obj.Coeffs.CoeffsOut.Derivatives('c',x,y);
+            [d0,d0x] = obj.Coeffs.CoeffsOut.Derivatives('d',x,y);            
+                        
+
+            u0x = y.*d0x.*sin(c0.*x).*cos(d0.*y) + c0.*cos(c0.*x).*sin(d0.*y);
+            u0y = x.*c0y.*cos(c0.*x).*sin(d0.*y) + d0.*cos(d0.*y).*sin(c0.*x);
+            
+            u1x = y.*d1x.*sin(c1.*x).*cos(d1.*y) + c1.*cos(c1.*x).*sin(d1.*y);
+            u1y = x.*c1y.*cos(c1.*x).*sin(d1.*y) + d1.*cos(d1.*y).*sin(c1.*x);
+                        
+            ICun = (u1x.*xn + u1y.*yn) - (u0x.*xn + u0y.*yn);
+            
+        end
+        
         function [ICu,ICun] = InterfaceCondition(obj,N)
             
             phi=linspace(0,2*pi, N+1);

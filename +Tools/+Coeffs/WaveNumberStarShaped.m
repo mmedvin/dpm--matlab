@@ -58,7 +58,7 @@ classdef WaveNumberStarShaped < Tools.Coeffs.WaveNumberPolarR
     methods
         function [k,kn,knn,ks,kss,k5r] = Derivatives(obj,Scatterer)
             
-            if exist('Scatterer','var')
+            if isa(Scatterer,'Tools.Scatterer.StarShapedScatterer')%exist('Scatterer','var')
                 if obj.FirstTime
                     obj.FirstTime =0;
                     [x,dx] = Scatterer.XHandle.Derivatives(Scatterer.BasisArg);
@@ -88,17 +88,8 @@ classdef WaveNumberStarShaped < Tools.Coeffs.WaveNumberPolarR
                 ks     = obj.ks;
                 kss     = obj.kss;
             else
-                [k,kn,knn,ks,kss,k5r] = Derivatives@Tools.Coeffs.WaveNumberPolarR(obj);
-%                 k       = obj.k;
-%                 kn      = obj.kr;
-%                 knn      = obj.krr;
-%                 
-%                 %k = obj.k;
-%                 %kr=obj.kr;
-%                 %krr=obj.krr;
-%                 ks=obj.k3r;
-%                 kss=obj.k4r;
-%                 k5r=obj.k5r;
+                [k,kn,knn,ks,kss,k5r] = Derivatives@Tools.Coeffs.WaveNumberPolarR(obj,'r');
+                %despite the names it is actually returns [k,kr,krr,k3r,k4r,k5r] here
             end
            
             
@@ -106,7 +97,7 @@ classdef WaveNumberStarShaped < Tools.Coeffs.WaveNumberPolarR
         end
         
         function obj = WaveNumberStarShaped(Scatterer,Params)          
-            obj=obj@Tools.Coeffs.WaveNumberPolarR(Scatterer,Params);                                        
+            obj=obj@Tools.Coeffs.WaveNumberPolarR(Scatterer,Params);
         end
         
         

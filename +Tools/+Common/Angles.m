@@ -9,6 +9,8 @@ classdef Angles
     
     methods
         function  obj = Angles(value,type)
+            if ~exist('type', 'var'), type=degrees; end
+            
             switch type
                 case 'radians'
                      obj. Radians = value;
@@ -16,8 +18,22 @@ classdef Angles
                 case 'degrees'
                       obj. Radians=value*pi/180;
                       obj. Degrees = value;
+                otherwise 
+                    error('unsupported degree type');
             end
         end
+        
+%         function rad = double(obj)
+%             rad = obj.Radians;
+%         end
+%         
+%         function disp(obj)
+%             disp(obj.Degrees)
+%         end
+        
+%         function str = char(obj)
+%             str = sprintf('%s deg',obj.Degrees);
+%         end
     end
     
 end

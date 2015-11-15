@@ -11,25 +11,19 @@ classdef ConstantWaveNumber < Tools.Coeffs.AbstractCoeffs
     end
         
     
-    methods
-        
-        %         function [k,kr,krr,k3r,k4r,k5r] = Derivatives(obj)
-        %             k   = obj.k;
-        %             kr  = 0;
-        %             krr = 0;
-        %             k3r = 0;
-        %             k4r = 0;
-        %             k5r = 0;
-        %         end
-        
-        function varargout = Derivatives(obj)
+    methods                
+        function varargout = Derivatives(obj,~)
             varargout(1)={obj.k};
             nout = nargout;
             varargout(2:nout)={0};
         end
         
-        function obj=ConstantWaveNumber(~,Params) %(k0,r,r0)
+        function obj=ConstantWaveNumber(Grid,Params)
             obj.k=Params.k;
+            
+            if isa(Grid, 'Tools.Grid.Grids') || isa(Grid, 'Tools.Scatterer.SingleScatterer')
+                obj.k=Params.k*spones(ones(size(Grid.R)));
+            end
         end
         
     end

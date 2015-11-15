@@ -6,6 +6,7 @@ classdef WaveNumberElliptical < Tools.Coeffs.WaveNumberPolarR
        % FocalDist;
     end 
     
+
     methods(Static = true)
         function [k,kn] = kkn(FocalDistance,eta,phi,k0,r0)
             
@@ -58,6 +59,7 @@ classdef WaveNumberElliptical < Tools.Coeffs.WaveNumberPolarR
     
     methods
         function [k,kn,kf,knn,kff, k3n,k3f,k4n,k4f,knf,knff,knnf,knnff] = Derivatives(obj)
+            assert(~obj.NoDerivatives)
             k       = obj.k;
             kn      = obj.kn;
             kf      = obj.kf;
@@ -74,39 +76,45 @@ classdef WaveNumberElliptical < Tools.Coeffs.WaveNumberPolarR
         end
         
         function obj = WaveNumberElliptical(Scatterer,Params)%,k0,r0) %(FocalDist,eta,phi,k0,r0)
-            % consider reordering of arguments, so it's can be called as constant k....
             
-            [r,rn,rf,rnn,rff,r3n,r3f,r4n,r4f,rnf,rnff,rnnf,rnnff] = ... 
-                Tools.Coeffs.WaveNumberElliptical.chngcoord(Scatterer.FocalDistance,Scatterer.Eta,Scatterer.Phi);
-            
-            PolarScatterer.r  = r;
-            %PolarScatterer.r0 = r0;
+            if isa(Scatterer, 'Tools.Grid.Grids')
+                PolarScatterer = Scatterer;
+                ND=true;
+            else            
+                [r,rn,rf,rnn,rff,r3n,r3f,r4n,r4f,rnf,rnff,rnnf,rnnff] = ...
+                    Tools.Coeffs.WaveNumberElliptical.chngcoord(Scatterer.FocalDistance,Scatterer.Eta,Scatterer.Phi);
+                
+                PolarScatterer.r  = r;
+                %PolarScatterer.r0 = r0;
+                ND=false;
+            end    
             
             obj=obj@Tools.Coeffs.WaveNumberPolarR(PolarScatterer,Params);%r,r0);
+            obj.NoDerivatives =ND;
+            obj.k=sparse(obj.k);
             
-            obj.kn = obj.kr.*rn ;
-            obj.kf = obj.kr.*rf ;
-            
-            obj.knn = obj.krr.*rn.^2 + obj.kr.*rnn ;
-            obj.kff = obj.krr.*rf.^2 + obj.kr.*rff ;
-            
-            obj.k3n = obj.k3r.*rn.^3 + 3*obj.krr.*rn.*rnn + obj.kr.*r3n;
-            obj.k3f = obj.k3r.*rf.^3 + 3*obj.krr.*rf.*rff + obj.kr.*r3f;
-            
-            obj.k4n = obj.k4r.*rn.^4 + 6*obj.k3r.*rnn.*rn.^2 + 3*obj.krr.*rnn.^2 + 4*obj.krr.*rn.*r3n + obj.kr.*r4n;
-            obj.k4f = obj.k4r.*rf.^4 + 6*obj.k3r.*rff.*rf.^2 + 3*obj.krr.*rff.^2 + 4*obj.krr.*rf.*r3f + obj.kr.*r4f;
-            
-            
-            
-            obj.knf  = obj.krr.*rf.*rn+obj.kr.*rnf;
-            obj.knff = obj.k3r.*rn.*rf.^2 + obj.krr.*rn.*rff + 2*obj.krr.*rf.*rnf + obj.kr.*rnff;
-            
-            obj.knnf  = obj.k3r.*rf.*rn.^2 + obj.krr.*rf.*rnn + 2*obj.krr.*rn.*rnf + obj.kr.*rnnf;
-            obj.knnff = obj.k4r.*(rf.*rn).^2 + obj.k3r.*rff.*rn.^2 + 4*obj.k3r.*rf.*rn.*rnf + obj.k3r.*rnn.*rf.^2 ...
-                      + obj.krr.*rff.*rnn + 2*obj.krr.*rf.*rnnf + 2*obj.krr.*rnf.^2 + 2*obj.krr.*rn.*rnff + obj.kr.*rnnff;
-            
-            
-         
+            if     ~obj.NoDerivatives
+                obj.kn = obj.kr.*rn ;
+                obj.kf = obj.kr.*rf ;
+                
+                obj.knn = obj.krr.*rn.^2 + obj.kr.*rnn ;
+                obj.kff = obj.krr.*rf.^2 + obj.kr.*rff ;
+                
+                obj.k3n = obj.k3r.*rn.^3 + 3*obj.krr.*rn.*rnn + obj.kr.*r3n;
+                obj.k3f = obj.k3r.*rf.^3 + 3*obj.krr.*rf.*rff + obj.kr.*r3f;
+                
+                obj.k4n = obj.k4r.*rn.^4 + 6*obj.k3r.*rnn.*rn.^2 + 3*obj.krr.*rnn.^2 + 4*obj.krr.*rn.*r3n + obj.kr.*r4n;
+                obj.k4f = obj.k4r.*rf.^4 + 6*obj.k3r.*rff.*rf.^2 + 3*obj.krr.*rff.^2 + 4*obj.krr.*rf.*r3f + obj.kr.*r4f;
+                
+                
+                
+                obj.knf  = obj.krr.*rf.*rn+obj.kr.*rnf;
+                obj.knff = obj.k3r.*rn.*rf.^2 + obj.krr.*rn.*rff + 2*obj.krr.*rf.*rnf + obj.kr.*rnff;
+                
+                obj.knnf  = obj.k3r.*rf.*rn.^2 + obj.krr.*rf.*rnn + 2*obj.krr.*rn.*rnf + obj.kr.*rnnf;
+                obj.knnff = obj.k4r.*(rf.*rn).^2 + obj.k3r.*rff.*rn.^2 + 4*obj.k3r.*rf.*rn.*rnf + obj.k3r.*rnn.*rf.^2 ...
+                    + obj.krr.*rff.*rnn + 2*obj.krr.*rf.*rnnf + 2*obj.krr.*rnf.^2 + 2*obj.krr.*rn.*rnff + obj.kr.*rnnff;
+            end
             
         
                   
