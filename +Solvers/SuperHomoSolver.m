@@ -15,14 +15,14 @@ classdef SuperHomoSolver < handle
         % Q = [Q0 | Q1], i.e. Q is matrix concatenation of matricex Q0 and Q1,
         % no data saved in Q,Q0,Q1 they are implemented via get method, the actual data is hidden in myQ0 and myQ1
         %
-        Q; Q0; Q1;
+        Q; Q0; Q1; 
         NewQ;
         
         % W is a choice of arbitrary function that have to satisfy Tr W = W|_gamma = xi_gamma, see ection 2.1.3. 
         % W = 0 outside of gamma
         % W = [W0 | W1], i.e. W is matrix concatenation of matricex W0 and W1,
         W; W0; W1; 
-        NewW; %experiment
+        %NewW; %experiment
         
         GridGamma; % the numerical counterpart of the interface shape
         Np; % is the N-plus set
@@ -41,7 +41,7 @@ classdef SuperHomoSolver < handle
         
         
         Grid;   %Link to Grid Class instance
-        Basis;  %Link to Basis Class instance
+        %Basis;  %Link to Basis Class instance
                 
         
         % class handle for Scatterer class (information about the interface shape and more) + the parameters to be sent to its constructor
@@ -49,12 +49,12 @@ classdef SuperHomoSolver < handle
         ScattererParams;
         
         % an instance  + class handle for Coeffs class (coefficients of the equation) + the parameters to be sent to its constructor
-        Coeffs;
+        %Coeffs;
         CoeffsHandle;
         CoeffsParams;
         
         %%%%%%%%%%%%%%%%%%%
-        NoSource = Tools.Source.SuperHelmholtzSource();  %construct empty source           
+        %NoSource = Tools.Source.SuperHelmholtzSource();  %construct empty source           
         
         %%%%%%%%%%%%%%%%%%
         % artificial rhs, not the rhs of the original problem
@@ -63,6 +63,8 @@ classdef SuperHomoSolver < handle
 		CollectRhs = 1; % for old versions compatibility
         
         f; % temporary variable used as 'rhs' in solve
+        
+        Extension;
     end
     
     
@@ -94,8 +96,8 @@ classdef SuperHomoSolver < handle
             if nargin == 0, error('Costructor called without args'); end
 			if isfield(Arguments,'CollectRhs'), obj.CollectRhs = Arguments.CollectRhs;	end
             
-            obj.Grid = Arguments.Grid;
-            obj.Basis=Arguments.Basis;
+            obj.Grid            = Arguments.Grid;
+            %obj.Basis           = Arguments.Basis;
                     
             obj.ScattererHandle = Arguments.ScattererHandle;
             obj.ScattererParams = Arguments.ScattererParams;            
@@ -103,7 +105,16 @@ classdef SuperHomoSolver < handle
             
             obj.CoeffsHandle 	= Arguments.CoeffsHandle;
             obj.CoeffsParams 	= Arguments.CoeffsParams;            
-            obj.Coeffs 			= obj.CoeffsHandle(obj.Scatterer.TheScatterer,obj.CoeffsParams);%TODO: Consider to remove TheScatterer
+            %obj.Coeffs 			= obj.CoeffsHandle(obj.Scatterer.TheScatterer,obj.CoeffsParams);%TODO: Consider to remove TheScatterer
+            
+            Arguments.ExtensionParams.Grid          = obj.Grid;
+            Arguments.ExtensionParams.Scatterer     = obj.Scatterer;
+            Arguments.ExtensionParams.Basis         = Arguments.Basis;
+            Arguments.ExtensionParams.CoeffsHandle 	= Arguments.CoeffsHandle;
+             Arguments.ExtensionParams.CoeffsParams	= Arguments.CoeffsParams;            
+
+            %Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
+            obj.Extension                       = Arguments.Extension(Arguments.ExtensionParams);
 
             obj.f=zeros(obj.Grid.Nx,obj.Grid.Ny);
         end        
@@ -114,8 +125,17 @@ classdef SuperHomoSolver < handle
                obj.calc_QnW();
             end            
             %q=[obj.myQ0,obj.myQ1];
-            q=cell2mat(obj.NewQ);
+            q=obj.NewQ;
         end 
+      
+        function qj = Qj(obj,j)
+            if obj.IsReadyQnW == false
+                obj.calc_QnW();
+            end
+            
+            qj=obj.NewQ{j};%obj.myQ0;
+            
+        end
         
         function q0 = get.Q0(obj)
             if obj.IsReadyQnW == false
@@ -141,15 +161,24 @@ classdef SuperHomoSolver < handle
             end            
             
             %wold=[obj.myW0,obj.myW1];
-            w=cell2mat(obj.NewW);            
-		end 
+            w=obj.Extension.W;            
+        end 
+        
+        function wj = Wj(obj,j)
+            if obj.IsReadyQnW == false
+                obj.calc_QnW();
+            end
+            
+            wj=obj.Extension.W{j}; %obj.myW0;
+        end
+ 
         
        function w0 = get.W0(obj)           
             if obj.IsReadyQnW == false
                obj.calc_QnW();
             end            
             
-            w0=obj.NewW{1}; %obj.myW0;
+            w0=obj.Extension.W{1}; %obj.myW0;
 	   end 
 
 	   function w1 = get.W1(obj)
@@ -157,7 +186,7 @@ classdef SuperHomoSolver < handle
 			   obj.calc_QnW();
 		   end
 		   
-		   w1=obj.NewW{2};%myW1;
+		   w1=obj.Extension.W{2};%myW1;
 	   end
 		
 		
@@ -179,12 +208,13 @@ classdef SuperHomoSolver < handle
     
         function Rhs(obj)
             obj.Expand();
-            
-            tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp),obj.NewW,'UniformOutput',false);
+            tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp),obj.Extension.W,'UniformOutput',false);
             
             obj.rhs = cell(size(tmp));
             for indx=1:numel(tmp)
-                obj.rhs{indx} = spalloc( obj.Grid.Nx*obj.Grid.Ny,obj.Basis.NBss,numel(obj.GridGamma)*obj.Basis.NBss);
+                [n,m]=size(obj.Extension.W{indx});
+                NNZ = nnz(obj.Extension.W{indx});
+                obj.rhs{indx} = spalloc( n,m,NNZ);
                 obj.rhs{indx}(obj.Scatterer.Mp,:) = tmp{indx};
             end
             
@@ -193,71 +223,30 @@ classdef SuperHomoSolver < handle
 		 function calc_QnW(obj)
 			 if obj.CollectRhs
 				 obj.Rhs();
-				                  
-                 %GLW = obj.Gf(cell2mat(obj.rhs));
-				 
-				 %obj.myQ0 = obj.Qcol( GLW(:,           1:obj.Basis.NBss   )			,obj.myW0 );
-				 %obj.myQ1 = obj.Qcol( GLW(:,(obj.Basis.NBss+1):2*obj.Basis.NBss )	,obj.myW1 );
+				                                   
+                 GLW        = cellfun(@(arg) obj.Gf(arg),obj.rhs,'UniformOutput',false);
+                 obj.NewQ   = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW, obj.Extension.W,'UniformOutput',false);
+ 
+             else
+                 obj.Expand();                 
+                 for indx=1:numel(obj.Extension.W)
+                     for j = 1:size(obj.Extension.W{indx},2)
+                         GLW                    = obj.Solve(obj.Extension.W{indx}(:,j));
+                         obj.NewQ{indx}(:,j)    = obj.Qcol(GLW,obj.Extension.W{indx}(:,j));
+                     end
+                 end
                  
-                 NewGLW = cellfun(@(arg) obj.Gf(arg),obj.rhs,'UniformOutput',false);
-                 obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),NewGLW, obj.NewW,'UniformOutput',false);
-                 
-                 %obj.myQ0 = obj.NewQ{1};
-                 %obj.myQ1 = obj.NewQ{2};
-			 else
-				 Ngg = numel(obj.GridGamma);
-				 w0 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
-				 w1 = spalloc(obj.Grid.Nx,obj.Grid.Ny,Ngg);
-				 
-				 for j = 1:obj.Basis.NBss
-					 
-					 [w0(obj.GridGamma),w1(obj.GridGamma)] = obj.ExpandedBasis(obj.Basis.Indices(j)) ;
-					 
-                     %obj.myW0(obj.GridGamma,j) = w0(obj.GridGamma);
-                     %obj.myW1(obj.GridGamma,j) = w1(obj.GridGamma);
-                     
-                     obj.NewW{1}(obj.GridGamma,j) = w0(obj.GridGamma);
-                     obj.NewW{2}(obj.GridGamma,j) = w1(obj.GridGamma);
-                     
-                     GLW = obj.Solve(w0);
-                     %obj.myQ0(:,j) = obj.Qcol(GLW,w0(:));
-                     obj.NewQ{1}(:,j) = obj.Qcol(GLW,w0(:));
-                     
-                     GLW = obj.Solve(w1);
-                     %obj.myQ1(:,j) = obj.Qcol(GLW,w1(:));
-                     obj.NewQ{2}(:,j) = obj.Qcol(GLW,w1(:));
-				 end
-				 
 			 end
 			 obj.IsReadyQnW = true;
 		 end
         
          function u = Solve(obj,x)
              obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
-             %obj.Truncate(f);
              u = obj.Gf(obj.f);%(:));
          end
          
-         
-        function Expand(obj)
-          [tmp1,tmp2] = arrayfun(@(n) obj.ExpandedBasis(n),obj.Basis.Indices,'UniformOutput',false);
-          
-          obj.NewW = cell(1,2);
-          obj.NewW{1} = spalloc( obj.Grid.Nx*obj.Grid.Ny,obj.Basis.NBss,numel(obj.GridGamma)*obj.Basis.NBss);
-          obj.NewW{1}(obj.GridGamma,:) = cell2mat(tmp1);
-          
-          obj.NewW{2} = spalloc( obj.Grid.Nx*obj.Grid.Ny,obj.Basis.NBss,numel(obj.GridGamma)*obj.Basis.NBss);
-          obj.NewW{2}(obj.GridGamma,:) = cell2mat(tmp2);                   
-        end
-           
-        function [xi0j,xi1j] = ExpandedBasis(obj,n)
-            
-            Xi   = obj.Basis.Handle(obj.Scatterer.BasisArg,n,obj.Basis.MoreParams);
-            NoXi = obj.Basis.Handle();            
-                        
-            xi0j = obj.Scatterer.Expansion(Xi,NoXi,obj.NoSource,obj.Coeffs);
-            xi1j = obj.Scatterer.Expansion(NoXi,Xi,obj.NoSource,obj.Coeffs);
-            
-        end
+         function Expand(obj)
+             obj.Extension.Expand();
+         end
     end
 end
