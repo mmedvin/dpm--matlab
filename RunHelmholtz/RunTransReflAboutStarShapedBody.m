@@ -80,7 +80,7 @@ kex = [1 ,5 ,  5,  10];
         dfdn    = @(phi) detaUinc(UincParams,phi,IncAng,tst_k);
             
 
-        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,1e-5);
+        Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,[1e-5,1e-5]);
 	%Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
         %Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
 

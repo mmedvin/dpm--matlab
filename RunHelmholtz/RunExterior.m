@@ -97,7 +97,7 @@ rat=4/5;
         if strcmpi(BType,'Chebyshev')
             Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
         elseif strcmpi(BType,'Fourier')
-            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,1e-06);%105);
+            Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,[1e-06,1e-06]);%105);
         end
       
         %WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;

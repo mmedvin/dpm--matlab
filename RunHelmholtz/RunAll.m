@@ -5,3 +5,7 @@ RunSimpleTransReflAboutCircle;
 RunSimpleTransReflAboutElps;
 RunTransReflAboutElps;
 RunTransReflAboutStarShapedBody;
+RunNested;
+RunNestedHomo;
+RunSimpleMultScat;
+RunMultScat;

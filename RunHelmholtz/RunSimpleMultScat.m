@@ -40,15 +40,15 @@ function RunSimpleMultScat
         
         if strcmpi(BType,'Fourier')
             if K{k}.Interior ~= K{k}.Medium
-                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) f(th) - g(th,1),@(th) dfdn(th) - dgdn(th,1),1e-5);
+                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) f(th) - g(th,1),@(th) dfdn(th) - dgdn(th,1),[1e-5,1e-5]);
             else
-                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,1) ,@(th) dgdn(th,1),1e-5);
+                Basis.Interior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,1) ,@(th) dgdn(th,1),[1e-5,1e-5]);
             end
             
             if K{k}.Exterior ~= K{k}.Medium
-                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) - h(th),@(th) dgdn(th,2) - dhdn(th),1e-5);
+                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) - h(th),@(th) dgdn(th,2) - dhdn(th),[1e-5,1e-5]);
             else
-                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) ,@(th) dgdn(th,2),1e-5);
+                Basis.Exterior =  Tools.Basis.FourierBasis.BasisHelper(@(th) g(th,2) ,@(th) dgdn(th,2),[1e-5,1e-5]);
             end
         end
         

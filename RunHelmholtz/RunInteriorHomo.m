@@ -61,7 +61,7 @@ for k =1%[1,5,10,15,20,25]
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,1e-11);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,[1e-11,1e-11]);
 	end
 
 for n=1:4 %run different grids

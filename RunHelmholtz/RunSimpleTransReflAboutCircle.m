@@ -46,7 +46,7 @@ function RunSimpleTransReflAboutCircle
             Nx=2^(n+p)+1;	Ny=2^(n+p)+1;
            
             %BasisIndices        = -M:M;
-             Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,1e-13);
+             Basis = Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,[1e-13,1e-13]);
             
             PlrGrid                = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
             			
