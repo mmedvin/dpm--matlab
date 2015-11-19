@@ -12,7 +12,7 @@ function RunLapBL54
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
     
-    Order=2;
+    Order=4;
     if Order==2 , ExpansionType=33; Stencil=5; else ExpansionType=35; 
         Stencil=9;%13;% 
     end
@@ -29,7 +29,7 @@ function RunLapBL54
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,fn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,fn,1e-14);%20);%
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,fn,[1e-14,1e-14]);%20);%
 	end
 
 for	   LinearSolverType = 0
@@ -116,7 +116,7 @@ for	   LinearSolverType = 0
 		Extcn = cn(Basis.NBss0+Basis.NBss1+1:end); 
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-        Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf(IntPrb.GridGamma);
+        Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf{1}(IntPrb.GridGamma);
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));

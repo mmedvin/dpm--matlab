@@ -1,12 +1,12 @@
-RunLapBL53;
-%RunLapBL53_pWD;
-%RunLapBL53Int;
-%RunLapBL53WD;
+mPath = pwd;
+Seps = strfind(pwd,filesep)
+mPath(Seps(end):end)='';
+addpath(mPath)
+feature('getpid')
 
+
+RunLapBL53;
 RunLapBL54;
-%RunLapBL54_pWD;
-%RunLapBL54Int;
-%RunLapBL54WD;
 
 RunLapExterior;
 RunLapInterior;

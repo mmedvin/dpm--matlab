@@ -67,7 +67,7 @@ function RunLapExterior
 		
 		xi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));
 		xi(ExtPrb.GridGamma) = ...
-			ExtPrb.W0(ExtPrb.GridGamma,:)*Basis.cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*cn1 + ExtPrb.Wf(ExtPrb.GridGamma);
+			ExtPrb.W0(ExtPrb.GridGamma,:)*Basis.cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*cn1 + ExtPrb.Wf{1}(ExtPrb.GridGamma);
 		
 		XiGammaExParams = ExParams;
 		XiGammaExParams.r0 = ExtPrb.Scatterer.r;

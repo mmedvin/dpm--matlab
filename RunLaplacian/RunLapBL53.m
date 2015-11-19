@@ -14,7 +14,7 @@ a=1; b=1/2; %table 1
     FocalDistance = sqrt(a^2-b^2);
     Eta0 = acosh(a/FocalDistance);
 
-    Order=2;
+    Order=4;
     if Order==2 , ExpansionType=35; Stencil=5; else ExpansionType=36; Stencil=9; end
 
 	BType		= 'Fourier';
@@ -126,7 +126,7 @@ for	   LinearSolverType = 0
 		Extcn= cn((Basis.NBss0+Basis.NBss1+1):end); 
 		
 		Intxi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
-		Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf(IntPrb.GridGamma);
+		Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*Intcn + IntPrb.Wf{1}(IntPrb.GridGamma);
 		Intu = IntPrb.P_Omega(Intxi);
 				
 		Extxi = spalloc(Nx,Ny,length(ExtPrb.GridGamma));

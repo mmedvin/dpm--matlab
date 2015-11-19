@@ -23,7 +23,7 @@ function RunLapInterior02
 	if strcmpi(BType,'Chebyshev')
 		Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,dfdn,ChebyshevRange);
 	elseif strcmpi(BType,'Fourier')
-		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,2);
+		Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn,[2,2]);
 	end
 
 for	   LinearSolverType = 1
