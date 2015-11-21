@@ -1,5 +1,5 @@
 mPath = pwd;
-Seps = strfind(pwd,filesep)
+Seps = strfind(pwd,filesep);
 mPath(Seps(end):end)='';
 addpath(mPath)
 feature('getpid')
