@@ -11,6 +11,8 @@ classdef NestedPolarScatterer < Tools.Scatterer.NestedScatterer
         Th;
         
         TheScatterer;
+        
+        dr;
     end
     
     methods
@@ -26,11 +28,15 @@ classdef NestedPolarScatterer < Tools.Scatterer.NestedScatterer
             obj.r0   = Params.r0;
             obj.r1   = Params.r1;
             
-            obj.TheScatterer = struct('r', union(...
-                                                  obj.InteriorScatterer.TheScatterer.r *ones(size(obj.InteriorScatterer.TheScatterer.th)), ...
-                                                  obj.ExteriorScatterer.TheScatterer.r *ones(size(obj.ExteriorScatterer.TheScatterer.th))  ...
-                                                 ),...
-                                      'th', union(obj.InteriorScatterer.TheScatterer.th,obj.ExteriorScatterer.TheScatterer.th));
+            obj.TheScatterer = {obj.InteriorScatterer.TheScatterer; obj.ExteriorScatterer.TheScatterer};
+            
+%             struct('r',  union(...
+%                                                   obj.InteriorScatterer.TheScatterer.r *ones(size(obj.InteriorScatterer.TheScatterer.th)), ...
+%                                                   obj.ExteriorScatterer.TheScatterer.r *ones(size(obj.ExteriorScatterer.TheScatterer.th))  ...
+%                                                  ),...
+%                                       'th', union(obj.InteriorScatterer.TheScatterer.th,obj.ExteriorScatterer.TheScatterer.th)...
+%                                       );
+            obj.dr = [obj.InteriorScatterer.dr;obj.ExteriorScatterer.dr];
                         
         end
 %         function L = get.Inside(obj)

@@ -71,7 +71,7 @@ for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
 for n=1:5 %run different grids
 tic
 	%build grid
-    p=4;
+    p=0;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;    
 	    
     Grid             = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
@@ -115,7 +115,7 @@ tic
             'ExtensionParams'   , [] ...
             ));
             
-    cn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 - IntPrb.TrGF - IntPrb.Qf)) ;    
+    cn1 =( IntPrb.Q1 \ ( -IntPrb.Q0*Basis.cn0 - IntPrb.TrGF{:} - IntPrb.Qf{:})) ;    
         
     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
     xi(IntPrb.GridGamma) = ...

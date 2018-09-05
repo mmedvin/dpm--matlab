@@ -28,7 +28,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 end
 			 
 			 %qf=obj.myQf;
-			 qf=obj.NewQ{end};
+			 qf={obj.NewQ{:,end}};
 		 end
 		 
 		 function wf = get.Wf(obj)
@@ -88,11 +88,13 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 if obj.CollectRhs
 				 obj.Rhs();
 				 				 
-                 GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf(:),{obj.BF}],'UniformOutput',false);
-                 obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW(1:end-1), [obj.Extension.W,obj.Extension.Wf],'UniformOutput',false);
+                 GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf,obj.BF],'UniformOutput',false);
+                 obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW(:,1:end-1), [obj.Extension.W,obj.Extension.Wf],'UniformOutput',false);
                  
-                 obj.myGF   = GLW{end};
-                 obj.myTrGF = GLW{end}(obj.Scatterer.GridGamma);
+                 obj.myGF   = GLW(:,end);
+                 for indx=1:numel(GLW(:,end))
+                     obj.myTrGF{indx} = GLW{indx,end}(obj.Scatterer.GridGamma);
+                 end
 			 else
                  calc_QnW@Solvers.SuperHomoSolver(obj);
                  
@@ -150,7 +152,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
          end
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 
-		 function res = BF(obj)
+		 function Src = BF(obj)
 			 
 			 GridF = Tools.Grid.CartesianGrid( ...
 				 obj.Grid.x1 - obj.Grid.dx/2 , ...
@@ -166,6 +168,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 
 			 res = obj.Bf(HS.Source);
 			 res(obj.Scatterer.Outside())=0;
+             Src={res};
 			 
 		 end
         

@@ -7,7 +7,18 @@ k=1,NBss0=17,NBss1=215,N=257       x257       	 ErrTot=6.218910e-03	 rate=-Inf 	
 k=1,NBss0=17,NBss1=215,N=513       x513       	 ErrTot=5.665546e-04	 rate=3.46 	 time=2.409015e+01
 k=1,NBss0=17,NBss1=215,N=1025      x1025      	 ErrTot=3.557197e-05	 rate=3.99 	 time=7.053964e+01
 
-Internal Inhomogeneous problem inside ellipse of AR=2 
+>> >> >> >> Internal Inhomogeneous problem
+Method:RunInterior-circle,	 using Fourier Basis 
+Grid: x1=-1.200000, xn=1.200000, y1=-1.200000, yn=1.200000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
+ YHandle:Tools.Parameterizations.AsinBtWD, params:  a=5.000000e-01 b=1 
+k=1,NBss0=11,NBss1=9,N=33        x33        	 ebinf=1.046291e-04|-Inf 	etinf=6.659262e-05|-Inf 	timeA=1.721430e+00	timeE=1.597200e-02
+k=1,NBss0=11,NBss1=9,N=65        x65        	 ebinf=6.426269e-06|4.0252	etinf=6.591748e-06|3.3366	timeA=6.778480e-01	timeE=3.809000e-03
+k=1,NBss0=11,NBss1=9,N=129       x129       	 ebinf=2.180437e-07|4.8813	etinf=2.581293e-07|4.6745	timeA=2.733488e+00	timeE=3.899000e-03
+k=1,NBss0=11,NBss1=9,N=257       x257       	 ebinf=1.000764e-08|4.4454	etinf=1.627337e-08|3.9875	timeA=1.403828e+01	timeE=5.502000e-03
+k=1,NBss0=11,NBss1=9,N=513       x513       	 ebinf=5.938759e-10|4.0748	etinf=2.981655e-09|2.4483	timeA=6.609249e+01	timeE=2.142900e-02
+
+Internal Inhomogeneous problem 
 Method:RunInterior-StarShapedScatterer,	 using Fourier Basis 
 Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
  XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
@@ -17,6 +28,18 @@ k=1,NBss0=65,NBss1=79,N=65        x65        	 ebinf=5.747133e-06|-Inf 	etinf=2.
 k=1,NBss0=65,NBss1=79,N=129       x129       	 ebinf=2.456419e-07|4.5482	etinf=1.265936e-06|4.0180	timeA=4.763368e+00	timeE=1.391684e-03
 k=1,NBss0=65,NBss1=79,N=257       x257       	 ebinf=8.459529e-09|4.8598	etinf=7.769702e-08|4.0262	timeA=1.911922e+01	timeE=5.512125e-03
 k=1,NBss0=65,NBss1=79,N=513       x513       	 ebinf=4.042950e-10|4.3871	etinf=4.837786e-09|4.0054	timeA=8.428414e+01	timeE=2.602563e-02
+
+
+>> Method:RunInteriorHomo-ellipse,	  
+Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
+ XHandle:Tools.Parameterizations.AcosBtWD, params:  a=1 b=1 
+ YHandle:Tools.Parameterizations.AsinBtWD, params:  a=5.000000e-01 b=1 
+k=1,NBss0=23,NBss1=23,N=33  x33  	 ErrXi=4.066618e-06	 rate=-Inf  ErrTot=2.246267e-06	 rate=-Inf  timeA=6.353840e-01
+k=1,NBss0=23,NBss1=23,N=65  x65  	 ErrXi=1.395574e-07	 rate=4.86  ErrTot=1.339884e-07	 rate=4.07  timeA=6.368160e-01
+k=1,NBss0=23,NBss1=23,N=129 x129 	 ErrXi=5.528423e-09	 rate=4.66  ErrTot=5.615567e-09	 rate=4.58  timeA=3.986986e+00
+k=1,NBss0=23,NBss1=23,N=257 x257 	 ErrXi=1.994295e-10	 rate=4.79  ErrTot=2.088822e-10	 rate=4.75  timeA=1.347193e+01
+
+
 
 Method:RunInteriorHomo-StarShapedScatterer,	  
 Grid: x1=-1.200000, xn=1.200000, y1=-0.700000, yn=0.700000 
