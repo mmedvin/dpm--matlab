@@ -2,7 +2,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
-   properties(AbortSet = true)
+   properties%(AbortSet = true) commented because this make problem with save/load
        
        MetricsAtScatterer;
        

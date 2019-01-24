@@ -174,10 +174,10 @@ classdef FourierBasis < Tools.Basis.BasisFunctionWD
             else
                 obj.xi0         = exp(1i.*n.*x);
                 obj.xi0t        = 1i.*n.*obj.xi0;
-                obj.xi0tt       =-(n^2).*obj.xi0;
-                obj.xi0ttt      =-1i*(n^3).*obj.xi0;
-                obj.xi0tttt     = (n^4).*obj.xi0;
-                obj.xi0tttttt   =-(n^6).*obj.xi0;
+                obj.xi0tt       =-(n.^2).*obj.xi0;
+                obj.xi0ttt      =-1i*(n.^3).*obj.xi0;
+                obj.xi0tttt     = (n.^4).*obj.xi0;
+                obj.xi0tttttt   =-(n.^6).*obj.xi0;
             end
         end
         

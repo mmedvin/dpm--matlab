@@ -34,7 +34,8 @@ classdef ExteriorLaplacianSolver < Solvers.InteriorLaplacianSolver
             
             u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Nm));
 			%u(obj.Scatterer.Nm)=xi_gamma(obj.Scatterer.Nm) - GLW(obj.Scatterer.Nm).';%( GLW(obj.Scatterer.Nm).' - xi_gamma(obj.Scatterer.Nm));
-			u(obj.Scatterer.Nm)=xi_gamma(obj.Scatterer.Nm)  + ( GLW(obj.Scatterer.Nm).' - xi_gamma(obj.Scatterer.Nm)) + obj.GF(obj.Scatterer.Nm).';			
+            GF = obj.GF{:};
+			u(obj.Scatterer.Nm)=xi_gamma(obj.Scatterer.Nm)  + ( GLW(obj.Scatterer.Nm).' - xi_gamma(obj.Scatterer.Nm)) + GF(obj.Scatterer.Nm).';			
         end
     end
     

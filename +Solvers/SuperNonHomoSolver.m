@@ -100,7 +100,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
                  
                  obj.CreateWf();
                  
-                 GLW = obj.SolveSrc(obj.Extensions.Wf);                 
+                 GLW = obj.SolveSrc(obj.Extension.Wf);                 
                  obj.myQf = obj.Qcol(GLW,obj.Extensions.Wf);
                  
                  obj.myGF   = obj.Gf(obj.BF);
