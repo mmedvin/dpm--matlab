@@ -16,7 +16,7 @@ methods
              [~,bt] = obj.Coeffs.Derivatives('bt');
 			 sigma	= obj.Coeffs.Derivatives('sigma');
 			 
-			% urr2 = (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2))./a - xi1./obj.r0 ;
+			% urr = (f + sigma.*xi0 - ar.*xi1 -  (bt.*xi0t + b.*xi0tt)./(obj.r0.^2))./a - xi1./obj.r0 ;
 			 
              sint = sin(obj.th);
              cost = cos(obj.th);
