@@ -205,25 +205,25 @@ rat=4/5;
             app = 0;
 
             if strcmpi(Problem , 'Dirichlet')
-                     for j=1:numel(Basis.Indices)
-                        bj = Basis.Handle(phi,Basis.Indices(j),Basis.AddParams);
-                        app = app + cn1(j).*bj.xi0;
-                end
-               
-                if strcmpi(HankOrPlane,'PlaneWave')
-                     ex = ell_du_dn_exact_SM(a,b,k,phi,IncAng)';
-                elseif strcmpi(HankOrPlane,'Hankel')
-%                         ex = dnExactHank(ExParams,phi,k);????
-                        ex = dnExactHank(ExParams,-phi,k);
+                for j=1:numel(Basis.Indices)
+                    bj = Basis.Handle(phi,Basis.Indices(j),Basis.AddParams);
+                    app = app + cn1(j).*bj.xi0;
                 end
                 
-               % error('Dirichlet problem not implemented yet')
+                if strcmpi(HankOrPlane,'PlaneWave')
+                    ex = ell_du_dn_exact_SM(a,b,k,phi,IncAng)';
+                elseif strcmpi(HankOrPlane,'Hankel')
+                    %                         ex = dnExactHank(ExParams,phi,k);????
+                    ex = dnExactHank(ExParams,-phi,k);
+                end
+                
+                % error('Dirichlet problem not implemented yet')
             elseif strcmpi(Problem , 'Neumann')
-                    for j=1:numel(Basis.Indices)
-                        bj = Basis.Handle(phi,Basis.Indices(j), ExtPrb.Scatterer.MetricsAtScatterer,Basis.AddParams);
-                        app = app + cn0(j).*bj.xi0;
-                        %                 for j=-M:M
-                        %                     app= app +  cn0(j+M+1).*exp(1i*j*phi);
+                for j=1:numel(Basis.Indices)
+                    bj = Basis.Handle(phi,Basis.Indices(j), ExtPrb.Scatterer.MetricsAtScatterer,Basis.AddParams);
+                    app = app + cn0(j).*bj.xi0;
+                    %                 for j=-M:M
+                    %                     app= app +  cn0(j+M+1).*exp(1i*j*phi);
                     %du_app = du_app + cn1(j+M+1).*exp(1i*j*phi);
                 end
                 

@@ -1,15 +1,17 @@
-function SARsimulation(ScattererType,GridParam, K0, Ang0)
+function SARsimulation(ScattererType,GridParam, K0, Phi)
 % clear all, close all, clc
     if nargin == 0
         GridParam=8;
-        Ang0 = -2:.1:2;%0;%-10:5:10;% 
-        K0 = 50:55;%5;%5:7;%50;%        
+        dPhi=0.004;
+        dK = 0.5;
+        Phi = pi*(-0.2:dPhi:0.2);%0;%-10:5:10;% 
+        K0 = 50:dK:55;%5;%5:7;%50;%        
         ScattererType = 'ellipse'; %"start" , "ellipse"
     end
     
     path = pwd;
     
-       Solve4AllKInc(K0,Ang0,GridParam,ScattererType,@Uinc, path);
+       Solve4AllKInc(K0,Phi,GridParam,ScattererType,@Uinc, path);
 %     PlotM(path);
     
 %     x=linspace(-1,1,1000);
@@ -105,11 +107,11 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
     PlrGrid = Tools.Grid.PolarGrids(r0,r1,Nr,Nth);
     CrtsGrid = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
 
-    PsiI  = cell(numel(K0),numel(Ang0));
-    PsiII = cell(numel(K0),numel(Ang0));
-    uing  = zeros(numel(K0),numel(Ang0));
+    % PsiI  = cell(numel(K0),numel(Ang0));
+    % PsiII = cell(numel(K0),numel(Ang0));
+    % uinc  = zeros(numel(K0),numel(Ang0));
     
-    fprintf('SARsimuleation \n');
+    fprintf('SARsimulation \n');
     for indx=1:numel(K0) 
         k0=K0(indx);
         k1=1.1*k0;           
@@ -132,7 +134,7 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
         
                  
         for jndx = 1:numel(Ang0)
-            IncAng = Ang0(jndx)*pi/180;
+            IncAng = Ang0(jndx);%*pi/180;
             
             UincParams = UParams;
             UincParams.r = ExtPrb.Scatterer.r;
@@ -143,46 +145,55 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
             rhs(numel(IntPrb.GridGamma)+1:end,1)= ExtPrb.Qcol2(uinc);
             
             cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
+   
+            if 0
+                Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
+                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
+                Intu = IntPrb.P_Omega(Intxi);
+                
+                Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
+                Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
+                
+                UincParams = UParams;
+                UincParams.r = PlrGrid.R;
+                %UincParams  = struct('ScattererType','circle','r',PlrGrid.R);
+                uinc = Uinc(UincParams,PlrGrid.Theta,IncAng,k0);
+                
+                Extu = ExtPrb.P_Omega(Extxi,uinc );
+                
+                %create SAR image
+                if  strcmpi(ScattererType,'circle')
+                    s= ExtPrb.Scatterer.th;
+                else
+                    s= ExtPrb.Scatterer.nrml_t;
+                end
+                %            uinf(indx,jndx) = FFP(alpha,s,k0, IncAng, cn,Parameterization, Basis);
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                %             R = PlrGrid.R;
+                %             Th = PlrGrid.Theta;
+                %
+                %             R(:,Nth)=R(:,Nth-1);
+                %             Th(:,Nth)=2*pi;
+                %             nExtu = Extu;
+                %             nExtu(:,Nth)=nExtu(:,1);
+                %
+                %             All=Intu;
+                %             All(IntPrb.Scatterer.Mm) = griddata(R .* cos(Th),R .* sin(Th) ,full(nExtu), CrtsGrid.X(IntPrb.Scatterer.Mm), CrtsGrid.Y(IntPrb.Scatterer.Mm) );
+                %
+                %             D{indx,jndx} = All;
+                M{indx,jndx}.Extu = Extu;
+                M{indx,jndx}.Intu = Intu;
+            end
             
-            Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-            Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
-            Intu = IntPrb.P_Omega(Intxi);
-            
-            Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
-            Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
-            
-            UincParams = UParams;
-            UincParams.r = PlrGrid.R;
-            %UincParams  = struct('ScattererType','circle','r',PlrGrid.R);
-            uinc = Uinc(UincParams,PlrGrid.Theta,IncAng,k0);
-            
-            Extu = ExtPrb.P_Omega(Extxi,uinc );
-           
-            %create SAR image  
-           if  strcmpi(ScattererType,'circle')
-             s= ExtPrb.Scatterer.th;
-           else
-               s= ExtPrb.Scatterer.nrml_t;
-           end
-%            uinf(indx,jndx) = FFP(alpha,s,k0, IncAng, cn,Parameterization, Basis);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%             R = PlrGrid.R;
-%             Th = PlrGrid.Theta;
-%             
-%             R(:,Nth)=R(:,Nth-1);
-%             Th(:,Nth)=2*pi;
-%             nExtu = Extu;
-%             nExtu(:,Nth)=nExtu(:,1);
-%             
-%             All=Intu;
-%             All(IntPrb.Scatterer.Mm) = griddata(R .* cos(Th),R .* sin(Th) ,full(nExtu), CrtsGrid.X(IntPrb.Scatterer.Mm), CrtsGrid.Y(IntPrb.Scatterer.Mm) );
-%             
-%             D{indx,jndx} = All;
-            M{indx,jndx}.Extu = Extu;
-            M{indx,jndx}.Intu = Intu;
-            M{indx,jndx}.cn = cn;
+            %save it all
+            M.scattData{indx,jndx}.cn0 = cn(1:Basis.NBss0);
+            M.scattData{indx,jndx}.cn1 = cn( (Basis.NBss0+1):end);
+            M.scattData{indx,jndx}.k=k0;
+            M.scattData{indx,jndx}.phi = IncAng;
         end
     end  
+
+    M.Basis = Basis;
 
     save([path filesep 'SAR.mat']);%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
 
