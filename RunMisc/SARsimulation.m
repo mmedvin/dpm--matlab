@@ -1,23 +1,25 @@
-function SARsimulation(ScattererType,GridParam, K0, Phi)
+function SARsimulation(filename,AR,GridParam,ScattererType, K0, Phi)
 % clear all, close all, clc
     if nargin == 0
-        GridParam=8;
-        dPhi=0.004;
-        dK = 0.5;
+        GridParam=7;
+        dPhi=0.04;%0.004;
+        dK = 1;%0.5;
         Phi = pi*(-0.2:dPhi:0.2);%0;%-10:5:10;% 
         K0 = 50:dK:55;%5;%5:7;%50;%        
-        ScattererType = 'ellipse'; %"start" , "ellipse"
+        ScattererType = 'ellipse'; %'circle';%'star' , 'ellipse'
+        AR=2;
+        filename = [pwd filesep 'SAR.mat'];
     end
     
-    path = pwd;
+   
     
-       Solve4AllKInc(K0,Phi,GridParam,ScattererType,@Uinc, path);
-%     PlotM(path);
+       Solve4AllKInc(K0,Phi,AR,GridParam,ScattererType,@Uinc, filename);
+%     PlotM(filename);
     
 %     x=linspace(-1,1,1000);
 %     y=x;
-%      GenerateSARImage(x,y,path)
- %   load([path filesep 'SAR.mat']);
+%      GenerateSARImage(x,y,filename)
+ %   load(filename);
 
  %test
 %  th = linspace(0,2*pi,100)
@@ -29,13 +31,18 @@ function SARsimulation(ScattererType,GridParam, K0, Phi)
 %  end
 end   
     
-function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
- 
+function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename)
+     t1=tic;
+
     NHR = 1.6; %variable wavenumber param - do not change
     
    %size of problem
     Nr=2^GridParam;	Nth=2^GridParam;
     Nx=2^GridParam;	Ny=2^GridParam;
+
+%     Z = zeros(Nr,Nth);
+%     SD=struct('Extu',Z,'cn0',[],'cn1',[],'k',0,'phi',0);
+%     M=struct('scattData',  repmat({SD},numel(K0),numel(Ang0)));
     
     Basis   = Tools.Basis.FourierBasis.BasisHelper(@sin,@sin,[100,100]);
     
@@ -44,7 +51,8 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
     if  strcmpi(ScattererType,'ellipse')
         ScattererType = 'StarShapedScatterer';
         
-        a=1;b=a/2;
+        a=1;%b=a/2;
+        b=a/AR;
         %exterior problem in ring
         r0 = 0.7*b;
         r1 = 1.8*a; %ABC set on that circle
@@ -111,10 +119,15 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
     % PsiII = cell(numel(K0),numel(Ang0));
     % uinc  = zeros(numel(K0),numel(Ang0));
     
-    fprintf('SARsimulation \n');
+    fprintf('\n SARsimulation, Ellipse a=%4.2f, b=%4.2f , filename=%s\n',a,b,filename);
+
     for indx=1:numel(K0) 
         k0=K0(indx);
-        k1=1.1*k0;           
+        k1=1.1*k0;  
+        
+       
+       % fprintf('starting k0=%5.3f,k1=%5.3f after %6.4f secs from the begining\n',k0,k1,toc(t1));
+        
 %  k1=10*k0;
 
         ExtPrb = Solvers.ExteriorSolver( struct('Basis',Basis, ...
@@ -131,9 +144,12 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
             'ScattererParams', ScattererParams, ...
             'CollectRhs',1, ... %i.e. yes
             'Extension', Extension, 'ExtensionParams',[] ));
+
+        %t2=toc(t1);
+        %fprintf('computing diff inc angles for k0=%5.3f,k1=%5.3f after %6.4f secs\n',k0,k1,t2);
         
-                 
-        for jndx = 1:numel(Ang0)
+        for jndx = 1:numel(Ang0)            
+                        
             IncAng = Ang0(jndx);%*pi/180;
             
             UincParams = UParams;
@@ -146,7 +162,7 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
             
             cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
    
-            if 0
+            if 1
                 Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
                 Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
                 Intu = IntPrb.P_Omega(Intxi);
@@ -181,8 +197,8 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
                 %             All(IntPrb.Scatterer.Mm) = griddata(R .* cos(Th),R .* sin(Th) ,full(nExtu), CrtsGrid.X(IntPrb.Scatterer.Mm), CrtsGrid.Y(IntPrb.Scatterer.Mm) );
                 %
                 %             D{indx,jndx} = All;
-                M{indx,jndx}.Extu = Extu;
-                M{indx,jndx}.Intu = Intu;
+                M.scattData{indx,jndx}.Extu = Extu;
+                %M{indx,jndx}.Intu = Intu;
             end
             
             %save it all
@@ -191,11 +207,21 @@ function Solve4AllKInc(K0,Ang0,GridParam,ScattererType,Uinc,path)
             M.scattData{indx,jndx}.k=k0;
             M.scattData{indx,jndx}.phi = IncAng;
         end
-    end  
+               
+        t3=toc(t1);
+        fprintf('done computing diff inc angles for k0=%5.3f,k1=%5.3f after %6.4f secs\n',k0,k1,toc(t1));
+    end
 
+    
     M.Basis = Basis;
+    M.PlrGrid=PlrGrid;
 
-    save([path filesep 'SAR.mat']);%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
+    save(filename);%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
+
+    fprintf(' saving took %6.4f secs\n',toc(t1)-t3);
+
+    
+     fprintf('finished all after %6.4f secs in total\n',toc(t1));
 
     
     %  save('SAR','D','SarIm', 'PsiI', 'PsiII','uinf','CrtsGrid','PlrGrid');
@@ -300,8 +326,8 @@ function [duinc,duinc_t,duinc_tt] = detaUinc(Params,phi,IncAng,k)
     
 end
 
-function GenerateSARImage(x,y,path)
-    load([path filesep 'SAR.mat']);
+function GenerateSARImage(x,y,filename)
+    load(filename);
 
     alpha = exp(1i*pi/4)/sqrt(8*pi*k0);
     
@@ -347,9 +373,9 @@ function uinf = FFP(alpha,s,k0, IncAng,cn, Parameterization, Basis)
 end
 
 
-function PlotM(path)
+function PlotM(filename)
     
-    load([path filesep 'SAR.mat']);%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
+    load(filename);%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
     
     for indx=1:numel(K0)
         for jndx=1:numel(Ang0)

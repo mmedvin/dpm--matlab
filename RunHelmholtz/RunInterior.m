@@ -5,7 +5,7 @@ function RunInterior
 
 R0=1;
 
-NHR = 1.8;%1.6;
+NHR = 1.6;%1.8;%
 % k=1;
 a=1;
 b=0.5;
@@ -16,13 +16,15 @@ Eta0 =acosh(1/FocalDist);
 
 
 %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
-Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
-%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+% Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+ % Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a,'b',b,'xcenter',.05,'ycenter',0.05,'rotation',0));
+
+Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
 %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
 %Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'circle';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'StarShapedScatterer';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -37,9 +39,12 @@ elseif strcmpi(ScatType,'circle')
 elseif strcmpi(ScatType,'StarShapedScatterer')
     ExParams = struct('ScattererType','StarShapedScatterer','Parameterization',Parameterization,'r0',NHR);
     
-    if isa( Parameterization,'Tools.Parameterizations.ParametricEllipse')
+    if isa( Parameterization,'Tools.Parameterizations.ParametricEllipse') 
         x1=-1.2;xn=1.2;
         y1=-1.2;yn=1.2;
+    elseif isa( Parameterization,'Tools.Parameterizations.ParametricEllipse2')
+        x1=-1.4;xn=1.4;
+        y1=-1.4;yn=1.4;
     elseif isa( Parameterization,'Tools.Parameterizations.ParametricKite')
         x1=-1.7;xn=1.2;
         y1=-1.7;yn=1.7;
@@ -68,10 +73,10 @@ for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
     elseif strcmpi(BType,'Fourier')
         Basis = Tools.Basis.FourierBasis.BasisHelper(f,dfdn);
     end
-for n=1:5 %run different grids
+for n=1:3 %run different grids
 tic
 	%build grid
-    p=0;
+    p=5;
 	Nx=2.^(n+p)+1;	Ny=2.^(n+p)+1;    
 	    
     Grid             = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);

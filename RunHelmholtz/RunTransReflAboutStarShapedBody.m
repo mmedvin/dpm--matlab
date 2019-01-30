@@ -54,8 +54,10 @@ function RunTransReflAboutStarShapedBody
     %Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',150));
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',1,'p',150));
-    Parameterization  = Tools.Parameterizations.ParametricStar();
-    
+   % Parameterization  = Tools.Parameterizations.ParametricStar();
+   
+     Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b,'xcenter',.05,'ycenter',0.05,'rotation',pi/2));
+
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
 %     fprintf('Solving %s defraction problem, comparing using grid convergance, data is PlaneWave, scatterer is circle\n',Problem);
