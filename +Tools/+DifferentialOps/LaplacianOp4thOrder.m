@@ -1,14 +1,15 @@
-classdef LaplacianOp4thOrder<Tools.DifferentialOps.SuperDiffOp
+classdef LaplacianOp4thOrder<Tools.DifferentialOps.SuperLaplacianOp
+    %Tools.DifferentialOps.SuperDiffOp
     %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
-        A;
-    end
+%     properties
+%         A;
+%     end
     
     methods
         
-        function LaplacianOp4thOrder(ParamsStruct)
+        function obj = LaplacianOp4thOrder(ParamsStruct)
             obj.Grid=ParamsStruct.Grid;
 
 			%%%% Create Coeffs
@@ -66,7 +67,9 @@ classdef LaplacianOp4thOrder<Tools.DifferentialOps.SuperDiffOp
                 end
             end       
         end
+    end
         
+    methods(Access=protected)
         function LaplacianA(obj)
             
             %%%%%%%%%%%%%

@@ -1,4 +1,4 @@
-classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
+classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
      properties(Access = public)
 		Qall;
 		Wall;
@@ -6,6 +6,8 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
         Wf;
         GF;
         TrGF;
+%         GGF;
+        TrGGF;
      end
      
      properties(Access = protected)
@@ -17,11 +19,17 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 
 		 myGF;
 		 myTrGF;
+         myTrGPsiGF;
      end
      
-     
-     methods
-         
+     methods(Access = protected,Abstract=true)
+         %res = 
+            Bf(obj,F);
+
+         TrGPsiGf(obj,Gf);
+     end
+        
+     methods      
 		 function qf = get.Qf(obj)
 			 if obj.IsReadyQnW == false
 				 obj.calc_QnW();
@@ -55,58 +63,85 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 
 			 res=obj.myGF;
 			 
-		 end
-         		 
-         function obj = SuperNonHomoSolver(Arguments)
+         end
+         	
+         function res = get.TrGGF(obj)
+             if obj.IsReadyQnW == false
+                 obj.calc_QnW();
+             end
              
-             obj = obj@Solvers.SuperHomoSolver(Arguments);
+             res=obj.myTrGPsiGF;
+             
+         end
+         
+         function obj = SuperNoNHomoNavierStokesSolver(Arguments)
+             
+             obj = obj@Solvers.SuperHomoNavierStokesSolver(Arguments);
 
              obj.SourceHandle = Arguments.SourceHandle;
              if isfield(Arguments,'SourceParams')
                  obj.SourceParams = Arguments.SourceParams;
              end
              
-             obj.rhsf=spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
+             obj.rhsf = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
              obj.myGF = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
              
          end
      end
      
-     methods(Abstract, Access = protected)
-        %res = 
-            Bf(obj,F);
-     end
-     
      methods(Access = protected)
          
-         function Rhs(obj)
-             Rhs@Solvers.SuperHomoSolver(obj);
-             obj.CreateRhsf();
-         end
+%          function Rhs(obj)
+%              Rhs@Solvers.SuperHomoSolver(obj);
+%              %obj.CreateRhsf();
+%          end
          
          function calc_QnW(obj)
-			 if obj.CollectRhs
-				 obj.Rhs();
-				 				 
-                 GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf,obj.BF],'UniformOutput',false);
-                 obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW(:,1:end-1), [obj.Extension.W,obj.Extension.Wf],'UniformOutput',false);
-                 
-                 obj.myGF   = GLW(:,end);
-                 for indx=1:numel(GLW(:,end))
-                     obj.myTrGF{indx} = GLW{indx,end}(obj.Scatterer.GridGamma);
-                 end
-			 else
-                 calc_QnW@Solvers.SuperHomoSolver(obj);
+% 			 if obj.CollectRhs
+% 				 obj.Rhs();
+% 				 				 
+%                  GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf,obj.BF],'UniformOutput',false);
+%                  obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW(:,1:end-1), [obj.Extension.W,obj.Extension.Wf],'UniformOutput',false);
+%                  
+%                  obj.mP   = cellfun(@(arg1,arg2) obj.Pcol(arg1,arg2),GLW(:,1:end-2), obj.Extension.W,'UniformOutput',false);
+%                  
+%                  obj.myGF   = GLW(:,end);
+%                   obj.myTrGPsiGF = obj.TrGPsiGf(obj.myGF{1});
+%                   
+%                  for indx=1:numel(GLW(:,end))
+%                      obj.myTrGF{indx} = GLW{indx,end}(obj.Scatterer.GridGamma);
+%                  end
+% 			 else
+                 calc_QnW@Solvers.SuperHomoNavierStokesSolver(obj);
                  
                  obj.CreateWf();
+                 m=numel(obj.Extension.Wf);
+                obj.NewQ{end+(1:m)} = repmat({{}},size(obj.Extension.Wf));%perhaps numel should be put here instead of size????
+                 obj.calc_QnWf();
                  
-                 GLW = obj.SolveSrc(obj.Extension.Wf);                 
-                 obj.myQf = obj.Qcol(GLW,obj.Extensions.Wf);
-                 
-                 obj.myGF   = obj.Gf(obj.BF);
-                 obj.myTrGF = obj.myGF(obj.Scatterer.GridGamma);
-			 end
-			 obj.IsReadyQnW = true;
+% 			 end
+% 			 obj.IsReadyQnW = true;
+         end         
+         
+         function calc_QnWf(obj)
+             
+             obj.myGF   = {obj.Gf(obj.BF)};
+             obj.myTrGPsiGF = obj.TrGPsiGf(obj.myGF{1});
+             
+             m=numel(obj.Extension.Wf);
+             for indx=1:m
+                 GLW = obj.SolveSrc(obj.Extension.Wf{indx});
+                 obj.NewQ{(end-m)+indx} = obj.Qcol(GLW,obj.Extension.Wf{indx});
+                 obj.myTrGF{indx} = obj.myGF{1}(obj.Scatterer.GridGamma);
+             end
+             
+             %m=numel(obj.NewQ);
+             %  for indx=1:numel(obj.Extension.Wf)
+             %      GLW = obj.SolveSrc(obj.Extension.Wf{indx});
+             %      obj.NewQ{m+indx} = obj.Qcol(GLW,obj.Extension.Wf{indx});
+             %      obj.myTrGF{indx} = obj.myGF{1}(obj.Scatterer.GridGamma);
+             %  end
+ 
          end
          
          function u = SolveSrc(obj,x)

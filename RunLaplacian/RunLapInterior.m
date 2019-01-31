@@ -60,7 +60,7 @@ ExParams.r0 = 1/4;
     
     TrGF = IntPrb.TrGF;
     
-    cn1 =( Q1 \ ( -Q0*Basis.cn0 - TrGF - Qf)) ;
+    cn1 =( Q1 \ ( -Q0*Basis.cn0 - TrGF{1} - Qf{1})) ;
     
         
     xi = spalloc(Nx,Ny,length(IntPrb.GridGamma));
