@@ -1,7 +1,10 @@
 function NavierStokesTime
     
     KindOfConvergance='Exact';%'Grid';%
-       
+    
+    RN = 2; % Reynolds Number
+    UseConvTerm=1;
+    
     if strcmpi(KindOfConvergance,'Grid')
         strKoC = 'grid convergence';
     elseif strcmpi(KindOfConvergance,'Exact')
@@ -39,7 +42,7 @@ function NavierStokesTime
     end
         
     ExParams.r0=R0;
-    ExParams.r=R0*1.;
+    ExParams.r=R0*1;
     ExParams.p=99;
     Eparam =@(r) struct('r0',ExParams.r0,'r',r,'p',ExParams.p);
  
@@ -50,24 +53,20 @@ function NavierStokesTime
     fn  =@(phi) DrDOmega(phi,ExParams);
 
     Ft = @(t) cossin(t);
-    %Ft = @(t) smoothstep(t);
-
-     
+    %Ft = @(t) smoothstep(t);    
     
     if strcmpi(BType,'Chebyshev')
         Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,fn,ChebyshevRange);
     elseif strcmpi(BType,'Fourier')
-        Basis = Tools.Basis.FourierBasis.BasisHelper(f,fn,[10,10]);%,[15,15]);%[1e-14,1e-14]);%20);%
+        Basis = Tools.Basis.FourierBasis.BasisHelper(f,fn);%,[10,10]);%,[15,15]);%[1e-14,1e-14]);%20);%
     end
     
-    LinearSolverType = 0;
+    LinearSolverType = 3;
     CollectRhs = 0;
     
-    ErrInfPre = 0; Err2Pre = 0;
-    biPre=0; b2Pre=0;
-    ErrpiPre=0; Errp2Pre=0;
+    ErrInfPre = 0; Err2Pre = 0;    biPre=0; b2Pre=0;    ErrpiPre=0; Errp2Pre=0;
     
-    fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,Scatterer at r=%-2.2f,Ft = %s, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,ExParams.r,func2str(Ft),strKoC);
+    fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,Scatterer at r=%-2.2f,Reynold Number=%-2.2f, Ft = %s, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,ExParams.r,RN,func2str(Ft),strKoC);
     firsttime=true;
     
     for n=1:5 %6 %run different grids
@@ -79,19 +78,20 @@ function NavierStokesTime
         
         
         Grid = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-        ht = abs(Grid.x(1)-Grid.x(2));
-
+        %ht = abs(Grid.x(1)-Grid.x(2))*0.5;
+        ht = Grid.dx;
+        
         if firsttime
             tN =round(1.2/ht);
             firsttime=false;
         else
             tN=tN*2;
         end
-        k=2/ht;
+        k=2*RN/ht;
         
         Fn = @(n) Ft(n*ht);
         
-        gn = g0([],ExParams,Grid,k,ht)*Fn(1);
+        gn = g0([],ExParams,Grid,k)*Fn(1);
         
         
         SourceParams = struct('Handle',@Tools.Source.NavierStokesSourceRTh,  'SourceParams'      , ExParams,'Src',gn,'Fn',Fn,'r0',ExParams.r0,'ht',ht, 'n',0);
@@ -105,8 +105,7 @@ function NavierStokesTime
         
         PsiBC = struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT);
         
-        Setup  = struct( 'Basis'     , Basis, ...
-            'Grid'              , Grid, ...
+        Setup  = struct( 'Basis', Basis, 'Grid', Grid, ...
             'CoeffsHandle'      , @Tools.Coeffs.ConstLapCoeffs, ...
             'CoeffsParams'      , struct('a',1,'b',1,'sigma',k), ...
             'ScattererHandle'   , @Tools.Scatterer.PolarScatterer, ...
@@ -130,6 +129,10 @@ function NavierStokesTime
     
        % Record = Tools.Common.SimpleRecorder(Grid,tN);
 
+       Der = Tools.Common.SecondDerivative(Grid.Nx,Grid.Ny,Grid.dx,Grid.dy);                        
+       
+                
+       
          for tn=1:tN
             rhs = [-Prb.Qf{1} - Prb.TrGF{1} ; -Prb.TrGGF ];
             cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
@@ -140,15 +143,25 @@ function NavierStokesTime
             
             u = Prb.P_Omega(Oxi);
             
+            if UseConvTerm
+                p = Prb.SPsi(u);
+                [Omega_x,Omega_y]       = Der.CartesianDerivatives(u);
+                [Psi_x,Psi_y]       = Der.CartesianDerivatives(p);
+                D = Psi_y.*Omega_x - Psi_x.*Omega_y;
+            else
+                D = 0;
+            end
+            
            % Record.Store(tn*ht,u);
             
             % Prepare for next time step
             
             %ftilde = -Src.Source()*(Fn(tn)+Fn(tn+1));            
-            ftilde = g1(ExParams,Grid,Ft,ht*tn) + g1(ExParams,Grid,Ft,ht*(tn+1));
-
+            ftilde = Ftilde(ExParams,Grid,Ft,ht*tn,RN,UseConvTerm) + Ftilde(ExParams,Grid,Ft,ht*(tn+1),RN,UseConvTerm);
+                        
             
-            gn = -(gn + 4*u/ht +  ftilde);
+            
+            gn = 2*RN*D -(gn + 4*RN*u/ht +  RN*ftilde);
             SourceParams.Src = gn ;
             SourceParams.n = tn;
             SourceParams.ht = ht;
@@ -163,8 +176,9 @@ function NavierStokesTime
         
          %save('Movie.mat','Record');
         
-        p = Prb.SPsi(u);
-         
+         if ~UseConvTerm
+             p = Prb.SPsi(u);
+         end
         t1=toc;
         
         %------------------------------------------------------------------
@@ -218,11 +232,11 @@ function NavierStokesTime
             [ErrInf,Err2] = cmpr(Ex(Prb.Scatterer.Mp),u(Prb.Scatterer.Mp));
             [Errpi,Errp2] = cmpr(ExP(Prb.Scatterer.Np),p(Prb.Scatterer.Np));
             
-            str = sprintf('%-8.4f %-8.4f %-8.4f $%-6d\\\\times %-7d$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ \\\\\\\\ \n',...
+            str = sprintf('%-8.4f %-8.4f %-8.4f $%-6d\\\\times %-7d$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-6.2f$ \\\\\\\\ \n',...
                 ht,tN,tn*ht,...
                 Nx,Ny,ErrInf, log2(ErrInfPre/ErrInf), ...
                 Errpi,  log2(ErrpiPre/Errpi)  , ...
-                bi,  log2(biPre/bi)          );
+                bi,  log2(biPre/bi) , t1         );
             
             ErrInfPre = ErrInf;
             Err2Pre = Err2;
@@ -238,9 +252,7 @@ function NavierStokesTime
         end
         
         
-    end
-    
-    
+    end   
     
 end
 
@@ -279,7 +291,7 @@ function [y,dy] = cossin(t)
     dy = -sin(t);
 end
 
-function g=g0(~,Params,Grid,k,t)
+function g=g0(~,Params,Grid,k)
     
     Params.r = Grid.R;
     g = 384*Grid.X.*Grid.Y ... - 8*Grid.X.*Grid.Y.*(4*(Grid.X.*Grid.X+Grid.Y.*Grid.Y) - 3*Params.r0*Params.r0)*(2/h);
@@ -290,11 +302,22 @@ function g=g0(~,Params,Grid,k,t)
     %g=zeros(size(g));
 end
 
-function g=g1(Params,Grid,Func,t)
+function g=Ftilde(Params,Grid,Func,t,RN,UseConvTerm)
     
-    Params.r = Grid.R;
-    [ft,dft] = Func(t);
-    g = Omega(Grid.Theta,Params)*dft - 384*Grid.X.*Grid.Y*ft;
+    x=Grid.X;
+    y=Grid.Y;
+    xy = x.*y;
+    r = Grid.R;
+    
+    Params.r = r;
+    [ft,dft] = Func(t);    
+    
+    g = Omega(Grid.Theta,Params)*dft - 384*xy*ft/RN;
+    
+    if UseConvTerm
+        D= -64*xy.*(x.^2-y.^2).*((r.^2 - 3*(Params.r0^2)/4).^2 - (Params.r0^4)/16);
+        g=g+D.*ft.*ft;
+    end
 end
 
 function P = Psi(theta,Params)
