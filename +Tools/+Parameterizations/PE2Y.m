@@ -1,15 +1,12 @@
 classdef PE2Y < Tools.Common.FunctionWithDerivatives
 %XHandle for Parametric Ellipse 2    
     properties
-        C;%acosbt
-        S;%csindt
+        C;%acost
+        S;%bsint
         ycenter;
         rot;
-        %coefficients of a*cos(b*t)+c*sin(d*t)
-%         a;
-%         b;
-%         c;
-%         d;
+        a;
+        b;
     end
     
         methods        
@@ -19,8 +16,8 @@ classdef PE2Y < Tools.Common.FunctionWithDerivatives
             obj.S=Tools.Parameterizations.AsinBtWD(b,1);
             obj.ycenter = ycenter;
             obj.rot = rotation;
-%             obj.a=a;
-%             obj.b=b;
+            obj.a=a;
+            obj.b=b;
             
         end
         
