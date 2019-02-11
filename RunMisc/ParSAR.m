@@ -1,19 +1,27 @@
-function SARsimulation(filename,AR,GridParam,ScattererType, K0, Phi,rchoice)
+function ParSAR(filename,AR,GridParam,ScattererType, K0, Phi,rchoice)
 % clear all, close all, clc
     if nargin == 0
         GridParam=7;
         dPhi=0.04;%0.004;
-        dK = 1;%0.5;
+        dK = 2;%0.5;
         Phi = pi*(-0.2:dPhi:0.2);%0;%-10:5:10;% 
         K0 = 50:dK:55;%5;%5:7;%50;%        
         ScattererType = 'ellipse'; %'circle';%'star' , 'ellipse'
         AR=2;
-        filename = [pwd filesep 'SAR.mat'];
+        filename = [pwd filesep 'ParSAR.mat'];
+        
+        rchoice=[10,11,12];
+        
+        %spec.theta = pi * (0 : 0.0025 : 1.999); 
+        
+        
     end
     
+    spec.k_range = K0;
+    spec.phi_range = Phi;
    
     
-       Solve4AllKInc(K0,Phi,AR,GridParam,ScattererType,@Uinc, filename,rchoice);
+       Solve4AllKInc(spec,AR,GridParam,ScattererType,@Uinc, filename,rchoice);
 %     PlotM(filename);
     
 %     x=linspace(-1,1,1000);
@@ -21,17 +29,9 @@ function SARsimulation(filename,AR,GridParam,ScattererType, K0, Phi,rchoice)
 %      GenerateSARImage(x,y,filename)
  %   load(filename);
 
- %test
-%  th = linspace(0,2*pi,100)
-%  uinf = zeros(size(th));
-%  IncAng = 33 * pi/180;
-%  for i=1:numel(th)
-%      s=th(i);
-%      uinf(i) = FFP(1,1,5, IncAng,cn, Parameterization, Basis)
-%  end
 end   
     
-function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
+function Solve4AllKInc(spec,AR,GridParam,ScattererType,Uinc,filename,rchoice)
      t1=tic;
 
     NHR = 1.6; %variable wavenumber param - do not change
@@ -119,10 +119,10 @@ function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
     % PsiII = cell(numel(K0),numel(Ang0));
     % uinc  = zeros(numel(K0),numel(Ang0));
     
-    fprintf('\n SARsimulation, Ellipse a=%4.2f, b=%4.2f , filename=%s\n',a,b,filename);
-
-    for indx=1:numel(K0) 
-        k0=K0(indx);
+    str = sprintf('\n SARsimulation, Ellipse a=%4.2f, b=%4.2f , filename=%s\n',a,b,filename);
+    disp(str)
+    for indx=1:numel(spec.k_range) 
+        k0=spec.k_range(indx);
         k1=1.1*k0;  
         
        
@@ -148,9 +148,9 @@ function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
         %t2=toc(t1);
         %fprintf('computing diff inc angles for k0=%5.3f,k1=%5.3f after %6.4f secs\n',k0,k1,t2);
         
-        for jndx = 1:numel(Ang0)            
+        for jndx = 1:numel(spec.phi_range)            
                         
-            IncAng = Ang0(jndx);%*pi/180;
+            IncAng = spec.phi_range(jndx);%*pi/180;
             
             UincParams = UParams;
             UincParams.r = ExtPrb.Scatterer.r;
@@ -163,9 +163,9 @@ function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
             cn = [ IntPrb.Q{1},IntPrb.Q{2} ; ExtPrb.Q{1},ExtPrb.Q{2} ] \ rhs;
    
             if 1
-                Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
-                Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
-                Intu = IntPrb.P_Omega(Intxi);
+               % Intxi = spalloc(Nx,Ny   ,length(IntPrb.GridGamma));
+               % Intxi(IntPrb.GridGamma) = [IntPrb.W{1}(IntPrb.GridGamma,:),IntPrb.W{2}(IntPrb.GridGamma,:)]*cn;
+               % Intu = IntPrb.P_Omega(Intxi);
                 
                 Extxi = spalloc(Nr,Nth-1,length(ExtPrb.GridGamma));
                 Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
@@ -183,55 +183,58 @@ function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
                 else
                     s= ExtPrb.Scatterer.nrml_t;
                 end
-                %            uinf(indx,jndx) = FFP(alpha,s,k0, IncAng, cn,Parameterization, Basis);
+                
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                %             R = PlrGrid.R;
-                %             Th = PlrGrid.Theta;
-                %
-                %             R(:,Nth)=R(:,Nth-1);
-                %             Th(:,Nth)=2*pi;
-                %             nExtu = Extu;
-                %             nExtu(:,Nth)=nExtu(:,1);
-                %
-                %             All=Intu;
-                %             All(IntPrb.Scatterer.Mm) = griddata(R .* cos(Th),R .* sin(Th) ,full(nExtu), CrtsGrid.X(IntPrb.Scatterer.Mm), CrtsGrid.Y(IntPrb.Scatterer.Mm) );
-                %
-                %             D{indx,jndx} = All;
+                %{
+                R = PlrGrid.R;
+                Th = PlrGrid.Theta;
+                
+                R(:,Nth)=R(:,Nth-1);
+                Th(:,Nth)=2*pi;
+                nExtu = Extu;
+                nExtu(:,Nth)=nExtu(:,1);
+                
+                All=Intu;
+                All(IntPrb.Scatterer.Mm) = griddata(R .* cos(Th),R .* sin(Th) ,full(nExtu), CrtsGrid.X(IntPrb.Scatterer.Mm), CrtsGrid.Y(IntPrb.Scatterer.Mm) );
+                
+                D{indx,jndx} = All;
+                %}
                 %M.scattData{indx,jndx}.Extu = Extu;
                 %M{indx,jndx}.Intu = Intu;
 
 		for mm = 1:numel(rchoice)
 			nn = numel(PlrGrid.r) - rchoice(mm);
 
-			M.scattData{indx,jndx}.r(mm) = PlrGrid.r(nn);
+			M.scattData{jndx,indx}.r(mm) = PlrGrid.r(nn);
 
-			M.scattData{indx,jndx}.u{mm} = Extu(nn,:);
+			M.scattData{jndx,indx}.u{mm} = Extu(nn,:);
             	
 			% SECOND ORDER
-            		%un = (U(n+1,:) - U(n-1,:)) / (2 * Grid.dx); 
+            %un = (U(n+1,:) - U(n-1,:)) / (2 * Grid.dx);
             
-            		% FOURTH ORDER
-            		M.scattData{indx,jndx}.un{mm}= (8 * (Extu(nn+1,:) - Extu(nn-1,:)) - (Extu(nn+2,:) - Extu(nn-2,:)) ) / (12 * PlrGrid.dx); 
+            % FOURTH ORDER
+            M.scattData{jndx,indx}.un{mm}= (8 * (Extu(nn+1,:) - Extu(nn-1,:)) - (Extu(nn+2,:) - Extu(nn-2,:)) ) / (12 * PlrGrid.dx);
 		end
 
             end
             
             %save it all
-            M.scattData{indx,jndx}.cn0 = cn(1:Basis.NBss0);
-            M.scattData{indx,jndx}.cn1 = cn( (Basis.NBss0+1):end);
-            M.scattData{indx,jndx}.k=k0;
-            M.scattData{indx,jndx}.phi = IncAng;
-        end
+            M.scattData{jndx,indx}.cn1 = cn( (Basis.NBss0+1):end);
+            M.scattData{jndx,indx}.cn0 = cn(1:Basis.NBss0);
+            M.scattData{jndx,indx}.k=k0;
+            M.scattData{jndx,indx}.phi = IncAng;        end
                
         t3=toc(t1);
         fprintf('done computing diff inc angles for k0=%5.3f,k1=%5.3f after %6.4f secs\n',k0,k1,toc(t1));
     end
 
-    
+    M.meta = str;
     M.Basis = Basis;
-    M.PlrGrid=PlrGrid;
+    %M.PlrGrid=PlrGrid;
+    M.spec=spec;
+    M.spec.theta=PlrGrid.theta;
 
-    save(filename,'-v7.3');%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
+    save(filename,'M','a','b','-v7.3');%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
 
     fprintf(' saving took %6.4f secs\n',toc(t1)-t3);
 
@@ -341,55 +344,8 @@ function [duinc,duinc_t,duinc_tt] = detaUinc(Params,phi,IncAng,k)
     
 end
 
-function GenerateSARImage(x,y,filename)
-    load(filename);
-
-    alpha = exp(1i*pi/4)/sqrt(8*pi*k0);
-    
-    SarIm=zeros(numel(x), numel(y));
-    for i=1:numel(x)
-        for j=1:numel(x)
-            for indx=1:numel(K0)
-                k0=K0(indx);
-                for jndx = 1:numel(Ang0)
-                    IncAng = Ang0(jndx)*pi/180;
-                    xhat=pi + IncAng;
-                    SarIm(i,j)= uinf(indx,jndx)* exp(2*1i*k0.* (x(i).*cos(xhat) + y(j).*sin(xhat)) );
-                    
-                end
-            end
-        end
-    end
-    
-    mypcolor(x,y,abs(SarIm));
-end
-
-function uinf = FFP(alpha,s,k0, IncAng,cn, Parameterization, Basis)
-    xhat=pi + IncAng;
-        
-    if isempty(Parameterization)
-    else
-        [Zx,dZx] = Parameterization.XHandle.Derivatives(s);
-        [Zy,dZy] = Parameterization.YHandle.Derivatives(s);
-    end
-    xz = (cos(xhat).*Zx + sin(xhat).*Zy);
-    G = exp(-1i*k0.*xz);
-    Gn = -1i .* k0 .*  G .* (dZx.*cos(xhat) + dZy.*sin(xhat));
-    
-    bn = Basis.Handle(s,Basis.Indices0);
-    bn = bn.xi0.';
-    PsiI = bn*Gn;
-    
-    bn = Basis.Handle(s,Basis.Indices1);
-    bn = bn.xi0.';
-    PsiII= bn*G;
-    
-    uinf = alpha* [PsiI.', -PsiII.']*cn;
-end
-
-
 function PlotM(filename)
-    
+ %not supposed to work after all changes?....   
     load(filename);%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
     
     for indx=1:numel(K0)

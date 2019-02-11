@@ -38,13 +38,13 @@ end
 	%view(0,-90) %kite
     view(180,-90)
 	
-	hold off
+	
 % 	
-% 	for m=1:numel(obj.GridGamma)
-% 		line([obj.XHandle.Derivatives(obj.nrml_t(m)),obj.r(m).*cos(obj.th(m))], ...
-% 					[obj.YHandle.Derivatives(obj.nrml_t(m)), obj.r(m).*sin(obj.th(m))]);
-% 	end
-
+	for m=1:numel(obj.GridGamma)
+		line([obj.XHandle.Derivatives(obj.nrml_t(m)),obj.r(m).*cos(obj.th(m))], ...
+					[obj.YHandle.Derivatives(obj.nrml_t(m)), obj.r(m).*sin(obj.th(m))]);
+	end
+hold off
 %%
 %%%%%%%%%%%%% draw wave number 
 
