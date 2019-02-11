@@ -79,8 +79,8 @@ function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
    
     outMatFile = sprintf('%s%s', outMatFilePrefix, '_iface');  
    
-    spec = M.spec;
-    theta = (0 : 0.00025 : 1.999);%spec.theta;     
+    %spec = M.spec;
+    theta = (0 : 0.0025 : 1.999);%spec.theta;     
     curve.z =  r * [cos(theta); sin(theta)]; 
     curve.nz = [cos(theta); sin(theta)]; 
 
