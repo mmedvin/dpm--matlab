@@ -17,7 +17,7 @@ Eta0 =acosh(1/FocalDist);
 
 %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
 % Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
-  Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a,'b',b,'xcenter',.0,'ycenter',0.0,'rotation',pi/4));
+  Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a/2,'b',b/2,'xcenter',.1,'ycenter',0.1,'rotation',0));
 
 %Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
 %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
