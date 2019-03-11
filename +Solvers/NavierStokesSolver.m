@@ -89,7 +89,7 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
 			u(obj.Scatterer.Np)=xi_gamma(obj.Scatterer.Np) - GLW(obj.Scatterer.Np).' + obj.GF{1}(obj.Scatterer.Np).';
         end
 
-        function P = SPsi(obj,omega)
+        function P = SPsi(obj,omega,O)
             
             in = zeros(size(omega));
             in(obj.Scatterer.Mp) = omega(obj.Scatterer.Mp);
@@ -101,7 +101,13 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
             
             u=zeros(size(omega(:)));
             S = obj.Scatterer.TheScatterer();
-            u(obj.GridGamma)= obj.xi0Psi(S.th,S.r) + obj.xi1Psi(S.th,S.r).*obj.Scatterer.dr ;
+
+            x = S.r.*cos(S.th);
+            y = S.r.*sin(S.th);
+
+            u(obj.GridGamma)= obj.xi0Psi(S.th,S.r) + obj.xi1Psi(S.th,S.r).*obj.Scatterer.dr + (O - obj.xi1Psi(S.th,S.r)./S.r - obj.xi0PsiTT(S.th,S.r)./(S.r.^2)).*((obj.Scatterer.dr.^2)/2) ;
+            
+            %u(obj.GridGamma)= obj.xi0Psi(obj.Scatterer.th,obj.Scatterer.r);%debug
             
             lu=spalloc(size(omega,1),size(omega,2),numel(obj.Scatterer.Mp));
             lu(obj.Scatterer.Mp)=obj.OpPsi.ApplyOp(u,obj.Scatterer.Mp);
@@ -146,34 +152,48 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
               dr = obj.Scatterer.dr;
               dr2=dr.^2;
               
-              u=zeros(size(w));
+
+              x = S.r.*cos(S.th);
+              y = S.r.*sin(S.th);
+              
+              u=zeros(size(w)); %Tr u = xiPsi
               for i=1:size(w,2)
-                u(obj.GridGamma,i)= ...
-                            ...%obj.xi0Psi(S.th,S.r) + obj.xi1Psi(S.th,S.r).*dr ...
+                u(obj.GridGamma,i) = 0 ...%obj.xi0Psi(S.th,S.r) + obj.xi1Psi(S.th,S.r).*dr ...
                             +0.5*(...
                             w(obj.GridGamma,i)...
                             ... %-obj.xi1Psi(S.th,S.r)./S.r ...
                             ... %-obj.xi0PsiTT(S.th,S.r)./(S.r.^2)...
                             ).*dr2;
               end
-              %lu=spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
-              lu=spalloc(size(w,1),size(w,2),size(w,2)*numel(obj.Scatterer.Mp));
-              lu(obj.Scatterer.Mp,:)=obj.OpPsi.ApplyOp(u,obj.Scatterer.Mp);
-              glw_psi=obj.OpPsi.Solve(lu);
+			  % computing potential
+              Lu=spalloc(size(w,1),size(w,2),size(w,2)*numel(obj.Scatterer.Mp));
+              Lu(obj.Scatterer.Mp,:)=obj.OpPsi.ApplyOp(u,obj.Scatterer.Mp);
+              glw_psi= - obj.OpPsi.Solve(Lu);% (P-I)_\gamma^{(\psi)}, i.e. the BEP
               
-              tmp=zeros(size(w));
-              tmp(obj.Scatterer.Mp,:) = w(obj.Scatterer.Mp,:)-GLW(obj.Scatterer.Mp,:);
-              %tmp = w-GLW;
-              GPsiomega = obj.OpPsi.Solve(tmp);
-              Pc = GPsiomega(obj.GridGamma,:) - glw_psi(obj.GridGamma,:);
+              PO=zeros(size(w)); % P_\Omega^{(\omega)} \xi_\gamma^{(\omega)}
+              PO(obj.Scatterer.Mp,:) = w(obj.Scatterer.Mp,:)-GLW(obj.Scatterer.Mp,:);
+              
+			  %GPsiomega is actually G^{(\psi)} PO, however the actual G^{(\psi)} \omega  is linear combination of  G^{(\psi)} PO
+              GPsiomega = obj.OpPsi.Solve(PO); 
+				  
+			  % (P-I)_\gamma^{(\psi)} +  G^{(\psi)} PO
+              Pc = glw_psi(obj.GridGamma,:) + GPsiomega(obj.GridGamma,:);
           end
           
           function GGf = TrGPsiGf(obj,iGf)
+
+ S = obj.Scatterer.TheScatterer();
+           x = S.r.*cos(S.th);
+            y = S.r.*sin(S.th);
+ 
+Gf=iGf(obj.GridGamma);
+
+
               u=zeros(size(iGf));
                S = obj.Scatterer.TheScatterer();
-              u(obj.GridGamma)=0.5*iGf(obj.GridGamma).*obj.Scatterer.dr.^2 + obj.xi0Psi(S.th,S.r) + obj.xi1Psi(S.th,S.r).*obj.Scatterer.dr ...
+              u(obj.GridGamma)=0.5*Gf.*obj.Scatterer.dr.^2 + obj.xi0Psi(S.th,S.r) + obj.xi1Psi(S.th,S.r).*obj.Scatterer.dr;% ...
                                               +0.5*(...
-                            ...%w(obj.GridGamma,i)...
+                          ... % ...% w(obj.GridGamma,i)...
                             -obj.xi1Psi(S.th,S.r)./S.r ...
                             -obj.xi0PsiTT(S.th,S.r)./(S.r.^2)...
                             ).*obj.Scatterer.dr.^2;

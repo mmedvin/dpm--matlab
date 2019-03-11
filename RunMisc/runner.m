@@ -1,4 +1,5 @@
-addpath ('/home/1016/ma/mmedvin/Documents/MATLAB/SVN/DPM/');
+%addpath ('/home/1016/ma/mmedvin/Documents/MATLAB/SVN/DPM/');
+addpath([pwd '../']);
 
 feature('getpid')
 
@@ -10,7 +11,7 @@ feature('getpid')
 
 %RunExterior;
 
-RunInteriorHomo;
+%RunInteriorHomo;
 
 
 %RunExtSubmarine;
@@ -19,3 +20,5 @@ RunInteriorHomo;
 
 
 %RunTransReflAboutStarShapedBody;
+
+NavierStokesTime;

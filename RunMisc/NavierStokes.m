@@ -1,5 +1,23 @@
 function NavierStokes
     
+for test=5%[3,4]%[-1,1,2];
+switch test
+	case 1
+		TstName = 'Dirichlet for Omega';
+
+	case 2
+		TstName = 'Neumann for Omega';
+	case 3
+		TstName = 'Dirichlet for Omega, but exact Omega for Psi';
+	case 4
+		TstName = 'Neumann for Omega, but exact Omega for Psi';
+	case 5
+	TstName = 'NS, but exact Omega for G omega';
+	otherwise 
+		TstName = 'NS';
+
+end    
+
     KindOfConvergance='Exact';%'Grid';%
        
     if strcmpi(KindOfConvergance,'Grid')
@@ -39,7 +57,8 @@ function NavierStokes
     end
         
     ExParams.r0=R0;
-    ExParams.r=R0*1;
+ for   r_ = R0*[0.9,1,1.1]
+	ExParams.r = r_;
     ExParams.p=99;
     Eparam =@(r) struct('r0',ExParams.r0,'r',r,'p',ExParams.p);
 
@@ -70,7 +89,7 @@ function NavierStokes
     biPre=0; b2Pre=0;
     ErrpiPre=0; Errp2Pre=0;
     
-    fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,k=%-2.2f,Scatterer at r=%-2.2f, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,k,ExParams.r,strKoC);
+    fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,k=%-2.2f,Scatterer at r=%-2.2f, %s, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,k,ExParams.r,strKoC,TstName);
     
     for n=1:5 %6 %run different grids
         tic
@@ -103,21 +122,27 @@ function NavierStokes
         Prb =  Solvers.NavierStokesSolver(Setup);
         %InteriorLaplacianSolver(Setup);
         %;
-        test=3;
+        
         switch test
             case {1,3} % dirichlet problem
                 cn =[Basis.cn0; ( Prb.Q1 \ ( -Prb.Q0*Basis.cn0 - Prb.TrGF{1} - Prb.Qf{1}))];
-            case 2
-                
+            case {2,4} %Neumann
+				cn =[( Prb.Q0 \ ( -Prb.Q1*Basis.cn1 - Prb.TrGF{1} - Prb.Qf{1})); Basis.cn1];
+            case 99    
                % cn =[Basis.cn0; ( Prb.Q1 \ ( -Prb.Q0*Basis.cn0 - Prb.TrGF{1} - Prb.Qf{1}))];
                % obj.OpPsi.Solve(w-GLW);
                % rhs = [-Prb.Qf{1}-Prb.TrGF{1} ;  -Prb.TrGGF ];
                % cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
                 
+			case 5
+                rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.TrGGF ];
+                cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
+
             otherwise % navier stockes
                 rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.TrGGF ];
                 cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
         end
+			
         if 1
             %rhs = [-Prb.Qf{1}-Prb.TrGF{1} + Prb.TrGGF; zeros(numel(Prb.GridGamma),1) ];
             
@@ -129,17 +154,37 @@ function NavierStokes
         Oxi(Prb.GridGamma) = [Prb.W{1}(Prb.GridGamma,:),Prb.W{2}(Prb.GridGamma,:)]*cn  + Prb.Wf{1}(Prb.GridGamma);
 
         
- 
         u = Prb.P_Omega(Oxi);
         
+		O=0;
+
+		for j=1:numel(Basis.Indices0)
+			uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
+			O = O + cn(j).*uj.xi0;
+		end
+		
         if test==3
             exu = zeros(size(Grid.R));
             ExParams3 = ExParams;
             ExParams3.r = Prb.Scatterer.R(Prb.Scatterer.Np);
             exu(Prb.Scatterer.Np) = Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3);
-            p = Prb.SPsi(exu);
+            p = Prb.SPsi(exu,O);
+		elseif test==4
+		            
+            ExParams3 = ExParams;
+            ExParams3.r = Prb.Scatterer.R(Prb.GridGamma);
+            exO = Omega(Prb.Scatterer.Th(Prb.GridGamma),ExParams3);
+            p = Prb.SPsi(u,exO);
+				
+			elseif test==5
+            exu = zeros(size(Grid.R));
+            ExParams3 = ExParams;
+            ExParams3.r = Prb.Scatterer.R(Prb.Scatterer.Np);
+            exu(Prb.Scatterer.Np) = Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3);
+            p = Prb.SPsi(exu,O);
+
         else
-            p = Prb.SPsi(u);
+			p = Prb.SPsi(u,O);
         end
         
         t1=toc;
@@ -214,8 +259,8 @@ function NavierStokes
         
     end
     
-    
-    
+end    
+ end   
 end
 
 
@@ -251,7 +296,9 @@ function DP = DPsiDThetaTheta(theta,Params)
     %         x = r .* cos(theta);
     %         y = r .* sin(theta);
     
-    DP = -4*DrDPsi(theta,Params);
+    %DP = -4*DrDPsi(theta,Params);
+    DP = -4*Psi(theta,Params);
+
 end
 
 function O = Omega(theta,Params)
@@ -264,19 +311,9 @@ function O = Omega(theta,Params)
         r = Params.r;
     end
     
-    switch p
-        case 0
-            O=0;
-            warning('with p=0 you get Omega=0, so Psi does not satisfy the BC');
-        case 1
-            O=4;
-        case 2
-            O =  8*(2*r.^2-r0^2);
-        case 99 %special case (r, theta)
+   
             O =  4*(r.^2).*(4*r.^2-3*r0^2).*sin(2*theta);
-        otherwise
-            O = 4*Params.p* (( Params.r.^2 -Params.r0^2).^(Params.p-2)).*( Params.p*Params.r.^2 -Params.r0^2);
-    end
+
     
     
 end
@@ -309,4 +346,3 @@ function DO = DrDOmega(theta,Params)
     end
     
 end
-

@@ -42,7 +42,9 @@ function NavierStokesTime
     end
         
     ExParams.r0=R0;
-    ExParams.r=R0*1;
+  for   r_ = R0*[0.9,1,1.1]
+ExParams.r = r_;
+
     ExParams.p=99;
     Eparam =@(r) struct('r0',ExParams.r0,'r',r,'p',ExParams.p);
  
@@ -144,7 +146,15 @@ function NavierStokesTime
             u = Prb.P_Omega(Oxi);
             
             if UseConvTerm
-                p = Prb.SPsi(u);
+			
+			O=0;
+
+			for j=1:numel(Basis.Indices0)
+				uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
+				O = O + cn(j).*uj.xi0;
+			end 
+			
+                p = Prb.SPsi(u,O);
                 [Omega_x,Omega_y]       = Der.CartesianDerivatives(u);
                 [Psi_x,Psi_y]       = Der.CartesianDerivatives(p);
                 D = Psi_y.*Omega_x - Psi_x.*Omega_y;
@@ -177,7 +187,14 @@ function NavierStokesTime
          %save('Movie.mat','Record');
         
          if ~UseConvTerm
-             p = Prb.SPsi(u);
+		 	O=0;
+
+			for j=1:numel(Basis.Indices0)
+				uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
+				O = O + cn(j).*uj.xi0;
+			end 
+			
+             p = Prb.SPsi(u,O);
          end
         t1=toc;
         
@@ -253,7 +270,7 @@ function NavierStokesTime
         
         
     end   
-    
+end    
 end
 
 
@@ -339,7 +356,7 @@ function DP = DPsiDThetaTheta(theta,Params)
     %         x = r .* cos(theta);
     %         y = r .* sin(theta);
     
-    DP = -4*DrDPsi(theta,Params);
+    DP = -4*Psi(theta,Params);
 end
 
 function O = Omega(theta,Params)
