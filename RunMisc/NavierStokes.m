@@ -44,7 +44,7 @@ function NavierStokes
     Eparam =@(r) struct('r0',ExParams.r0,'r',r,'p',ExParams.p);
 
     
-    %k=12;
+    k=10;
     
     BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
     ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
@@ -70,7 +70,7 @@ function NavierStokes
     biPre=0; b2Pre=0;
     ErrpiPre=0; Errp2Pre=0;
     
-    fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,Scatterer at r=%-2.2f, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,ExParams.r,strKoC);
+    fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,k=%-2.2f,Scatterer at r=%-2.2f, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,k,ExParams.r,strKoC);
     
     for n=1:5 %6 %run different grids
         tic
@@ -81,7 +81,7 @@ function NavierStokes
         
         Grid = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
         
-         k=2/abs(Grid.x(1)-Grid.x(2));
+         %k=1;%2/abs(Grid.x(1)-Grid.x(2));
         
         Setup  = struct( 'Basis'     , Basis, ...
             'Grid'              , Grid, ...
@@ -103,9 +103,9 @@ function NavierStokes
         Prb =  Solvers.NavierStokesSolver(Setup);
         %InteriorLaplacianSolver(Setup);
         %;
-        test=-1;
+        test=3;
         switch test
-            case 1 % dirichlet problem
+            case {1,3} % dirichlet problem
                 cn =[Basis.cn0; ( Prb.Q1 \ ( -Prb.Q0*Basis.cn0 - Prb.TrGF{1} - Prb.Qf{1}))];
             case 2
                 
@@ -132,8 +132,16 @@ function NavierStokes
  
         u = Prb.P_Omega(Oxi);
         
-        p = Prb.SPsi(u);
-         
+        if test==3
+            exu = zeros(size(Grid.R));
+            ExParams3 = ExParams;
+            ExParams3.r = Prb.Scatterer.R(Prb.Scatterer.Np);
+            exu(Prb.Scatterer.Np) = Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3);
+            p = Prb.SPsi(exu);
+        else
+            p = Prb.SPsi(u);
+        end
+        
         t1=toc;
         
         %------------------------------------------------------------------
@@ -220,8 +228,8 @@ function [Linf,L2] = cmpr(ex,u)%,GG)
 %         u(GG)=0;
 %     end
     
-    Linf = norm(tmp(:),inf)/norm(u(:),inf);
-    L2   = norm(tmp(:),2)/norm(u(:),2);
+    Linf = norm(tmp(:),inf);%/norm(u(:),inf);
+    L2   = norm(tmp(:),2);%/norm(u(:),2);
 end
 
 function P = Psi(theta,Params)
