@@ -1,6 +1,6 @@
 function NavierStokes
     
-for test=5%[3,4]%[-1,1,2];
+for test=-1%5%[3,4]%[-1,1,2];
 switch test
 	case 1
 		TstName = 'Dirichlet for Omega';
@@ -74,6 +74,7 @@ end
     xi0Psi  =@(theta,r) Psi(theta,Eparam(r));
     xi1Psi  =@(theta,r) DrDPsi(theta,Eparam(r));
     xi0PsiTT=@(theta,r) DPsiDThetaTheta(theta,Eparam(r));
+    xi1PsiTT=@(theta,r) DPsiDrThetaTheta(theta,Eparam(r));
     
     
     if strcmpi(BType,'Chebyshev')
@@ -91,7 +92,7 @@ end
     
     fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,k=%-2.2f,Scatterer at r=%-2.2f, %s, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,k,ExParams.r,strKoC,TstName);
     
-    for n=1:5 %6 %run different grids
+    for n=1:7 %6 %run different grids
         tic
         %build grid
         p=3;%4;
@@ -115,7 +116,7 @@ end
             'SourceParams'      , ExParams, ...
             'Extension'         , Extension, ...
             'ExtensionParams'   , [], ...
-            'PsiBC'             , struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT)...
+            'PsiBC'             , struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT,'xi1PsiTT',xi1PsiTT)...
             );
         
         
@@ -156,13 +157,17 @@ end
         
         u = Prb.P_Omega(Oxi);
         
-		O=0;
+		O=0;Or=0;
 
-		for j=1:numel(Basis.Indices0)
-			uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
-			O = O + cn(j).*uj.xi0;
-		end
-		
+        for j=1:numel(Basis.Indices0)
+            uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
+            O = O + cn(j).*uj.xi0;
+        end
+        for j=1:numel(Basis.Indices1)
+            uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices1(j),[]);
+            Or = Or + cn(Basis.NBss0+j).*uj.xi0;
+        end
+        
         if test==3
             exu = zeros(size(Grid.R));
             ExParams3 = ExParams;
@@ -184,7 +189,7 @@ end
             p = Prb.SPsi(exu,O);
 
         else
-			p = Prb.SPsi(u,O);
+			p = Prb.SPsi(u,O,Or);
         end
         
         t1=toc;
@@ -296,8 +301,15 @@ function DP = DPsiDThetaTheta(theta,Params)
     %         x = r .* cos(theta);
     %         y = r .* sin(theta);
     
-    %DP = -4*DrDPsi(theta,Params);
     DP = -4*Psi(theta,Params);
+
+end
+
+function DP = DPsiDrThetaTheta(theta,Params)
+    %         x = r .* cos(theta);
+    %         y = r .* sin(theta);
+    
+    DP = -4*DrDPsi(theta,Params);
 
 end
 
