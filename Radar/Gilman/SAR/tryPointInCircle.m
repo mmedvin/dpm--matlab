@@ -58,7 +58,7 @@ end
 
 function testFFPfromPlaneWave(mesh, k, phi)
 
-    % when we use the trace of a plane wave a a source, 
+    % when we use the trace of a plane wave as a source, 
     % the resulting FFP is zero (can be shown analytically)
     planeWave.ampl = 3.3; 
     planeWave.k = k;  

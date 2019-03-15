@@ -12,7 +12,8 @@ function tryRangeCompression1D
               pointSourceSep * [cos(pointSourceAngle); sin(pointSourceAngle)]); 
     pointSources(2) = SARUtils.createPointSrc(1.7, [0; 0]); 
 
-    figure('units', 'normalized', 'position', [0.02 0.1, 0.9, 0.6]); 
+    figTitle = sprintf('First point at (%4.1f,%4.1f)', pointSources(1).pos(1), pointSources(1).pos(2)); 
+    figure('units', 'normalized', 'position', [0.02 0.1, 0.9, 0.6], 'name', figTitle); 
     
     subplot(231); 
     plotRangeImg(yRange, pi, k_band, pointSources); 
@@ -39,11 +40,13 @@ function tryRangeCompression1D
     title('perp +')   
 end
 
-function plotRangeImg(yRange, phi, k_band, pointSources) 
+function plotRangeImg(yRange, phi_refl, k_band, pointSources) 
 
-    x_hat = [cos(phi); sin(phi)]; 
-    
-    y2D = - [yRange * cos(phi); yRange * sin(phi)]; % when the source is "left and below", we want both coords positive
+    % phi is the direction towards the source
+
+    % what is xhat? is it the argument of FFP, i.e., the direction of _reflected_ field, 
+    % which is the same as direction TO the source
+    x_hat = [cos(phi_refl); sin(phi_refl)]; 
 
     % create field for each k 
     uinf = zeros(size(k_band)); 
@@ -54,30 +57,21 @@ function plotRangeImg(yRange, phi, k_band, pointSources)
             uinf(il) = uinf(il) + ps.ampl * exp(-2i * k_band(il) * dot(x_hat, ps.pos)); 
         end
     end
-    
-    % create image
-    I = zeros(size(yRange)); 
 
-    for iy = 1:numel(I)
-        % dot(,) below is OK because both args are real        
-        dotprod = dot(x_hat, y2D(:,iy)); 
-        for il = 1:numel(uinf)
-            I(iy) = I(iy) + uinf(il) * exp(2i * k_band(il) * dotprod); 
-        end
-    end
-    
+    I = SARUtils.buildRangeCompressionImg1D(yRange, k_band, x_hat, uinf); 
 
     plot(yRange, abs(I), 'b.'); 
+    xlabel('range distance')
     
+    % we measure distance _from the source_, i.e., in the direction of the _incident wave_
+    phi_inc = phi_refl + pi; 
     for ij = 1:numel(pointSources)
         ps = pointSources(ij); 
         
-        %dist = ps.pos(1); 
-        
-        dist = ps.pos(1) * cos(phi+pi) ... 
-             + ps.pos(2) * sin(phi+pi); 
+        % we can also do: dot(ps.pos, -k_hat) --- note minus here! 
+        dist = ps.pos(1) * cos(phi_inc) ... 
+             + ps.pos(2) * sin(phi_inc); 
         
         hold on; plot(dist, 0, 'rx'); 
     end
 end 
-

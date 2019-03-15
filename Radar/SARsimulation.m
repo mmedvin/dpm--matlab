@@ -44,7 +44,7 @@ function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
 %     SD=struct('Extu',Z,'cn0',[],'cn1',[],'k',0,'phi',0);
 %     M=struct('scattData',  repmat({SD},numel(K0),numel(Ang0)));
     
-    Basis   = Tools.Basis.FourierBasis.BasisHelper(@sin,@sin,[100,100]);
+    Basis   = Tools.Basis.FourierBasis.BasisHelper(@sin,@sin,[200,200]);
     
     WaveNumberHandle = @Tools.Coeffs.ConstantWaveNumber;
  
@@ -54,8 +54,12 @@ function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
         a=1;%b=a/2;
         b=a/AR;
         %exterior problem in ring
-        r0 = 0.7*b;
-        r1 = 1.8*a; %ABC set on that circle
+        %r0 = 0.7*b;
+        %r1 = 1.8*a; %ABC set on that circle
+
+        r0 = 0.8*b;
+        r1 = 1.2*a; %ABC set on that circle
+
         
         %interior problem in square
         x1=-(a+0.2);xn=(a+0.2);
@@ -228,10 +232,10 @@ function Solve4AllKInc(K0,Ang0,AR,GridParam,ScattererType,Uinc,filename,rchoice)
     end
 
     
-    M.Basis = Basis;
-    M.PlrGrid=PlrGrid;
+   % M.Basis = Basis;
+   % M.PlrGrid=PlrGrid;
 
-    save(filename,'-v7.3');%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
+%    save(filename,'-v7.3');%, 'PlrGrid', 'CrtsGrid' ,'ExtPrb', 'IntPrb');
 
     fprintf(' saving took %6.4f secs\n',toc(t1)-t3);
 

@@ -46,9 +46,9 @@ classdef SARUtils
             scattField.normal_deriv = 1i * q_inc_z .* scattField.value; 
         end
         
-        function traj = doFFP_curve(k, phi, curve, field)
+        function traj = doFFP_curve(k, phi_refl, curve, field)
 
-            traj.phi = phi; 
+            traj.phi = phi_refl; 
             traj.ffp = nan(size(traj.phi));    
 
             [rows_z, cols_z] = size(curve.z); assert(rows_z == 2); 
@@ -66,10 +66,12 @@ classdef SARUtils
                 outgoingExp.normal_deriv = sum(outgoingExp.gradient .* curve.nz, 1);
 
                 % don't use dot(,) for complex numbers! it makes conj() of the first argument! 
-                ffp = sum(field.value .* outgoingExp.normal_deriv ... 
-                        - field.normal_deriv .* outgoingExp.value); 
+                sum_for_ffp = sum(field.value .* outgoingExp.normal_deriv ... 
+                                - field.normal_deriv .* outgoingExp.value); 
 
-                traj.ffp(iphi) = ffp; 
+                % there is a factor of exp(1i * pi/4) / sqrt(8 * pi * k) in front of the integral 
+                % I retain 1/sqrt(k) because I use different k's in SAR 
+                traj.ffp(iphi) = sum_for_ffp / sqrt(k); 
                 %{ 
                 DEBUG
                 if iphi < 5 
@@ -82,7 +84,39 @@ classdef SARUtils
             end
 
         end
+
+
+        function I = buildRangeCompressionImg1D(yRange, k_band, x_hat, uinf)
+            % x_hat is the argument of FFP, so its direction is that of the _reflected_ wave, 
+            % while yRange is a vector of the _range_ coords of the target measured _from the source_
+            % I choose y2D on a line passing through (0,0)           
+            x_hat_inc = - x_hat; 
+            y2D = [yRange * x_hat_inc(1); yRange * x_hat_inc(2)];  
+            
+            % create image for these 2D
+            I = zeros(size(yRange)); 
+            for iy = 1:numel(I)
+                % dot(,) below is OK because both args are real        
+                dotprod = dot(x_hat, y2D(:,iy)); 
+                for il = 1:numel(uinf)
+                    I(iy) = I(iy) + uinf(il) * exp(2i * k_band(il) * dotprod); 
+                end
+            end
+        end        
         
+        function I = buildRangeCompressionImg2D(y1, y2, k_band, x_hat, uinf)
+            % x_hat is the argument of FFP, so its direction is that of the _reflected_ wave
+            % create image
+            [rowsI, colsI] = size(y1); 
+            I = zeros(rowsI, colsI); 
+
+            for il = 1:numel(uinf)
+                dotprod = x_hat(1) * y1 + x_hat(2) * y2; 
+                I = I + uinf(il) * exp(2i * k_band(il) * dotprod); 
+            end  
+        end        
+        
+        % phi_range corresponds to scattered field - see expression for x_hat
         function I = buildSARimage(y1, y2, k_band, phi_range, uinf)
 
             [rowsI, colsI] = size(y1); 

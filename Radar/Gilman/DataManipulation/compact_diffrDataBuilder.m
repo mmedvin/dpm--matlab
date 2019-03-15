@@ -1,66 +1,61 @@
-function newAdaptor(inMatFile,outMatFilePrefix)
-    
-    tol = 1e-9;
-    
-    %addpath('./dpm--matlab-Radar');
+function compact_diffrDataBuilder
+
+    tol = 1e-9; 
+
+    addpath('./dpm--matlab-Radar'); 
     %addpath('../matlab')
 
-    %M.scattData = [M1.scattData M2.scattData M3.scattData M4.scattData];
-    %also need to combine spec.k_range and meta
+    %inMatFile = './SAR_Circle_r1_gp10.mat'; 
+    %outMatFilePrefix = 'circle_gp10'; 
+    %spec = getSpec(); 
     
-    if nargin==0
-        inMatFile = '../SAR_Circle_r1_gp10.mat';
-        outMatFilePrefix = 'circle_gp10';
-        spec = getSpec();
-        
-        %inMatFile = './SAR_k200_Ellipse_a1_b2_gp11.mat';
-        %outMatFilePrefix = 'ellipse_gp11';
-        %spec = getSpec_2K();
-        
-        %     inMatFile = './SAR_k200_Circle_r1_gp11.mat';
-        %     outMatFilePrefix = 'circle_gp11';
-        %     spec = getSpec_2K();
-        
-    end
+    %inMatFile = './SAR_k200_Ellipse_a1_b2_gp11.mat'; 
+    %outMatFilePrefix = 'ellipse_gp11';
+    %spec = getSpec_2K(); 
+    
+    inMatFile = './SAR_k200_Circle_r1_gp11.mat'; 
+    outMatFilePrefix = 'circle_gp11';
+    spec = getSpec_2K();     
     
     tic
     load(inMatFile, 'M', 'a', 'b');
     fprintf('Finished readling %s.', inMatFile);
     toc
+
+    ind_letters = {'a', 'b', 'c'}; 
     
-    ind_letters = {'a', 'b', 'c'};
-    
-    for ind = 1:numel(ind_letters)
-        extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, tol);
+    for ind = 1:numel(ind_letters)        
+        extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, spec, tol); 
     end
-    
-    
-    if (a == b);
-        r = a;
-        extractDataFor_scatterer(M, outMatFilePrefix, r, tol);
-    end
-    
+
+    assert(a == b); 
+    r = a; 
+    extractDataFor_scatterer(M, outMatFilePrefix, r, spec, tol); 
 end
  
-function extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, tol)
+function extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, spec, tol)
     
     outMatFile = sprintf('%s%s%s', outMatFilePrefix, '_ind_', ind_letters{ind});  
-       
-    r = M.scattData{1,1}.r(ind);
-    spec = M.spec;
-    theta = spec.theta;     
+   
+    Grid = M.PlrGrid;
+    
+    r = M.scattData{1,1}.r(ind); 
+    theta = Grid.theta;     
     curve.z =  r * [cos(theta); sin(theta)]; 
     curve.nz = [cos(theta); sin(theta)]; 
 
     for im = 1:numel(spec.phi_range)    
         for il = 1:numel(spec.k_range)
             
-            medvinScattData = M.scattData{im, il}; 
+            % According to the spec, it should be: 
+            % scattData = M.scattData{im, il}
+            medvinScattData = M.scattData{il, im}; 
+            % --- DAMN!
             
             k = medvinScattData.k;
             phi = medvinScattData.phi;    
-%             assert(abs(k   - spec.k_range(il))   < tol); 
-%             assert(abs(phi - spec.phi_range(im)) < tol);     
+            assert(abs(k   - spec.k_range(il))   < tol); 
+            assert(abs(phi - spec.phi_range(im)) < tol);     
             
             u  = medvinScattData.u {ind}; 
             un = medvinScattData.un{ind}; 
@@ -72,15 +67,14 @@ function extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, tol)
     end
     toc 
 
-    save(outMatFile, 'curve', 'scattFields', 'r','spec','-v7.3');
+    save(outMatFile, 'curve', 'scattFields', 'r');
 end
 
-function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
+function extractDataFor_scatterer(M, outMatFilePrefix, r, spec, tol)
    
     outMatFile = sprintf('%s%s', outMatFilePrefix, '_iface');  
    
-    spec = M.spec;
-    theta = spec.theta;%(0 : 0.0025 : 1.999);%spec.theta;     
+    theta = spec.theta;     
     curve.z =  r * [cos(theta); sin(theta)]; 
     curve.nz = [cos(theta); sin(theta)]; 
 
@@ -92,7 +86,10 @@ function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
     for im = 1:numel(spec.phi_range)    
         for il = 1:numel(spec.k_range)
             
-            medvinScattData = M.scattData{im, il};
+            % According to the spec, it should be: 
+            % scattData = M.scattData{im, il}
+            medvinScattData = M.scattData{il, im}; 
+            % --- DAMN!
             
             k = medvinScattData.k;
             phi = medvinScattData.phi;    
@@ -125,7 +122,7 @@ function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
     end
     toc 
 
-    save(outMatFile, 'curve', 'scattFields', 'r','-v7.3')
+    save(outMatFile, 'curve', 'scattFields', 'r')
 end
 
 function spec = getSpec_2K()
@@ -136,10 +133,4 @@ function spec = getSpec_2K()
 
 end
 
-function spec = getSpec()
 
-    spec.k_range = 50:0.5:55; 
-    spec.phi_range = pi * (-0.2 : 0.004 : 0.2); 
-    spec.theta = pi * (0 : 0.0025 : 1.999); 
-
-end

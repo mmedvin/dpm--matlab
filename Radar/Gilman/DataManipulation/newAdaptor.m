@@ -72,7 +72,7 @@ function extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, tol)
     end
     toc 
 
-    save(outMatFile, 'curve', 'scattFields', 'r','spec','-v7.3');
+    save(outMatFile, 'curve', 'scattFields', 'r','spec');
 end
 
 function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
@@ -80,7 +80,8 @@ function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
     outMatFile = sprintf('%s%s', outMatFilePrefix, '_iface');  
    
     spec = M.spec;
-    theta = spec.theta;%(0 : 0.0025 : 1.999);%spec.theta;     
+    theta = linspace(0,2*pi,3000);%spec.theta;(0 : 0.0025 : 1.999);% 
+    theta=theta(1:end-1);
     curve.z =  r * [cos(theta); sin(theta)]; 
     curve.nz = [cos(theta); sin(theta)]; 
 
@@ -88,6 +89,12 @@ function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
     if ~isfield(Basis,'AddParams')
         Basis.AddParams=[];
     end
+    
+    %fprintf('!! Selective indices!! \n');
+    nind = numel(Basis.Indices0);
+    Narrow = 1:(nind-0);
+    Indices0 = Basis.Indices0(Narrow);
+    Indices1 = Basis.Indices1(Narrow);
     
     for im = 1:numel(spec.phi_range)    
         for il = 1:numel(spec.k_range)
@@ -105,13 +112,16 @@ function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
             u = 0;
             un = 0;
 
-            for j=1:numel(Basis.Indices0)
-                uj = Basis.Handle(theta,Basis.Indices0(j),Basis.AddParams);
+            cn0=cn0(Narrow);
+            cn1=cn1(Narrow);
+            
+            for j=1:numel(Indices0)
+                uj = Basis.Handle(theta,Indices0(j),Basis.AddParams);
                 u = u + cn0(j).*uj.xi0;
             end
 
-            for j=1:numel(Basis.Indices1)
-                uj = Basis.Handle(theta,Basis.Indices1(j),Basis.AddParams);
+            for j=1:numel(Indices1)
+                uj = Basis.Handle(theta,Indices1(j),Basis.AddParams);
                 un = un + cn1(j).*uj.xi0;
             end         
             
@@ -125,7 +135,7 @@ function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
     end
     toc 
 
-    save(outMatFile, 'curve', 'scattFields', 'r','-v7.3')
+    save(outMatFile, 'curve', 'scattFields', 'r')
 end
 
 function spec = getSpec_2K()
