@@ -9,6 +9,9 @@ classdef PolarGrids < Tools.Grid.Grids
         Theta;
         
         Z; %return X+1i*Z
+
+	Nr;
+	Ntheta;Nth;
     end
     methods
         function obj = PolarGrids(r1,rn,Nr,Nth)
@@ -27,6 +30,18 @@ classdef PolarGrids < Tools.Grid.Grids
             obj.y = obj.y1:obj.dy:obj.yn;
         end
         
+	function nr = get.Nr(obj)
+		nr = obj.Nx;
+	end
+
+	function nt = get.Ntheta(obj)
+		nt = obj.Ny;
+	end
+
+	function nt = get.Nth(obj)
+		nt = obj.Ny;
+	end
+
         function z = get.Z(obj)
             [R_,Theta_] = obj.mesh();
             z = R_.*(cos(Theta_)+1i*sin(Theta_));

@@ -151,7 +151,7 @@
                             
                             rhs = zeros(nGGext+nGGint + Basis.NBss0+Basis.NBss1,1);
                             %rhs(1:nGG)	= (-IntPrb.TrGF -IntPrb.Qf);
-                            rhs((nGGint+1):(nGGext+nGGint))= -(ExtPrb.TrGF +ExtPrb.Qf);
+                            rhs((nGGint+1):(nGGext+nGGint))= -(ExtPrb.TrGF{:} +ExtPrb.Qf{:});
                             
                             x0 = @(phi) FocalDistance*cosh(Eta0).*cos(phi);
                             y0 = @(phi) FocalDistance*sinh(Eta0).*sin(phi);
