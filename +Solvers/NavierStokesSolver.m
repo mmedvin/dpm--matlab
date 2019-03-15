@@ -9,6 +9,7 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
         xi1Psi = 0;
         xi0PsiTT = 0;
         xi1PsiTT = 0;
+        xi0PsiTTTT=0;
     end
     properties(Access = public)%???
         OpPsi;
@@ -29,7 +30,8 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
             
             obj.xi0Psi  = Params.PsiBC.xi0Psi;
             obj.xi1Psi  = Params.PsiBC.xi1Psi;
-            obj.xi0PsiTT= Params.PsiBC.xi0PsiTT;
+            obj.xi0PsiTT= Params.PsiBC.xi0PsiTT
+            obj.xi0PsiTTTT= Arguments.PsiBC.xi0PsiTTTT;
             obj.xi1PsiTT= Params.PsiBC.xi1PsiTT;
             
             obj.CreateWf();
@@ -63,6 +65,7 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
                 obj.xi0Psi  = Arguments.PsiBC.xi0Psi;
                 obj.xi1Psi  = Arguments.PsiBC.xi1Psi;
                 obj.xi0PsiTT= Arguments.PsiBC.xi0PsiTT;
+                obj.xi0PsiTTTT= Arguments.PsiBC.xi0PsiTTTT;
                 obj.xi1PsiTT= Arguments.PsiBC.xi1PsiTT;
 
             end
@@ -89,7 +92,30 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
             u(obj.Scatterer.Np)=xi_gamma(obj.Scatterer.Np) - GLW(obj.Scatterer.Np).' + obj.GF{1}(obj.Scatterer.Np).';
         end
         
-        function P = SPsi(obj,omega,O,Or)
+        function XiP = ExtendPsi(obj,r,O,Or,Ott,xi0P,xi1P,xi0Ptt,xi1Ptt,xi0Ptttt,Src)
+            
+            dr = obj.Scatterer.dr;
+            dr2=dr.^2;
+            dr3=dr2.*dr;
+            dr4=dr3.*dr;
+            
+            %r = S.r;
+            r2=r.*r;
+            r3=r2.*r;
+            r4=r3.*r;
+            
+            Orr = Src - Or./r - Ott./r2 + obj.CoeffsParams.sigma*O;
+            
+            Prr = O - xi1P./r - xi0Ptt./r2;
+            Prrtt = Ott - xi1Ptt./r - xi0Ptttt./r2;
+            
+            P3r = Or + xi1P./r2 - Prr./r + 2*xi0Ptt./r3 - xi1Ptt./r2;
+            P4r = Orr - 2*xi1P./r3 + 2*Prr./r2 - P3r./r - 6*xi0Ptt./r4 + 4*xi1Ptt./r3 - Prrtt./r2;
+            
+            XiP = xi0P + xi1P.*dr + Prr.*(dr2/2)+ P3r.*(dr3/6) + P4r.*(dr4/24);
+        end
+        
+        function P = SPsi(obj,omega,O,Or,Ott)
             
             in = zeros(size(omega));
             in(obj.Scatterer.Mp) = omega(obj.Scatterer.Mp);
@@ -101,15 +127,33 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
             
             u=zeros(size(omega(:)));
             S = obj.Scatterer.TheScatterer();
-            dr = obj.Scatterer.dr;
-            dr2=dr.^2;
-            dr3=dr2.*dr;
+%             dr = obj.Scatterer.dr;
+%             dr2=dr.^2;
+%             dr3=dr2.*dr;
+%             dr4=dr3.*dr;
+%             
+%             r = S.r;
+%             r2=r.*r;
+%             r3=r2.*r;
+%             r4=r3.*r;
             
-            Orr = O - obj.xi1Psi(S.th,S.r)./S.r - obj.xi0PsiTT(S.th,S.r)./(S.r.^2);
-            O3r = Or - Orr./S.r - obj.xi1PsiTT(S.th,S.r)./(S.r.^2);
+            xi0P = obj.xi0Psi(S.th,S.r);
+            xi1P = obj.xi1Psi(S.th,S.r);
+            xi0Ptt = obj.xi0PsiTT(S.th,S.r);
+            xi0Ptttt = obj.xi0PsiTTTT(S.th,S.r);
+            xi1Ptt = obj.xi1PsiTT(S.th,S.r);
             
-            u(obj.GridGamma)= obj.xi0Psi(S.th,S.r) + obj.xi1Psi(S.th,S.r).*dr ...
-                            + Orr.*(dr2/2)+ O3r.*(dr3/6);
+%             Orr = obj.Wf{1}(obj.GridGamma) - Or./r - Ott./r2 + obj.CoeffsParams.sigma*O;
+%             
+%             Prr = O - xi1P./r - xi0Ptt./r2;
+%             Prrtt = Ott - xi1Ptt./r - xi0Ptttt./r2;
+%             
+%             P3r = Or + xi1P./r2 - Prr./r + 2*xi0Ptt./r3 - xi1Ptt./r2;
+%             P4r = Orr - 2*xi1P./r3 + 2*Prr./r2 - P3r./r - 6*xi0Ptt./r4 + 4*xi1Ptt./r3 - Prrtt./r2;
+%             
+%             u(obj.GridGamma)= xi0P + xi1P.*dr + Prr.*(dr2/2)+ P3r.*(dr3/6) + P4r.*(dr4/24);
+            
+            u(obj.GridGamma) = obj.ExtendPsi(S.r,O,Or,Ott,xi0P,xi1P,xi0Ptt,xi1Ptt,xi0Ptttt,obj.Wf{1}(obj.GridGamma));
             
             %u(obj.GridGamma)= obj.xi0Psi(obj.Scatterer.th,obj.Scatterer.r);%debug
             
@@ -159,8 +203,14 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
                         
             u=zeros(size(w)); %Tr u = xiPsi (the part with omega)
             
-            u(obj.GridGamma,1) = (dr2/2 - dr3/6./S.r).*w(obj.GridGamma,1);
-            u(obj.GridGamma,2) = (dr3/6).* w(obj.GridGamma,2);
+            %u(obj.GridGamma,1) = (dr2/2 - dr3/6./S.r).*w(obj.GridGamma,1);
+            %u(obj.GridGamma,2) = (dr3/6).* w(obj.GridGamma,2);
+            
+            %here I use overuse the fact about known exact Omegam works only with specific one
+            Ott = -4*w(obj.GridGamma,1);
+            u(obj.GridGamma,1) = obj.ExtendPsi(S.r,w(obj.GridGamma,1),0                 ,Ott,0,0,0,0,0,0);
+            u(obj.GridGamma,2) = obj.ExtendPsi(S.r,0                 ,w(obj.GridGamma,2),0  ,0,0,0,0,0,0);
+            
             
             % computing potential
             Lu=spalloc(size(w,1),size(w,2),size(w,2)*numel(obj.Scatterer.Mp));
@@ -186,12 +236,20 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
  
  
             u=zeros(size(iGf));
-            S = obj.Scatterer.TheScatterer();
-            u(obj.GridGamma)= obj.xi0Psi(S.th,S.r) ...
-                            +(dr - dr2/2./S.r + dr3/6./(S.r.^2)).*obj.xi1Psi(S.th,S.r) ...
-                            -(dr2/2./(S.r.^2) - dr3/6./(S.r.^3)).*obj.xi0PsiTT(S.th,S.r) ...
-                            -(dr3/6./(S.r.^2)).*obj.xi1PsiTT(S.th,S.r);
             
+           % u(obj.GridGamma)= obj.xi0Psi(S.th,S.r) ...
+           %                 +(dr - (dr2/2)./S.r + 2*(dr3/6)./(S.r.^2)).*obj.xi1Psi(S.th,S.r) ...
+           %                 -((dr2/2)./(S.r.^2) - 3*(dr3/6)./(S.r.^3)).*obj.xi0PsiTT(S.th,S.r) ...
+           %                 -((dr3/6)./(S.r.^2)).*obj.xi1PsiTT(S.th,S.r);
+           
+           xi0P = obj.xi0Psi(S.th,S.r);
+           xi1P = obj.xi1Psi(S.th,S.r);
+           xi0Ptt = obj.xi0PsiTT(S.th,S.r);
+           xi0Ptttt = obj.xi0PsiTTTT(S.th,S.r);
+           xi1Ptt = obj.xi1PsiTT(S.th,S.r);
+
+           u(obj.GridGamma) = obj.ExtendPsi(S.r,0,0,0,xi0P,xi1P,xi0Ptt,xi1Ptt,xi0Ptttt,obj.Wf{1}(obj.GridGamma));
+           
             
             lu=spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
             lu(obj.Scatterer.Mp)=obj.OpPsi.ApplyOp(u,obj.Scatterer.Mp);

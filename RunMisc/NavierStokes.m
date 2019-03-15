@@ -44,7 +44,7 @@ end
     Order=2;
     if Order==2
         Stencil=5;
-        Extension = @Tools.Extensions.EBPolarLaplace3OrderExtension;
+        Extension = @Tools.Extensions.EBPolarLaplace5OrderExtension; %@Tools.Extensions.EBPolarLaplace3OrderExtension;
         DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
         %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
     elseif Order==4
@@ -75,7 +75,7 @@ end
     xi1Psi  =@(theta,r) DrDPsi(theta,Eparam(r));
     xi0PsiTT=@(theta,r) DPsiDThetaTheta(theta,Eparam(r));
     xi1PsiTT=@(theta,r) DPsiDrThetaTheta(theta,Eparam(r));
-    
+    xi0PsiTTTT=@(theta,r) DPsiD4Theta(theta,Eparam(r));
     
     if strcmpi(BType,'Chebyshev')
         Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,fn,ChebyshevRange);
@@ -116,7 +116,7 @@ end
             'SourceParams'      , ExParams, ...
             'Extension'         , Extension, ...
             'ExtensionParams'   , [], ...
-            'PsiBC'             , struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT,'xi1PsiTT',xi1PsiTT)...
+            'PsiBC'             , struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT,'xi1PsiTT',xi1PsiTT,'xi0PsiTTTT',xi0PsiTTTT)...
             );
         
         
@@ -157,11 +157,12 @@ end
         
         u = Prb.P_Omega(Oxi);
         
-		O=0;Or=0;
+		O=0;Ott=0;Or=0;
 
         for j=1:numel(Basis.Indices0)
             uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
             O = O + cn(j).*uj.xi0;
+            Ott = Ott + cn(j).*uj.xi0tt;
         end
         for j=1:numel(Basis.Indices1)
             uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices1(j),[]);
@@ -189,7 +190,7 @@ end
             p = Prb.SPsi(exu,O);
 
         else
-			p = Prb.SPsi(u,O,Or);
+			p = Prb.SPsi(u,O,Or,Ott);
         end
         
         t1=toc;
@@ -302,6 +303,14 @@ function DP = DPsiDThetaTheta(theta,Params)
     %         y = r .* sin(theta);
     
     DP = -4*Psi(theta,Params);
+
+end
+
+function DP = DPsiD4Theta(theta,Params)
+    %         x = r .* cos(theta);
+    %         y = r .* sin(theta);
+    
+    DP = 16*Psi(theta,Params);
 
 end
 

@@ -14,8 +14,8 @@ classdef NavierStokesSourceRTh < Tools.Source.SuperSource
     end
     
     methods
-        %function [F,Fr,Frr,Ft,Ftt,Frt] = Derivatives(obj,Ex)
-            function [F,Fr,Frr] = Derivatives(obj,Ex)
+        function [F,Fr,Frr,Ft,Ftt,Frt] = Derivatives(obj,Ex)
+            %function [F,Fr,Frr] = Derivatives(obj,Ex)
             if obj.IsDummy
                 F=0;
                 Fr=0;
@@ -49,8 +49,8 @@ classdef NavierStokesSourceRTh < Tools.Source.SuperSource
             r0 = obj.ExParams.r0;
             
             
-            %[F,Fr,Frr,Ft,Ftt] = obj.CalcF(th,r,r0,sigma);
-            [F,Fr,Frr] = obj.CalcF(th,r,r0,sigma);
+            [F,Fr,Frr,Ft,Ftt] = obj.CalcF(th,r,r0,sigma);
+            %[F,Fr,Frr] = obj.CalcF(th,r,r0,sigma);
         end
             
         
