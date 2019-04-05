@@ -100,34 +100,16 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
          end
          
          function calc_QnW(obj)
-% 			 if obj.CollectRhs
-% 				 obj.Rhs();
-% 				 				 
-%                  GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf,obj.BF],'UniformOutput',false);
-%                  obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW(:,1:end-1), [obj.Extension.W,obj.Extension.Wf],'UniformOutput',false);
-%                  
-%                  obj.mP   = cellfun(@(arg1,arg2) obj.Pcol(arg1,arg2),GLW(:,1:end-2), obj.Extension.W,'UniformOutput',false);
-%                  
-%                  obj.myGF   = GLW(:,end);
-%                   obj.myTrGPsiGF = obj.TrGPsiGf(obj.myGF{1});
-%                   
-%                  for indx=1:numel(GLW(:,end))
-%                      obj.myTrGF{indx} = GLW{indx,end}(obj.Scatterer.GridGamma);
-%                  end
-% 			 else
-                 calc_QnW@Solvers.SuperHomoNavierStokesSolver(obj);
-                 
-                 obj.CreateWf();
-                 [~,m2]=size(obj.Extension.Wf);
-%                  for i=1:m
-%                     obj.NewQ{end+1} = obj.Extension.Wf(i);
-%                  end
-                obj.NewQ(1,end+(1:m2)) = {[]};%repmat({[]},m1);%perhaps numel should be put here instead of size????
-                 obj.calc_QnWf();
-                 
-% 			 end
-% 			 obj.IsReadyQnW = true;
-         end         
+             
+             calc_QnW@Solvers.SuperHomoNavierStokesSolver(obj);
+             
+             obj.CreateWf();
+             [~,m2]=size(obj.Extension.Wf);
+             
+             obj.NewQ(1,end+(1:m2)) = {[]};
+             obj.calc_QnWf();
+             
+         end
          
          function calc_QnWf(obj)
              
@@ -142,21 +124,10 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
                  b = obj.TrGpsiPOmega(GLW,obj.Extension.Wf{indx});
                  obj.TrGpsiGExf = b;%(obj.GridGamma);
              end
-             
-             %m=numel(obj.NewQ);
-             %  for indx=1:numel(obj.Extension.Wf)
-             %      GLW = obj.SolveSrc(obj.Extension.Wf{indx});
-             %      obj.NewQ{m+indx} = obj.Qcol(GLW,obj.Extension.Wf{indx});
-             %      obj.myTrGF{indx} = obj.myGF{1}(obj.Scatterer.GridGamma);
-             %  end
- 
          end
          
          function u = SolveSrc(obj,x)
              u = obj.Solve(x);
-%              obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
-%              %obj.Truncate(f);
-%              u = obj.Gf(obj.f);%(:));
          end
          
          function Expand(obj)
@@ -167,14 +138,6 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
                   
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          function CreateWf(obj)
-             %NoXi = obj.Basis.Handle();
-             
-           %  HS = obj.Source(obj.FocalDist,obj.Eta0,obj.phi,obj.k0,obj.r0); %?????
-           
-          % Source = obj.SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,obj.SourceParams);
-           
-           %obj.myWf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);
-           %obj.Extension.ExpandSource(Source);
            obj.Extension.ExpandSource(obj.SourceHandle,obj.SourceParams);
            %obj.ExtensionPsi.ExpandSource(obj.SourceHandle,obj.SourceParams);
          end

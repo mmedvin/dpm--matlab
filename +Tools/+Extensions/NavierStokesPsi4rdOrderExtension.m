@@ -1,6 +1,5 @@
-classdef NavierStokesPsi3rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleExtension
-    %NAVIERSTOKESPSI3RDORDEREXTENSION Summary of this class goes here
-    %   Detailed explanation goes here
+classdef NavierStokesPsi4rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleExtension
+    %NAVIERSTOKESPSI3RDORDEREXTENSION 
     
     properties(Access =public)
         XiPsi;
@@ -9,7 +8,7 @@ classdef NavierStokesPsi3rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
     end
     
     methods
-        function obj = NavierStokesPsi3rdOrderExtension(Arguments)
+        function obj = NavierStokesPsi4rdOrderExtension(Arguments)
             obj = obj@Tools.Extensions.SuperPolarTwoTupleExtension(Arguments);
             
             % if isfield(Arguments,'PsiBC')
@@ -88,7 +87,7 @@ classdef NavierStokesPsi3rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
              P3r = Or + xi1P./r2 - Prr./r + 2*xi0Ptt./r3 - xi1Ptt./r2;
              %P4r = Orr - 2*xi1P./r3 + 2*Prr./r2 - P3r./r - 6*xi0Ptt./r4 + 4*xi1Ptt./r3 - Prrtt./r2;
              
-             XiP = xi0P + xi1P.*dr + Prr.*(dr2/2);%+ P3r.*(dr3/6);% + P4r.*(dr4/24);
+             XiP = xi0P + xi1P.*dr + Prr.*(dr2/2)+ P3r.*(dr3/6);% + P4r.*(dr4/24);
          end
 
     end
