@@ -10,7 +10,7 @@ switch test
 	case 3
 		TstName = 'Dirichlet for Omega, but exact Omega for Psi';
 	case 4
-		TstName = 'Neumann for Omega, but exact Omega for Psi';
+		TstName = 'Neumann for Omega, but exact xiPsi';
 	case 5
 	TstName = 'NS, but exact Omega for G omega';
 	otherwise 
@@ -44,7 +44,9 @@ end
     Order=2;
     if Order==2
         Stencil=5;
-        Extension = @Tools.Extensions.EBPolarLaplace5OrderExtension; %@Tools.Extensions.EBPolarLaplace3OrderExtension;
+        Extension = @Tools.Extensions.EBPolarLaplace3OrderExtension;
+        ExtensionPsi = @Tools.Extensions.NavierStokesPsi3rdOrderExtension;
+        
         DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
         %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
     elseif Order==4
@@ -77,6 +79,8 @@ end
     xi1PsiTT=@(theta,r) DPsiDrThetaTheta(theta,Eparam(r));
     xi0PsiTTTT=@(theta,r) DPsiD4Theta(theta,Eparam(r));
     
+    ExtensionParamsPsi.PsiBC = struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT,'xi1PsiTT',xi1PsiTT,'xi0PsiTTTT',xi0PsiTTTT);
+    
     if strcmpi(BType,'Chebyshev')
         Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f,fn,ChebyshevRange);
     elseif strcmpi(BType,'Fourier')
@@ -87,12 +91,13 @@ end
     CollectRhs = 1;
     
     ErrInfPre = 0; Err2Pre = 0;
-    biPre=0; b2Pre=0;
+    biPre=0; b2Pre=0; 
+     pbiPre=0; pb2Pre=0;
     ErrpiPre=0; Errp2Pre=0;
     
     fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,k=%-2.2f,Scatterer at r=%-2.2f, %s, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,k,ExParams.r,strKoC,TstName);
     
-    for n=1:7 %6 %run different grids
+    for n=1:8 %6 %run different grids
         tic
         %build grid
         p=3;%4;
@@ -116,7 +121,8 @@ end
             'SourceParams'      , ExParams, ...
             'Extension'         , Extension, ...
             'ExtensionParams'   , [], ...
-            'PsiBC'             , struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT,'xi1PsiTT',xi1PsiTT,'xi0PsiTTTT',xi0PsiTTTT)...
+            'ExtensionPsi'      , ExtensionPsi, ...
+            'ExtensionParamsPsi', ExtensionParamsPsi ...
             );
         
         
@@ -136,12 +142,12 @@ end
                % cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
                 
 			case 5
-                rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.TrGGF ];
-                cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
+                rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; Prb.Qpsi{1}-Prb.TrGGF ];
+                cn = [ Prb.Q{1},Prb.Q{2} ; Prb.QpsiOmega{1} + Prb.GPO{1},Prb.QpsiOmega{2} + Prb.GPO{2}]\rhs;
 
             otherwise % navier stockes
-                rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.TrGGF ];
-                cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
+                rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.Qpsi{1}-Prb.TrGGF - Prb.TrGpsiGExf ];
+                cn = [ Prb.Q{1},Prb.Q{2} ; Prb.QpsiOmega{1} + Prb.GPO{1}, Prb.QpsiOmega{2} + Prb.GPO{2}]\rhs;
         end
 			
         if 1
@@ -154,43 +160,63 @@ end
         Oxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
         Oxi(Prb.GridGamma) = [Prb.W{1}(Prb.GridGamma,:),Prb.W{2}(Prb.GridGamma,:)]*cn  + Prb.Wf{1}(Prb.GridGamma);
 
+        Pxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
+        Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:);%+ Prb.Wpsi_f{1}(Prb.GridGamma);
+        %Pxi(Prb.GridGamma)=Prb.Wpsi{1}(Prb.GridGamma,:);
         
-        u = Prb.P_Omega(Oxi);
+        omega = Prb.P_Omega(Oxi);
         
-		O=0;Ott=0;Or=0;
-
-        for j=1:numel(Basis.Indices0)
-            uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
-            O = O + cn(j).*uj.xi0;
-            Ott = Ott + cn(j).*uj.xi0tt;
-        end
-        for j=1:numel(Basis.Indices1)
-            uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices1(j),[]);
-            Or = Or + cn(Basis.NBss0+j).*uj.xi0;
-        end
+% 		O=0;Ott=0;Or=0;
+% 
+%         for j=1:numel(Basis.Indices0)
+%             uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices0(j),[]);
+%             O = O + cn(j).*uj.xi0;
+%             Ott = Ott + cn(j).*uj.xi0tt;
+%         end
+%         for j=1:numel(Basis.Indices1)
+%             uj = Basis.Handle(Prb.Scatterer.BasisArg,Basis.Indices1(j),[]);
+%             Or = Or + cn(Basis.NBss0+j).*uj.xi0;
+%         end
         
         if test==3
             exu = zeros(size(Grid.R));
             ExParams3 = ExParams;
             ExParams3.r = Prb.Scatterer.R(Prb.Scatterer.Np);
             exu(Prb.Scatterer.Np) = Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3);
-            p = Prb.SPsi(exu,O);
+            p = Prb.P_OmegaPsi(exu,Pxi);
 		elseif test==4
 		            
-            ExParams3 = ExParams;
-            ExParams3.r = Prb.Scatterer.R(Prb.GridGamma);
-            exO = Omega(Prb.Scatterer.Th(Prb.GridGamma),ExParams3);
-            p = Prb.SPsi(u,exO);
+           ExParams2 = ExParams;
+            ExParams2.r = Prb.Scatterer.r;
+
+            exPxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
+            exPxi(Prb.GridGamma) = Psi(Prb.Scatterer.th,ExParams2);
+           
+            p = Prb.P_OmegaPsi(omega,exPxi);
 				
 			elseif test==5
             exu = zeros(size(Grid.R));
             ExParams3 = ExParams;
             ExParams3.r = Prb.Scatterer.R(Prb.Scatterer.Np);
             exu(Prb.Scatterer.Np) = Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3);
-            p = Prb.SPsi(exu,O);
+            p = Prb.P_OmegaPsi(exu,Pxi);
+
+        elseif test==55
+                   exu = zeros(size(Grid.R));
+            ExParams3 = ExParams;
+            ExParams3.r = Prb.Scatterer.R(Prb.Scatterer.Np);
+            exu(Prb.Scatterer.Np) = Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3);
+
+            ExParams2 = ExParams;
+            ExParams2.r = Prb.Scatterer.r;
+
+            exPxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
+            exPxi(Prb.GridGamma) = Psi(Prb.Scatterer.th,ExParams2);
+           
+            p = Prb.P_OmegaPsi(exu,exPxi);
 
         else
-			p = Prb.SPsi(u,O,Or,Ott);
+			p = Prb.P_OmegaPsi(omega,Pxi);%O,Or,Ott);
         end
         
         t1=toc;
@@ -206,7 +232,7 @@ end
                 u1= spalloc(Nx,Ny,nnz(u0));
                 u1(Prb.Np) = u0(Prb.Np);
                 
-                tmp = u(1:2:end,1:2:end)-u1(1:2:end,1:2:end);
+                tmp = omega(1:2:end,1:2:end)-u1(1:2:end,1:2:end);
                 
                 %etinf(n) =norm(tmp(:),inf);
                 ErrInf = norm(tmp(:),inf);
@@ -221,8 +247,8 @@ end
                 
             end
             
-            u0=spalloc(Nx*2-1,Ny*2-1,nnz(u));
-            u0(1:2:end,1:2:end)=u;
+            u0=spalloc(Nx*2-1,Ny*2-1,nnz(omega));
+            u0(1:2:end,1:2:end)=omega;
             
         elseif strcmpi(KindOfConvergance,'Exact')
             ExParams2 = ExParams;
@@ -230,7 +256,12 @@ end
             OxiEx = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
             OxiEx(Prb.GridGamma) = Omega(Prb.Scatterer.th,ExParams2);
             [bi,b2] = cmpr(OxiEx(Prb.GridGamma), Oxi(Prb.GridGamma));
-                        
+
+            PxiEx = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
+            PxiEx(Prb.GridGamma) = Psi(Prb.Scatterer.th,ExParams2);
+            [pbi,pb2] = cmpr(PxiEx(Prb.GridGamma), Pxi(Prb.GridGamma));
+
+            
              Ex = zeros(size(Grid.R));
             
             %Ex(IntPrb.Scatterer.Np) = Ex(FocalDistance,Prb.Scatterer.R(Prb.Scatterer.Np),Prb.Scatterer.Th(Prb.Scatterer.Np),R0);
@@ -241,18 +272,22 @@ end
             ExP = zeros(size(Grid.R));
             ExP(Prb.Scatterer.Np) = Psi(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3);
             
-            [ErrInf,Err2] = cmpr(Ex(Prb.Scatterer.Np),u(Prb.Scatterer.Np));
-            [Errpi,Errp2] = cmpr(ExP(Prb.Scatterer.Np),p(Prb.Scatterer.Np));
+            [ErrInf,Err2] = cmpr(Ex(Prb.Scatterer.Np),omega(Prb.Scatterer.Np));
+            [Errpi,Errp2,Where] = cmpr(ExP(Prb.Scatterer.Np),p(Prb.Scatterer.Np));
+            [wi,wj] = ind2sub([Nx,Ny],Where);
             
-            str = sprintf('$%-6d\\\\times%-7d$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ \\\\\\\\ \n',...
+            str = sprintf('$%-6d\\\\times%-7d$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & $%-10.4d$ & $%-6.2f$ & %-6.2f,%-6.2f %-6.2f\\\\\\\\ \n',...
                 Nx,Ny,ErrInf, log2(ErrInfPre/ErrInf), ...
                 Errpi,  log2(ErrpiPre/Errpi)  , ...
-                bi,  log2(biPre/bi)          );
+                bi,  log2(biPre/bi) , ...
+                pbi,  log2(pbiPre/pbi) , Grid.x(wi),Grid.y(wj), sqrt(Grid.x(wi).^2+Grid.y(wj).^2  )     );
             
             ErrInfPre = ErrInf;
             Err2Pre = Err2;
             biPre=bi;
             b2Pre=b2;
+            pbiPre=pbi;
+            pb2Pre=pb2;
             ErrpiPre = Errpi;
             Errp2Pre = Errp2;
             
@@ -270,7 +305,7 @@ end
 end
 
 
-function [Linf,L2] = cmpr(ex,u)%,GG)
+function [Linf,L2,i] = cmpr(ex,u)%,GG)
     
     tmp = ex - u;
     
@@ -281,6 +316,7 @@ function [Linf,L2] = cmpr(ex,u)%,GG)
     
     Linf = norm(tmp(:),inf);%/norm(u(:),inf);
     L2   = norm(tmp(:),2);%/norm(u(:),2);
+    i=find(abs(tmp)==Linf,1);
 end
 
 function P = Psi(theta,Params)

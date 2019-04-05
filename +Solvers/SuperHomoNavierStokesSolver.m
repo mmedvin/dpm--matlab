@@ -2,52 +2,168 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
     %SUPERHOMONAVIERSTOCKSSOLVER Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties(Access = public)
-        P;
+    properties(Access = public)       
+        Qpsi;
+        QpsiOmega;
+        
+        WpsiOmega;
+        Wpsi;
+        GPO;
     end
     
     properties(Access = protected)
-        mP;
-    end
+        rhsPsi;
+        ExtensionPsi;
+        Op;
+        OpPsi;
+        mQpsi;
+        mQpsiOmega;
+
+    end    
     
     methods(Access = protected,Abstract=true)
-        Pcol(obj,GLW,w);
+        % one need to implement the linear operator L
+        %        f =
+        %       LuPsi(obj,u,msk);
+        
+        % one need to implement inverse operator G = L^-1
+        %        u =
+        %       GfPsi(obj,f);
+        
+        % one computes columns of Q (=P-I) using the following function, see Q,Q0,Q1 above
+        %        Pj =
+        %      Pcol(obj,GLW,w
+        
+        TrGpsiPOmega(obj,GLW,w);
     end
     
     methods
         
-        function q = get.P(obj)
+        function q = get.Qpsi(obj)
             if obj.IsReadyQnW == false
                 obj.calc_QnW();
             end
-            q=obj.mP;
+            q=obj.mQpsi;
         end
         
-        function qj = Pj(obj,j)
+        function q = get.QpsiOmega(obj)
+            if obj.IsReadyQnW == false
+                obj.calc_QnW();
+            end
+            q=obj.mQpsiOmega;
+        end
+
+        function w = get.Wpsi(obj)
             if obj.IsReadyQnW == false
                 obj.calc_QnW();
             end
             
-            qj=obj.mP{j};
+            w=obj.ExtensionPsi.Wpsi; %obj.myW0;
+        end
+        
+        function w = get.WpsiOmega(obj)
+            if obj.IsReadyQnW == false
+                obj.calc_QnW();
+            end
             
+            w=obj.ExtensionPsi.W; %obj.myW0;
         end
         
         function obj = SuperHomoNavierStokesSolver(Arguments)
             obj = obj@Solvers.SuperHomoSolver(Arguments);
+        
+            Arguments.ExtensionParamsPsi.Grid           = obj.Grid;
+            Arguments.ExtensionParamsPsi.Scatterer      = obj.Scatterer;
+            Arguments.ExtensionParamsPsi.Basis          = Arguments.Basis;
+            Arguments.ExtensionParamsPsi.CoeffsHandle 	= Arguments.CoeffsHandle;
+            Arguments.ExtensionParamsPsi.CoeffsParams	= Arguments.CoeffsParams;
+            Arguments.ExtensionParamsPsi.CoeffsParams.sigma=0;
+            
+            %Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
+            obj.ExtensionPsi                        = Arguments.ExtensionPsi(Arguments.ExtensionParamsPsi);
+
+            Arguments.DiffOpParams.Grid         = Arguments.Grid;
+            Arguments.DiffOpParams.CoeffsHandle = Arguments.CoeffsHandle;
+            Arguments.DiffOpParams.CoeffsParams = Arguments.CoeffsParams;
+            
+            if isfield(Arguments.ScattererParams,'FocalDistance')
+                Arguments.DiffOpParams.CoeffsParams.FocalDistance = Arguments.ScattererParams.FocalDistance;
+            end
+            
+            obj.Op = Arguments.DiffOp(Arguments.DiffOpParams);
+            
+            ArgPsi = Arguments.DiffOpParams;
+            ArgPsi.CoeffsParams.sigma=0;
+            %obj.OpPsi = Tools.DifferentialOps.LaplacianOpBCinRhs(ArgPsi);
+            %Tools.DifferentialOps.LaplacianOp4(ArgPsi);
+            %obj.OpPsi = Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs(ArgPsi);
+            obj.OpPsi = Arguments.DiffOp(ArgPsi);
+
+            
+            
         end
         
   
     end
     
     methods(Access = protected)
+        
+        function Rhs(obj)
+            Rhs@Solvers.SuperHomoSolver(obj);
+            obj.CreateRhsPsi();
+        end
+        
+        function CreateRhsPsi(obj)
+            obj.ExtensionPsi.Expand();            
+            tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp,obj.OpPsi),[obj.ExtensionPsi.W, obj.ExtensionPsi.Wpsi],'UniformOutput',false);
+            
+            obj.rhsPsi = cell(size(tmp));
+            for indx=1:(numel(tmp)-1)
+                obj.rhsPsi{indx} = doit(obj.ExtensionPsi.W{indx},tmp{indx});
+                %                 [n,m]=size(obj.ExtensionPsi.W{indx});
+                %                 NNZ = nnz(obj.ExtensionPsi.W{indx});
+                %                 obj.rhsPsi{indx} = spalloc( n,m,NNZ);
+                %                 obj.rhsPsi{indx}(obj.Scatterer.Mp,:) = tmp{indx};
+            end
+            
+            obj.rhsPsi{end} = doit(obj.ExtensionPsi.Wpsi{1},tmp{end});
+            
+            function r = doit(W,t)
+                [n,m]=size(W);
+                NNZ = nnz(W);
+                r = spalloc( n,m,NNZ);
+                r(obj.Scatterer.Mp,:) =t;
+            end
+        end
+        
         function calc_QnW(obj)
             if obj.CollectRhs
                 obj.Rhs();
                 
                 GLW        = cellfun(@(arg) obj.Gf(arg),obj.rhs,'UniformOutput',false);
                 obj.NewQ   = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW, obj.Extension.W,'UniformOutput',false);
-                obj.mP   = cellfun(@(arg1,arg2) obj.Pcol(arg1,arg2),GLW, obj.Extension.W,'UniformOutput',false);
+
+                GLWPsi  = cellfun(@(arg) obj.Gf(arg,obj.OpPsi),obj.rhsPsi,'UniformOutput',false);
+                
+                
+                a = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLWPsi, [obj.ExtensionPsi.W, obj.ExtensionPsi.Wpsi],'UniformOutput',false);
+                b = cellfun(@(arg1,arg2) obj.TrGpsiPOmega(arg1,arg2),GLW,obj.Extension.W,'UniformOutput',false);
+                
+                
+                obj.mQpsiOmega   = a(1:end-1);%cellfun(@(arg1,arg2) plus(arg1,arg2),a(1:end-1),b,'UniformOutput',false);
+                obj.mQpsi=a(end);
+                obj.GPO = b;
+                %cellfun(@(arg1,arg2) obj.Pcol(arg1,arg2),GLW, obj.Extension.W,'UniformOutput',false);
+
+                
+%                 a = cellfun(@(arg1,arg2) obj.Pcol(arg1,arg2),GLW(1,:), obj.Extension.W(1,:),'UniformOutput',false);
+%                % b={};
+%  
+%                 for i=1:numel(a)
+%                     obj.mP(i)   = {a{i} + obj.Extension.W{2,i}(obj.GridGamma,:)}  ;
+%                 end
             else
+                warning('not yet supposed to work')
                 obj.Expand();
                 for indx=1:numel(obj.Extension.W)
                     for j = 1:size(obj.Extension.W{indx},2)

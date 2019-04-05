@@ -54,7 +54,7 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
         end
         
         function ExpandSource(obj,SourceHandle,SourceParams)
-            if isequal(SourceHandle , @Tools.Source.NavierStokesDescreteSrc)
+            if isequal(SourceHandle , @Tools.Source.NavierStokesDescreteSrc)%TODO remove it and make a subclass
                 SourceParams.Np = obj.Scatterer.Np;
                 SourceParams.Mp = obj.Scatterer.Mp;
                 SourceParams.GridGamma = obj.Scatterer.GridGamma;

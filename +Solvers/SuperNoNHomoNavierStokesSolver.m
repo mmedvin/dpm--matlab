@@ -6,8 +6,11 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
         Wf;
         GF;
         TrGF;
-%         GGF;
+        %GGF;
         TrGGF;
+        Qpsi_f;
+        Wpsi_f; %???
+        TrGpsiGExf;
      end
      
      properties(Access = protected)
@@ -91,10 +94,10 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
      
      methods(Access = protected)
          
-%          function Rhs(obj)
-%              Rhs@Solvers.SuperHomoSolver(obj);
-%              %obj.CreateRhsf();
-%          end
+         function Rhs(obj)
+             Rhs@Solvers.SuperHomoNavierStokesSolver(obj);
+             obj.CreateRhsf();
+         end
          
          function calc_QnW(obj)
 % 			 if obj.CollectRhs
@@ -115,8 +118,11 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
                  calc_QnW@Solvers.SuperHomoNavierStokesSolver(obj);
                  
                  obj.CreateWf();
-                 m=numel(obj.Extension.Wf);
-                obj.NewQ{end+(1:m)} = repmat({{}},size(obj.Extension.Wf));%perhaps numel should be put here instead of size????
+                 [~,m2]=size(obj.Extension.Wf);
+%                  for i=1:m
+%                     obj.NewQ{end+1} = obj.Extension.Wf(i);
+%                  end
+                obj.NewQ(1,end+(1:m2)) = {[]};%repmat({[]},m1);%perhaps numel should be put here instead of size????
                  obj.calc_QnWf();
                  
 % 			 end
@@ -133,6 +139,8 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
                  GLW = obj.SolveSrc(obj.Extension.Wf{indx});
                  obj.NewQ{(end-m)+indx} = obj.Qcol(GLW,obj.Extension.Wf{indx});
                  obj.myTrGF{indx} = obj.myGF{1}(obj.Scatterer.GridGamma);
+                 b = obj.TrGpsiPOmega(GLW,obj.Extension.Wf{indx});
+                 obj.TrGpsiGExf = b;%(obj.GridGamma);
              end
              
              %m=numel(obj.NewQ);
@@ -168,6 +176,7 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
            %obj.myWf(obj.GridGamma) = obj.Scatterer.Expansion(NoXi,NoXi,Source,obj.Coeffs);
            %obj.Extension.ExpandSource(Source);
            obj.Extension.ExpandSource(obj.SourceHandle,obj.SourceParams);
+           %obj.ExtensionPsi.ExpandSource(obj.SourceHandle,obj.SourceParams);
          end
                   
          function CreateRhsf(obj)             

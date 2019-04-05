@@ -81,7 +81,7 @@ tic
         Source           = @Tools.Source.HelmholtzSourceR;
         SourceParams     =  [];
         Extension        = @Tools.Extensions.NestedExtension;
-        ExtentionParams  = struct('IntExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension,'ExtExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension);
+        ExtensionParams  = struct('IntExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension,'ExtExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension);
     elseif strcmpi(ScatType,'ellipse')
         WaveNumberHandle = @Tools.Coeffs.WaveNumberElliptical;
         ScattererHandle  = @Tools.Scatterer.NestedEllipticScatterer;
@@ -90,7 +90,7 @@ tic
         SourceParams     =  struct('Grid',Grid);  
         Extension = @Tools.Extensions.NestedExtension;
         
-        ExtentionParams  = struct('IntExtension',@Tools.Extensions.TwoTupleExtension,'ExtExtension',@Tools.Extensions.TwoTupleExtension);
+        ExtensionParams  = struct('IntExtension',@Tools.Extensions.TwoTupleExtension,'ExtExtension',@Tools.Extensions.TwoTupleExtension);
         
     elseif strcmpi(ScatType,'StarShapedScatterer')
         WaveNumberHandle = @Tools.Coeffs.WaveNumberStarShaped;%WaveNumberStarShaped;%WaveNumberPolarR;
@@ -114,7 +114,7 @@ tic
             'SourceHandle'      , Source, ...
             'SourceParams'      , SourceParams, ...
             'Extension'         , Extension, ...
-            'ExtensionParams'   , ExtentionParams ...
+            'ExtensionParams'   , ExtensionParams ...
             ));
         
      Cn	= [ NstPrb.Q{1,2}, NstPrb.Q{2,2}] \ ([ -NstPrb.Q{1,1},-NstPrb.Q{2,1}]*[Basis.Interior.cn0; Basis.Exterior.cn0]  - NstPrb.TrGF{1} - NstPrb.TrGF{2} - NstPrb.Qf{1} - NstPrb.Qf{2})  ;

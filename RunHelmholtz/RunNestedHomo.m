@@ -52,7 +52,7 @@ tic
         ScattererHandle  = @Tools.Scatterer.NestedPolarScatterer;
         ScattererParams  = struct('r0',R0,'r1',R1, 'Stencil', 9);
         Extension        = @Tools.Extensions.NestedExtension;
-        ExtentionParams  = struct('IntExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension,'ExtExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension);
+        ExtensionParams  = struct('IntExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension,'ExtExtension',@Tools.Extensions.EBPolarHomoHelmholtz5OrderExtension);
     end
     
     IntPrb =  Solvers.InteriorHomoSolver( struct(...
@@ -64,7 +64,7 @@ tic
         'ScattererParams', ScattererParams, ...
         'CollectRhs'     , 1, ... %i.e. yes
         'Extension'      , Extension, ...
-        'ExtensionParams', ExtentionParams ...
+        'ExtensionParams', ExtensionParams ...
         ));
     
     %InteriorCn1	= ( IntPrb.Q{1,2} \ ( -IntPrb.Q{1,1}*Basis.Interior.cn0)) ;
