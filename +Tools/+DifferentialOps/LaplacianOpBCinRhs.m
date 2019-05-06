@@ -178,7 +178,7 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 		
 		function u = Solve(obj,f,SolverType)
 			u = zeros(size(f));
-			Rhs = f(obj.Inside);
+			Rhs = f(obj.Inside,:);
 			
             if ~exist('SolverType','var')
                 SolverType = obj.LinearSolverType;
@@ -202,9 +202,9 @@ classdef LaplacianOpBCinRhs<Tools.DifferentialOps.SuperLaplacianOp
 					  %                        assert(norm(b(:)-B(:),'inf')<1e-10);
 
 					case 3
-						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(obj.R\Rhs))));
+						u(obj.Inside,:)=obj.Q*(obj.U\(obj.L\(obj.P*(obj.R\Rhs))));
 					case 4
-						u(obj.Inside)=obj.Q*(obj.U\(obj.L\(obj.P*(Rhs))));
+						u(obj.Inside,:)=obj.Q*(obj.U\(obj.L\(obj.P*(Rhs))));
 
 					case 5 % GMRES
 						%assert(size(f,2)==1);

@@ -32,7 +32,15 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
          TrGPsiGf(obj,Gf);
      end
         
-     methods      
+     methods 
+         
+         function UpdateSource(obj, Params)
+             obj.SourceParams = Params.SourceParams;
+                          
+             obj.CreateWf();
+             obj.calc_QnWf();
+         end
+         
 		 function qf = get.Qf(obj)
 			 if obj.IsReadyQnW == false
 				 obj.calc_QnW();
@@ -139,7 +147,6 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          function CreateWf(obj)
            obj.Extension.ExpandSource(obj.SourceHandle,obj.SourceParams);
-           %obj.ExtensionPsi.ExpandSource(obj.SourceHandle,obj.SourceParams);
          end
                   
          function CreateRhsf(obj)             
