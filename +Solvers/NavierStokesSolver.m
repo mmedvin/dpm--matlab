@@ -3,25 +3,9 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
     
     methods
         
-        function UpdateSource(obj, Params)
-            % obj.SourceHandle = NewSource;
-            obj.SourceParams = Params.SourceParams;
-            %               obj.Extension.ExpandSource(obj.SourceHandle,obj.SourceParams);
-            %
-            %               obj.CreateRhsf();
-            %
-            %               obj.CreateWf();
-            %               obj.myGF   = {obj.Gf(obj.BF)};
-            %               obj.myTrGPsiGF = obj.TrGPsiGf(obj.myGF{1});
-            
-            obj.xi0Psi  = Params.PsiBC.xi0Psi;
-            obj.xi1Psi  = Params.PsiBC.xi1Psi;
-            obj.xi0PsiTT= Params.PsiBC.xi0PsiTT
-            obj.xi0PsiTTTT= Arguments.PsiBC.xi0PsiTTTT;
-            obj.xi1PsiTT= Params.PsiBC.xi1PsiTT;
-            
-            obj.CreateWf();
-            obj.calc_QnWf();          
+        function Update(obj,Params)
+            obj.UpdatePsi(Params.PsiBC);
+            obj.UpdateSource(Params);
         end
         
         function obj = NavierStokesSolver(Arguments)
@@ -82,7 +66,6 @@ classdef NavierStokesSolver < Solvers.SuperNoNHomoNavierStokesSolver
         function Qj = Qcol(obj,GLW,~)
             Qj = -GLW(obj.GridGamma,:);
         end
-
         
         function TGP = TrGpsiPOmega(obj,GLW,w)
         

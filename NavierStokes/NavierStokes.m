@@ -1,5 +1,8 @@
 function NavierStokes
     
+    LinearSolverType = 0;%3;%
+    CollectRhs = 1;
+    
     test= -1;
     switch test
         case 1
@@ -62,7 +65,7 @@ function NavierStokes
         Eparam =@(r) struct('r0',ExParams.r0,'r',r,'p',ExParams.p);
         
         
-        k=10;
+        k=1000;
         
         BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
         ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
@@ -84,13 +87,7 @@ function NavierStokes
             Basis = Tools.Basis.FourierBasis.BasisHelper(f,fn);%,[3,3]);%,[15,15]);%[1e-14,1e-14]);%20);%
         end
         
-        LinearSolverType = 0;
-        CollectRhs = 1;
-        
-        ErrInfPre = 0; Err2Pre = 0;
-        biPre=0; b2Pre=0;
-        pbiPre=0; pb2Pre=0;
-        ErrpiPre=0; Errp2Pre=0;
+        ErrInfPre = 0; Err2Pre = 0;  biPre=0; b2Pre=0; pbiPre=0; pb2Pre=0; ErrpiPre=0; Errp2Pre=0;
         
         fprintf('Navier Stokes, NBss0=%d, NBss1=%d, LinearSolverType = %d , Order=%d ,k=%-2.2f,Scatterer at r=%-2.2f, %s, %s\n', Basis.NBss0, Basis.NBss1, LinearSolverType,Order,k,ExParams.r,strKoC,TstName);
         

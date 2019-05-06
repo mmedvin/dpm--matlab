@@ -7,6 +7,10 @@ classdef NavierStokesPsi4rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
         Wpsi;
     end
     
+    properties(Access= protected)
+        ArgsXiPsi;
+    end
+    
     methods
         function obj = NavierStokesPsi4rdOrderExtension(Arguments)
             obj = obj@Tools.Extensions.SuperPolarTwoTupleExtension(Arguments);
@@ -16,13 +20,19 @@ classdef NavierStokesPsi4rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
             obj.Wpsi = {spalloc(obj.Grid.Nx*obj.Grid.Ny,1,numel(obj.Scatterer.GridGamma))};
 
             
-            ArgsXiPsi.PsiBC = Arguments.PsiBC;
-            ArgsXiPsi.Scatterer = obj.Scatterer.TheScatterer();
-            obj.XiPsi = Tools.Misc.XiPsi(ArgsXiPsi);
+            obj.ArgsXiPsi.PsiBC = Arguments.PsiBC;
+            obj.ArgsXiPsi.Scatterer = obj.Scatterer.TheScatterer();
+            obj.XiPsi = Tools.Misc.XiPsi(obj.ArgsXiPsi);
             obj.noXiPsi = Tools.Misc.XiPsi();
             
             % end
 
+        end
+        
+        function Update(obj,PsiBC)
+            obj.ArgsXiPsi.PsiBC = PsiBC;
+            obj.XiPsi = Tools.Misc.XiPsi(obj.ArgsXiPsi);
+            obj.ExpandPsi();
         end
         
         function Expand(obj)

@@ -113,23 +113,32 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
             obj.CreateRhsPsi();
         end
         
+        function UpdatePsi(obj,PsiBC)
+            obj.ExtensionPsi.Update(PsiBC);
+            tmp = obj.Lu(obj.ExtensionPsi.Wpsi{1},obj.Scatterer.Mp,obj.OpPsi);
+            obj.rhsPsi{end} = obj.doitPsi(obj.ExtensionPsi.Wpsi{1},tmp);
+            
+            obj.calc_QnWpsi();
+        end
+        
         function CreateRhsPsi(obj)
             obj.ExtensionPsi.Expand();            
             tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp,obj.OpPsi),[obj.ExtensionPsi.W, obj.ExtensionPsi.Wpsi],'UniformOutput',false);
             
             obj.rhsPsi = cell(size(tmp));
             for indx=1:(numel(tmp)-1)
-                obj.rhsPsi{indx} = doit(obj.ExtensionPsi.W{indx},tmp{indx});
+                obj.rhsPsi{indx} = obj.doitPsi(obj.ExtensionPsi.W{indx},tmp{indx});
             end
             
-            obj.rhsPsi{end} = doit(obj.ExtensionPsi.Wpsi{1},tmp{end});
+            obj.rhsPsi{end} = obj.doitPsi(obj.ExtensionPsi.Wpsi{1},tmp{end});
             
-            function r = doit(W,t)
-                [n,m]=size(W);
-                NNZ = nnz(W);
-                r = spalloc( n,m,NNZ);
-                r(obj.Scatterer.Mp,:) =t;
-            end
+        end
+        
+        function r = doitPsi(obj,W,t)
+            [n,m]=size(W);
+            NNZ = nnz(W);
+            r = spalloc( n,m,NNZ);
+            r(obj.Scatterer.Mp,:) =t;
         end
         
         function calc_QnW(obj)
@@ -138,16 +147,12 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
                 
                 GLW        = cellfun(@(arg) obj.Gf(arg),obj.rhs,'UniformOutput',false);
                 obj.NewQ   = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW, obj.Extension.W,'UniformOutput',false);
-
-                GLWPsi  = cellfun(@(arg) obj.Gf(arg,obj.OpPsi),obj.rhsPsi,'UniformOutput',false);
                 
+                obj.calc_QnWpsi();
                 
-                a = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLWPsi, [obj.ExtensionPsi.W, obj.ExtensionPsi.Wpsi],'UniformOutput',false);
                 b = cellfun(@(arg1,arg2) obj.TrGpsiPOmega(arg1,arg2),GLW,obj.Extension.W,'UniformOutput',false);
-                               
-                obj.mQpsiOmega   = a(1:end-1);%cellfun(@(arg1,arg2) plus(arg1,arg2),a(1:end-1),b,'UniformOutput',false);
-                obj.mQpsi=a(end);
                 obj.GPO = b;
+                
             else
                 warning('not yet supposed to work')
                 obj.Expand();
@@ -161,6 +166,17 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
                 
             end
             obj.IsReadyQnW = true;
+        end
+        
+        function calc_QnWpsi(obj)
+            GLWPsi  = cellfun(@(arg) obj.Gf(arg,obj.OpPsi),obj.rhsPsi,'UniformOutput',false);
+            
+            
+            a = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLWPsi, [obj.ExtensionPsi.W, obj.ExtensionPsi.Wpsi],'UniformOutput',false);
+            
+            obj.mQpsiOmega   = a(1:end-1);%cellfun(@(arg1,arg2) plus(arg1,arg2),a(1:end-1),b,'UniformOutput',false);
+            obj.mQpsi=a(end);
+            
         end
     end
     
