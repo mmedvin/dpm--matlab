@@ -45,6 +45,7 @@ function NavierStokes
     if Order==2
         Stencil=5;
         Extension = @Tools.Extensions.EBPolarLaplace3OrderExtension;
+        %ExtensionPsi = @Tools.Extensions.NavierStokesPsi5rdOrderExtension;
         ExtensionPsi = @Tools.Extensions.NavierStokesPsi4rdOrderExtension;
         
         DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
@@ -59,13 +60,13 @@ function NavierStokes
     end
     
     ExParams.r0=R0;
-    for   r_ = R0*[0.9,1,1.1]
+    for   r_ = R0*0.9%[0.9,1,1.1]
         ExParams.r = r_;
         ExParams.p=99;
         Eparam =@(r) struct('r0',ExParams.r0,'r',r,'p',ExParams.p);
         
         
-        k=1000;
+        k=500;
         
         BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
         ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
@@ -129,7 +130,7 @@ function NavierStokes
                 case {2,4} %Neumann
                     cn =[( Prb.Q0 \ ( -Prb.Q1*Basis.cn1 - Prb.TrGF{1} - Prb.Qf{1})); Basis.cn1];                                       
                 otherwise % navier stockes
-                    rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.Qpsi{1}-Prb.TrGGF - Prb.TrGpsiGExf ];
+                    rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.Qpsi{1} - Prb.QPsif - Prb.TrGGF - Prb.TrGpsiGExf ];
                     cn = [ Prb.Q{1},Prb.Q{2} ; Prb.QpsiOmega{1} + Prb.GPO{1}, Prb.QpsiOmega{2} + Prb.GPO{2}]\rhs;
             end
             
@@ -137,7 +138,7 @@ function NavierStokes
             Oxi(Prb.GridGamma) = [Prb.W{1}(Prb.GridGamma,:),Prb.W{2}(Prb.GridGamma,:)]*cn  + Prb.Wf{1}(Prb.GridGamma);
             
             Pxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
-            Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:);
+            Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:) + Prb.WPsif{1}(Prb.GridGamma,:);
             
             omega = Prb.P_Omega(Oxi);
                         

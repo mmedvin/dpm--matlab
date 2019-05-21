@@ -26,6 +26,7 @@ function NavierStokesTime
     if Order==2
         Stencil=5;
         Extension = @Tools.Extensions.EBPolarLaplace3OrderExtension;
+        %ExtensionPsi = @Tools.Extensions.NavierStokesPsi5rdOrderExtension;
         ExtensionPsi = @Tools.Extensions.NavierStokesPsi4rdOrderExtension;
         
         DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
@@ -40,7 +41,7 @@ function NavierStokesTime
     end
     
     ExParams.r0=R0;
-    for   r_ = R0*1%[0.9,1,1.1]
+    for   r_ = R0*0.9%[0.9,1,1.1]
         ExParams.r = r_;
         
         ExParams.p=99;
@@ -136,21 +137,21 @@ function NavierStokesTime
             for tn=1:tN
                 %rhs = [-Prb.Qf{1} - Prb.TrGF{1} ; -Prb.TrGGF ];
                 %cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
-                rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.Qpsi{1}-Prb.TrGGF - Prb.TrGpsiGExf ];
+                rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.Qpsi{1} - Prb.QPsif - Prb.TrGGF - Prb.TrGpsiGExf ];
                 cn = [ Prb.Q{1},Prb.Q{2} ; Prb.QpsiOmega{1} + Prb.GPO{1}, Prb.QpsiOmega{2} + Prb.GPO{2}]\rhs;
                 
                 Oxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
-                Oxi(Prb.GridGamma) = [Prb.W{1}(Prb.GridGamma,:),Prb.W{2}(Prb.GridGamma,:)]*cn  + Prb.Wf{1}(Prb.GridGamma);
+                Oxi(Prb.GridGamma) = [Prb.W{1}(Prb.GridGamma,:),Prb.W{2}(Prb.GridGamma,:)]*cn  + Prb.Wf{1}(Prb.GridGamma) + Prb.WPsif{1}(Prb.GridGamma);
                 
                 uOmega = Prb.P_Omega(Oxi);
                 
-                if UsingConvectionTerm
+                %if UsingConvectionTerm
                     
                     Pxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
                     Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:);
                     
                     uPsi = Prb.P_OmegaPsi(uOmega,Pxi);
-                    
+                 if UsingConvectionTerm   
                     [Omega_x,Omega_y]       = Der.CartesianDerivatives(uOmega);
                     [Psi_x,Psi_y]       = Der.CartesianDerivatives(uPsi);
                     D = Psi_y.*Omega_x - Psi_x.*Omega_y;
@@ -184,7 +185,7 @@ function NavierStokesTime
             
             %save('Movie.mat','Record');
             
-            if ~UsingConvectionTerm
+            if 0% ~UsingConvectionTerm
 
                 Pxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
                 Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:);

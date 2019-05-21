@@ -8,8 +8,9 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
         TrGF;
         %GGF;
         TrGGF;
-        Qpsi_f;
-        Wpsi_f; %???
+        QPsif;
+        WPsif;
+ 
         TrGpsiGExf;
      end
      
@@ -19,10 +20,14 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
          SourceHandle;
 		 SourceParams=[];
          myQf;
+         myQPsif
 
 		 myGF;
 		 myTrGF;
          myTrGPsiGF;
+         rhsPsif;
+         
+         ExpansionPsiOrder;
      end
      
      methods(Access = protected,Abstract=true)
@@ -48,8 +53,24 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
 			 
 			 %qf=obj.myQf;
 			 qf={obj.NewQ{:,end}};
-		 end
+         end
 		 
+         function qf = get.QPsif(obj)
+             if obj.IsReadyQnW == false
+                 obj.calc_QnW();
+             end
+             
+             qf=obj.myQPsif;
+         end
+
+         function wf = get.WPsif(obj)
+             if obj.IsReadyQnW == false
+                 obj.calc_QnW();
+             end
+             
+             wf=obj.ExtensionPsi.Wf;
+         end
+         
 		 function wf = get.Wf(obj)
 			 if obj.IsReadyQnW == false
 				 obj.calc_QnW();
@@ -97,6 +118,14 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
              obj.rhsf = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
              obj.myGF = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Mp));
              
+             if isequal(Arguments.ExtensionPsi , @Tools.Extensions.NavierStokesPsi4rdOrderExtension)
+                 obj.ExpansionPsiOrder =4;
+             elseif isequal(obj.ExtensionPsi , @Tools.Extensions.NavierStokesPsi5rdOrderExtension)
+                 obj.ExpansionPsiOrder=5;
+             else
+                 warning(' unknown ExtensionPsi!!!!');
+             end
+             
          end
      end
      
@@ -132,6 +161,8 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
                  b = obj.TrGpsiPOmega(GLW,obj.Extension.Wf{indx});
                  obj.TrGpsiGExf = b;%(obj.GridGamma);
              end
+             
+             obj.calc_Qpsif();
          end
          
          function u = SolveSrc(obj,x)
@@ -139,14 +170,28 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
          end
          
          function Expand(obj)
-             Expand@Solvers.SuperHomoSolver(obj);
+             Expand@Solvers.SuperHomoNavierStokesSolver(obj);
              
              obj.CreateWf();                     
          end
-                  
+
+         function calc_Qpsif(obj)
+
+             if obj.ExpansionPsiOrder ==5
+                 GLWPsif  = obj.Gf(obj.rhsPsif,obj.OpPsi);
+                 
+                 obj.myQPsif = obj.Qcol(GLWPsif,obj.ExtensionPsi.Wf);
+             else
+                 obj.myQPsif = spalloc(numel(obj.Scatterer.GridGamma),1,0);
+             end             
+         end
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          function CreateWf(obj)
            obj.Extension.ExpandSource(obj.SourceHandle,obj.SourceParams);
+         
+           if obj.ExpansionPsiOrder ==5
+               obj.ExtensionPsi.ExpandSource(obj.SourceHandle,obj.SourceParams);
+           end
          end
                   
          function CreateRhsf(obj)             
@@ -162,7 +207,10 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
                 obj.rhsf{indx}(obj.Scatterer.Mp,:) = tmp{indx};
             end
 
-             
+            if obj.ExpansionPsiOrder ==5
+                tmp= obj.Lu(obj.ExtensionPsi.Wf{1},obj.Scatterer.Mp,obj.OpPsi);
+                obj.rhsPsif = obj.doitPsi(obj.ExtensionPsi.Wf{1},tmp);
+            end
          end
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 

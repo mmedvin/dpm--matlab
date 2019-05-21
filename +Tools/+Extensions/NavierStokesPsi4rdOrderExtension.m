@@ -25,6 +25,9 @@ classdef NavierStokesPsi4rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
             obj.XiPsi = Tools.Misc.XiPsi(obj.ArgsXiPsi);
             obj.noXiPsi = Tools.Misc.XiPsi();
             
+            obj.Wf = {spalloc(obj.Grid.Nx*obj.Grid.Ny,1,0)};
+
+            
             % end
 
         end
@@ -59,6 +62,7 @@ classdef NavierStokesPsi4rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
         end
         
         function ExpandSource(obj,SourceHandle,SourceParams)
+            warning('you should not get here!')
 % do I need it here?
 % if isequal(SourceHandle , @Tools.Source.NavierStokesDescreteSrc)%TODO remove it and make a subclass
 %     SourceParams.Np = obj.Scatterer.Np;
@@ -67,10 +71,10 @@ classdef NavierStokesPsi4rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
 %     SourceParams.Grid = obj.Scatterer.Grid;
 % end
             
-            Source = SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,SourceParams);
+           % Source = SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,SourceParams);
             
             obj.Wf                             = {spalloc(obj.Grid.Nx*obj.Grid.Ny,1,numel(obj.Scatterer.GridGamma))};
-            obj.Wf{1}(obj.Scatterer.GridGamma) = obj.Expansion(obj.NoXi,obj.NoXi,obj.noXiPsi,Source);
+            %obj.Wf{1}(obj.Scatterer.GridGamma) = obj.Expansion(obj.NoXi,obj.NoXi,obj.noXiPsi,Source);
         end
         
          function XiP = Expansion(obj,Omega,Omega_r,XiPsi,Source)
@@ -89,15 +93,15 @@ classdef NavierStokesPsi4rdOrderExtension < Tools.Extensions.SuperPolarTwoTupleE
              r3=r2.*r;
              r4=r3.*r;
              
-             %Orr = Src - Or./r - Ott./r2 + obj.CoeffsParams.sigma*O;
+             Orr = Src - Or./r - Ott./r2 + obj.CoeffsParams.sigma*O;
              
              Prr = O - xi1P./r - xi0Ptt./r2;
-             %Prrtt = Ott - xi1Ptt./r - xi0Ptttt./r2;
+             Prrtt = Ott - xi1Ptt./r - xi0Ptttt./r2;
              
              P3r = Or + xi1P./r2 - Prr./r + 2*xi0Ptt./r3 - xi1Ptt./r2;
-             %P4r = Orr - 2*xi1P./r3 + 2*Prr./r2 - P3r./r - 6*xi0Ptt./r4 + 4*xi1Ptt./r3 - Prrtt./r2;
+             P4r = Orr - 2*xi1P./r3 + 2*Prr./r2 - P3r./r - 6*xi0Ptt./r4 + 4*xi1Ptt./r3 - Prrtt./r2;
              
-             XiP = xi0P + xi1P.*dr + Prr.*(dr2/2)+ P3r.*(dr3/6);% + P4r.*(dr4/24);
+             XiP = xi0P + xi1P.*dr + Prr.*(dr2/2)+ P3r.*(dr3/6) + P4r.*(dr4/24);
          end
 
     end

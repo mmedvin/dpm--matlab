@@ -122,7 +122,7 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
         end
         
         function CreateRhsPsi(obj)
-            obj.ExtensionPsi.Expand();            
+                       
             tmp=cellfun(@(arg) obj.Lu(arg,obj.Scatterer.Mp,obj.OpPsi),[obj.ExtensionPsi.W, obj.ExtensionPsi.Wpsi],'UniformOutput',false);
             
             obj.rhsPsi = cell(size(tmp));
@@ -178,6 +178,13 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
             obj.mQpsi=a(end);
             
         end
+        
+        function Expand(obj)
+            Expand@Solvers.SuperHomoSolver(obj);
+            
+            obj.ExtensionPsi.Expand(); 
+        end
+        
     end
     
 end
