@@ -2,7 +2,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
-   properties(AbortSet = true)
+   properties%(AbortSet = true) commented because this make problem with save/load
        
        MetricsAtScatterer;
        
@@ -221,7 +221,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             HashInfo.Xmeta = metaclass(HashInfo.X);
             HashInfo.Ymeta = metaclass(HashInfo.Y);
             
-			HashInfo.HashVal = obj.Grid.x1*obj.Grid.xn*obj.Grid.Nx + obj.Grid.y1*obj.Grid.yn*obj.Grid.Ny;
+			HashInfo.HashVal = obj.Grid.x1*obj.Grid.xn*obj.Grid.Nx*obj.Grid.dx + obj.Grid.y1*obj.Grid.yn*obj.Grid.Ny*obj.Grid.dy;
 			
 			Str=strsplit(HashInfo.Xmeta.Name,'.');
 			Str=Str{end};
@@ -230,7 +230,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
 				 Ppow=Ppow*P;
 			end
 			
-			Str=strsplit(HashInfo.Ymeta.Name);
+			Str=strsplit(HashInfo.Ymeta.Name,'.');
 			Str=Str{end};
 			Ppow = P;
 			for i=1:numel(Str)
