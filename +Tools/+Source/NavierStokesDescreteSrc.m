@@ -40,7 +40,7 @@ classdef NavierStokesDescreteSrc < Tools.Source.SuperSource
                             x = obj.Scatterer.r.*cos(obj.Scatterer.th);
                             y = obj.Scatterer.r.*sin(obj.Scatterer.th);
                             
-                            F = griddata(obj.Params.Grid.X(obj.Params.GridGamma),obj.Params.Grid.Y(obj.Params.GridGamma),obj.OnGG,x,y);
+                            F = griddata(obj.Params.Grid.X(obj.Params.GridGamma),obj.Params.Grid.Y(obj.Params.GridGamma),obj.OnGG,x,y,'cubic');
                         else
                             r  = obj.Scatterer.r;
                             th = obj.Scatterer.th;

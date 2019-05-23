@@ -111,7 +111,7 @@ classdef SuperHomoSolver < handle
             Arguments.ExtensionParams.Scatterer     = obj.Scatterer;
             Arguments.ExtensionParams.Basis         = Arguments.Basis;
             Arguments.ExtensionParams.CoeffsHandle 	= Arguments.CoeffsHandle;
-             Arguments.ExtensionParams.CoeffsParams	= Arguments.CoeffsParams;            
+            Arguments.ExtensionParams.CoeffsParams	= Arguments.CoeffsParams;
 
             %Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
             obj.Extension                       = Arguments.Extension(Arguments.ExtensionParams);

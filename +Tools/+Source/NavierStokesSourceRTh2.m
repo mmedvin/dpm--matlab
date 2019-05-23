@@ -1,4 +1,4 @@
-classdef NavierStokesSourceRTh < Tools.Source.SuperSource
+classdef NavierStokesSourceRTh2 < Tools.Source.SuperSource
     properties (Dependent = true)
         Source;%Fn;Ff;Fnn;Fff;    % WN;
     end
@@ -15,7 +15,7 @@ classdef NavierStokesSourceRTh < Tools.Source.SuperSource
     
     methods
         function [F,Fr,Frr,Ft,Ftt,Frt] = Derivatives(obj,Ex)
-            %function [F,Fr,Frr] = Derivatives(obj,Ex)
+         %   function [F,Fr,Frr] = Derivatives(obj,Ex)
             if obj.IsDummy
                 F=0;
                 Fr=0;
@@ -55,7 +55,7 @@ classdef NavierStokesSourceRTh < Tools.Source.SuperSource
             
         
             
-        function obj = NavierStokesSourceRTh(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
+        function obj = NavierStokesSourceRTh2(Scatterer, CoeffsClsrHndl,CoeffsParams,ExParams)
             obj.Scatterer = Scatterer;
             obj.CoeffsClsrHndl = CoeffsClsrHndl;
             obj.CoeffsParams = CoeffsParams;
@@ -101,12 +101,12 @@ classdef NavierStokesSourceRTh < Tools.Source.SuperSource
     methods(Access = protected)
         function [F,Fr,Frr,Ft,Ftt] = CalcF(obj,theta, r,r0,sigma)
             
-            F = 4*(r.^2).*(48-(4*r.^2-3*r0^2)*sigma).*sin(2*theta);
-            Fr = 8*r.*(48-(4*r.^2-3*r0^2)*sigma).*sin(2*theta) - 32*(r.^3)*sigma.*sin(2*theta);
-            Frr =8*(48-(4*r.^2-3*r0^2)*sigma).*sin(2*theta) - 160*(r.^2)*sigma.*sin(2*theta);
+            F = 2*(2 + sigma).*sin(r.*cos(theta)).*sin(r.*sin(theta));
+            Fr = 2*(2 + sigma).*(cos(r.*sin(theta)).*sin(theta).*sin(r.*cos(theta)) + cos(theta).*cos(r.*cos(theta)).*sin(r.*sin(theta)));
+            Frr = 2*(2 + sigma).*(cos(r.*cos(theta)).*cos(r.*sin(theta)).*sin(2*theta) - sin(r.*cos(theta)).*sin(r.*sin(theta)));
             
-            Ft = 8*(r.^2).*(48-(4*r.^2-3*r0^2)*sigma).*cos(2*theta);
-            Ftt = -16*(r.^2).*(48-(4*r.^2-3*r0^2)*sigma).*sin(2*theta);
+            Ft = 2*r.*(2 + sigma).*(cos(theta).*cos(r.*sin(theta)).*sin(r.*cos(theta)) - cos(r.*cos(theta)).*sin(theta).*sin(r.*sin(theta)));
+            Ftt = -2*r.*(2 + sigma).*(sin(r.*cos(theta)).*(cos(r.*sin(theta)).*sin(theta) + r.*sin(r.*sin(theta))) + cos(r.*cos(theta)).*(r.*cos(r.*sin(theta)).*sin(2*theta) + cos(theta).*sin(r.*sin(theta))));
             
         end
     end
