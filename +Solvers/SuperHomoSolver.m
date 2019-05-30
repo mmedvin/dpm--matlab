@@ -65,6 +65,7 @@ classdef SuperHomoSolver < handle
         f; % temporary variable used as 'rhs' in solve
         
         Extension;
+        Basis;
     end
     
     
@@ -91,13 +92,31 @@ classdef SuperHomoSolver < handle
     end
 
     % constructor + the get methods for the properties
-    methods      
+    methods 
+        
+        function x = xi(obj,BC,Mask)
+            switch(BC)
+                case Tools.Enums.BoundaryConditions.Dirichlet
+                    cn0 = obj.Basis.cn0;
+                    cn1 = ( obj.Q1 \ ( -obj.Q0*obj.Basis.cn0 )) ;
+                case Tools.Enums.BoundaryConditions.Neumann
+                    cn0 = ( obj.Q0 \ ( -obj.Q1*obj.Basis.cn1 )) ;
+                    cn1 = obj.Basis.cn1;
+                otherwise
+                    error('only Dirichlet and Neumann is available atm')
+                   % error('Solving only Soft(Dirichlet BC) or Hard(Neumann BC) scattering problem')
+            end
+            
+            %xi(ExtPrb.GridGamma) = ExtPrb.W0(ExtPrb.GridGamma,:)*cn0 + ExtPrb.W1(ExtPrb.GridGamma,:)*cn1;
+            x = obj.W0(Mask,:)*cn0 + obj.W1(Mask,:)*cn1;
+        end
+        
         function obj = SuperHomoSolver(Arguments)		
             if nargin == 0, error('Costructor called without args'); end
 			if isfield(Arguments,'CollectRhs'), obj.CollectRhs = Arguments.CollectRhs;	end
             
             obj.Grid            = Arguments.Grid;
-            %obj.Basis           = Arguments.Basis;
+            obj.Basis           = Arguments.Basis;
                     
             obj.ScattererHandle = Arguments.ScattererHandle;
             obj.ScattererParams = Arguments.ScattererParams;            

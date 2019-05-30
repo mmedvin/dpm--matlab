@@ -2,37 +2,49 @@ classdef Angles
     %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
+    properties(Access = public)
         Radians;
         Degrees;
     end
     
+        properties(Access = protected)
+            ValueInDegrees;
+        end
+    
     methods
         function  obj = Angles(value,type)
-            if ~exist('type', 'var'), type=degrees; end
-            
+           % if ~exist('type', 'var'), type=Tools.Enums.Angles.Degrees; end
+
             switch type
-                case 'radians'
-                     obj. Radians = value;
-                      obj. Degrees = value*180/pi;
-                case 'degrees'
-                      obj. Radians=value*pi/180;
-                      obj. Degrees = value;
-                otherwise 
+                case Tools.Enums.Angles.Radians
+                    obj.ValueInDegrees = value*180/pi;
+                case Tools.Enums.Angles.Degrees
+                    obj. ValueInDegrees = value;
+                otherwise
                     error('unsupported degree type');
             end
         end
         
-%         function rad = double(obj)
-%             rad = obj.Radians;
+        
+        
+        function rad = get.Radians(obj)
+            rad = obj.ValueInDegrees*pi/180;
+        end
+        
+        function deg = get.Degrees(obj)
+            deg = obj.ValueInDegrees;
+        end
+        
+%         function val=double(obj)
+%             val = obj.Radians;
 %         end
 %         
 %         function disp(obj)
 %             disp(obj.Degrees)
 %         end
-        
+%         
 %         function str = char(obj)
-%             str = sprintf('%s deg',obj.Degrees);
+%             str = sprintf('%d deg',obj.ValueInDegrees);
 %         end
     end
     

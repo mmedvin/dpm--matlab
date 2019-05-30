@@ -27,7 +27,7 @@ NHR=1.6;
 Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'
 KindOfConvergance = 'Grid';%'Exact' or 'Grid'
 HankOrPlane = 'PlaneWave';% 'PlaneWave' or 'Hankel'
-ScatType = 'StarShapedScatterer'; %'ellipse' or 'circle' or ''StarShapedScatterer'
+ScatType = 'ellipse';%'StarShapedScatterer'; %'ellipse' or 'circle' or ''StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 HankelIndex = 3;
@@ -40,7 +40,7 @@ for b=B %[0.9,0.6,0.35] %[0.12,0.18,0.36,0.6,0.9] %[0.9,0.6,0.35] %[0.1, 0.2, 0.
 	%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
 	Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',2,'p',100));
 	
-fprintf('Grid: r0=%f, r1=%f \n %s \n',r0,r1, Parameterization.Print);
+fprintf('Grid: r0=%f, r1=%f \n %s \n',r0,r1, Parameterization.toString());
 
 	
     FocalDist = sqrt(a^2-b^2);

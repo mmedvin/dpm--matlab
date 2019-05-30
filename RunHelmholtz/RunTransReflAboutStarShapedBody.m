@@ -56,7 +56,7 @@ function RunTransReflAboutStarShapedBody
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',1,'p',150));
    % Parameterization  = Tools.Parameterizations.ParametricStar();
    
-     Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b,'xcenter',.05,'ycenter',0.05,'rotation',pi/2));
+     Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a,'b',b,'xcenter',.0,'ycenter',0.1,'rotation',0));
 
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   
@@ -86,7 +86,7 @@ kex = [1 ,5 ,  5,  10];
 	%Basis =Tools.Basis.FourierBasis.BasisHelper(f1,dfdn,fix(Basis.M/2));
         %Basis = Tools.Basis.ChebyshevBasis.BasisHelper(f1,dfdn,ChebyshevRange);
 
-        fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d NBss0=%d NBss1=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.Print, kin(ki),kex(ki), Basis.NBss0, Basis.NBss1);
+        fprintf('%s, IncAngD: %f, Grid:  x1=%f, xn=%f, y1=%f, yn=%f, r0=%f, r1=%f \n %s \n kin=%d kex=%d NBss0=%d NBss1=%d \n', dbk(1).name,IncAngD,x1,xn,y1,yn,r0,r1, Parameterization.toString(), kin(ki),kex(ki), Basis.NBss0, Basis.NBss1);
     
         nmax=4;%3;
         for n=1:nmax %run different grids
@@ -174,9 +174,9 @@ kex = [1 ,5 ,  5,  10];
                 Extxi(ExtPrb.GridGamma) = [ExtPrb.W{1}(ExtPrb.GridGamma,:),ExtPrb.W{2}(ExtPrb.GridGamma,:)]*cn ;%- uinc;
                 
                  UincParams2 = struct('ScattererType','StarShapedScatterer','r',PlrGrid.R);%,'Parameterization',Parameterization
-                Uinc = Uinc(UincParams2,PlrGrid.Theta,IncAng,kex(ki));
+                uinc = Uinc(UincParams2,PlrGrid.Theta,IncAng,kex(ki));
                 
-                Extu = ExtPrb.P_Omega(Extxi,Uinc ); 
+                Extu = ExtPrb.P_Omega(Extxi,uinc ); 
                 
             else
                 

@@ -8,7 +8,10 @@ classdef AbstractParameterization < handle
     end        
     
     methods
-        function str = Print(obj)
+        function Print(obj)
+            disp(obj.toString());
+        end
+        function str = toString(obj)
             
             X = obj.XHandle;
             Y = obj.YHandle;
@@ -25,7 +28,7 @@ classdef AbstractParameterization < handle
                 str = sprintf('%s %s=%d',str,name,val);
             end
             
-            str = sprintf('%s \n YHandle:%s, params: ',str, Ymeta.Name);
+            str = sprintf('%s \nYHandle:%s, params: ',str, Ymeta.Name);
             
             for j = 1:numel(Ymeta.Properties)
                                 

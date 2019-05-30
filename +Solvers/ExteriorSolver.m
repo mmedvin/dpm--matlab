@@ -1,9 +1,11 @@
 classdef ExteriorSolver < Solvers.SuperHomoSolver
+% Part of DPM toolbox, 
+% Solves Helmholtz equation in Ring, in Polar Coordinates 
 
     properties(AbortSet = true)%Access = protected, AbortSet = true)
-        A1;
-        A2;
-        k;
+        A1; %Direct Operator (Matrix)
+        A2; %a Matrix for FFT Based Solver 
+        k; % WaveNumber
   %      w0;
   %      w1;
   %      f;
@@ -181,6 +183,8 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
         end
             
         function CreateSolverA2(obj)
+            HankelType = 2;
+            
             r = obj.Grid.x;
             theta = obj.Grid.y;
             ak = obj.k;
@@ -218,8 +222,8 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
                 + (hr2./2./rho.^4 + 5./rho.^2 + (ak2/2 - 1/hr2)*htheta^2 )*(eig/6);
             
             asympt=sqrt(anu./(anu+1)).*(anu+1.)/((r_out-hr/2)*ak);
-            han(1:2,:)          = besselh([[-1;0],[0;1],[1;2]],2,ak*(r_out-hr/2));
-            han(3:end,:)    = besselh([anu(3:end)-1,anu(3:end),anu(3:end)+1],2,ak*(r_out-hr/2));
+            han(1:2,:)      = besselh([[-1;0],[0;1],[1;2]],HankelType,ak*(r_out-hr/2));
+            han(3:end,:)    = besselh([anu(3:end)-1,anu(3:end),anu(3:end)+1],HankelType,ak*(r_out-hr/2));
             ierr=isinf(han);
             tmperr = sum(ierr,2);
             
