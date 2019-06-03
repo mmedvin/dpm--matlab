@@ -8,7 +8,7 @@ classdef SuperHomoSolver < handle
 % M. Medvinsky, Numerical solution of Maxwell's equations, Ph.D. Dissertation Tel Aviv University, 2013.
 % M. Medvinsky, S. Tsynkov, E. Turkel,High Order Numerical Simulation of the Transmission and Scattering of Waves Using the Method of Difference Potentials, Journal of Computational Physics, 243 (2013) pp. 305-322.
     
-    properties(Dependent, SetAccess = private)%(Access = public)
+    properties(Dependent, SetAccess = private)
         %
         % % Q is a discrete operator, a matrix with columns (each per basis function) computed by Q_gamma = P_gamma-I, where
         % P_gamma = Tr P_omega is a discrete Calderon Projection (Tr - stands for vector trace and P_omega is Calderon Potential )
@@ -217,7 +217,7 @@ classdef SuperHomoSolver < handle
 %         end
     end
     
-    methods%(Access = protected)
+    methods(Access = protected)
     
         function Rhs(obj)
             obj.Expand();

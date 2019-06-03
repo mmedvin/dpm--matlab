@@ -2,7 +2,7 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
     %SUPERHOMONAVIERSTOCKSSOLVER Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties(Access = public)       
+    properties(Dependent, SetAccess = private)       
         Qpsi;
         QpsiOmega;
         
@@ -18,22 +18,11 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
         OpPsi;
         mQpsi;
         mQpsiOmega;
+        mGPO;
 
     end    
     
-    methods(Access = protected,Abstract=true)
-        % one need to implement the linear operator L
-        %        f =
-        %       LuPsi(obj,u,msk);
-        
-        % one need to implement inverse operator G = L^-1
-        %        u =
-        %       GfPsi(obj,f);
-        
-        % one computes columns of Q (=P-I) using the following function, see Q,Q0,Q1 above
-        %        Pj =
-        %      Pcol(obj,GLW,w
-        
+    methods(Access = protected,Abstract=true)        
         TrGpsiPOmega(obj,GLW,w);
     end
     
@@ -68,6 +57,14 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
             
             w=obj.ExtensionPsi.W; %obj.myW0;
         end
+        
+        function q = get.GPO(obj)
+            if obj.IsReadyQnW == false
+                obj.calc_QnW();
+            end
+            q=obj.mGPO;
+        end
+
         
         function obj = SuperHomoNavierStokesSolver(Arguments)
             obj = obj@Solvers.SuperHomoSolver(Arguments);
@@ -142,6 +139,7 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
         end
         
         function calc_QnW(obj)
+            
             if obj.CollectRhs
                 obj.Rhs();
                 
@@ -151,7 +149,7 @@ classdef SuperHomoNavierStokesSolver < Solvers.SuperHomoSolver
                 obj.calc_QnWpsi();
                 
                 b = cellfun(@(arg1,arg2) obj.TrGpsiPOmega(arg1,arg2),GLW,obj.Extension.W,'UniformOutput',false);
-                obj.GPO = b;
+                obj.mGPO = b;
                 
             else
                 warning('not yet supposed to work')
