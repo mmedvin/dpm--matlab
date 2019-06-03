@@ -308,18 +308,49 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
         end
         
         function CreateScatParamToGridAng(obj)
-                       
-           options = [];%optimset('TolX',10^-10);
-           
-           [obj.ScatParamToGridAng,fval,exitflag,output] = ...
-               arrayfun(@(indx) ...
-                                fzero(@(arg) obj.FindMyZeros(arg,obj.Th(indx)), obj.Th(indx),options), ... % obj.Th(indx) is an initial guess of root finding algorithm of 'fzero'
-                        1:numel(obj.Th));%,'UniformOutput',false);
-                                                  
-           obj.ScatParamToGridAng = reshape(obj.ScatParamToGridAng,obj.Grid.Nx,obj.Grid.Ny);                    
-          
-           obj.RAtScatParamToGridAng = sqrt(obj.XHandle.Derivatives(obj.ScatParamToGridAng).^2 + obj.YHandle.Derivatives(obj.ScatParamToGridAng).^2);
             
+            options = [];%optimset('TolX',10^-10);
+            
+            InitialGuess = obj.Th;
+            GridPointToTest = obj.Th;
+            tmp = zeros(size(obj.Th));
+            
+            if  0 %gpuDeviceCount>0 
+                tic
+                Index = gpuArray( 1:numel(obj.Th));
+               % [tmp,fval,exitflag,output] = arrayfun(@FUN, Index);%,'UniformOutput',false); %not supported by maltab because it is in class...
+               
+               parfor  indx = Index % 1:numel(obj.Th) %too slow with eather for or parfor
+                   [tmp(indx),fval,exitflag,output] =   fzero(@(arg) FindMyZeros(obj,arg,InitialGuess(indx)), GridPointToTest(indx),options);
+               end
+               
+               toc
+            else
+                tic
+                parfor  indx = 1:numel(obj.Th)
+                    [tmp(indx),fval,exitflag,output] =   fzero(@(arg) FindMyZeros(obj,arg,InitialGuess(indx)), GridPointToTest(indx),options);
+                end
+                toc
+            end
+            obj.ScatParamToGridAng = tmp;
+           
+            %            [obj.ScatParamToGridAng,fval,exitflag,output] = ...
+            %                arrayfun(@(indx) ...
+            %                                 fzero(@(arg) obj.FindMyZeros(arg,obj.Th(indx)), obj.Th(indx),options), ... % obj.Th(indx) is an initial guess of root finding algorithm of 'fzero'
+            %                         1:numel(obj.Th));%,'UniformOutput',false);
+            
+            obj.ScatParamToGridAng = reshape(obj.ScatParamToGridAng,obj.Grid.Nx,obj.Grid.Ny);
+            obj.RAtScatParamToGridAng = sqrt(obj.XHandle.Derivatives(obj.ScatParamToGridAng).^2 + obj.YHandle.Derivatives(obj.ScatParamToGridAng).^2);
+                       
+           
+%            function varargout = FUN(indx)
+%                [varargout{1:nargout}] = fzero(@FMZ , GridPointToTest(indx),options);
+%                
+%                function varargout = FMZ(arg)
+%                    [varargout{1:nargout}] = FindMyZeros(obj,arg,InitialGuess(indx));
+%                end
+%            end
+           
         end
         
         function dDist2dTheta = DerivativeOfDistance(obj,theta,x1,y1)

@@ -8,7 +8,7 @@ classdef SuperHomoSolver < handle
 % M. Medvinsky, Numerical solution of Maxwell's equations, Ph.D. Dissertation Tel Aviv University, 2013.
 % M. Medvinsky, S. Tsynkov, E. Turkel,High Order Numerical Simulation of the Transmission and Scattering of Waves Using the Method of Difference Potentials, Journal of Computational Physics, 243 (2013) pp. 305-322.
     
-    properties(Access = public)
+    properties(Dependent, SetAccess = private)%(Access = public)
         %
         % % Q is a discrete operator, a matrix with columns (each per basis function) computed by Q_gamma = P_gamma-I, where
         % P_gamma = Tr P_omega is a discrete Calderon Projection (Tr - stands for vector trace and P_omega is Calderon Potential )
@@ -16,7 +16,6 @@ classdef SuperHomoSolver < handle
         % no data saved in Q,Q0,Q1 they are implemented via get method, the actual data is hidden in myQ0 and myQ1
         %
         Q; Q0; Q1; 
-        NewQ;
         
         % W is a choice of arbitrary function that have to satisfy Tr W = W|_gamma = xi_gamma, see ection 2.1.3. 
         % W = 0 outside of gamma
@@ -27,45 +26,37 @@ classdef SuperHomoSolver < handle
         GridGamma; % the numerical counterpart of the interface shape
         Np; % is the N-plus set
         Nm; % is the N-minus set
-        
+    end
+    
+    properties(Access=public)
         Scatterer; %cosider to make it protected
+        
+        Grid;   %Link to Grid Class instance
+        Basis;  %Link to Basis Class instance
     end
     
     
     properties(Access = protected)
+        NewQ;
         
-        IsReadyQnW = false; % used to prevent multiple calculation of Q and W
-        
-        %myQ0; myQ1; % see Q, Q0, Q1 above
-		%myW0; myW1; % see W, W0, W1 above
-        
-        
-        Grid;   %Link to Grid Class instance
-        %Basis;  %Link to Basis Class instance
-                
+        IsReadyQnW = false; % used to prevent multiple calculation of Q and W               
         
         % class handle for Scatterer class (information about the interface shape and more) + the parameters to be sent to its constructor
         ScattererHandle;
         ScattererParams;
         
         % an instance  + class handle for Coeffs class (coefficients of the equation) + the parameters to be sent to its constructor
-        %Coeffs;
         CoeffsHandle;
         CoeffsParams;
-        
-        %%%%%%%%%%%%%%%%%%%
-        %NoSource = Tools.Source.SuperHelmholtzSource();  %construct empty source           
-        
+                
         %%%%%%%%%%%%%%%%%%
         % artificial rhs, not the rhs of the original problem
-        %rhs0; rhs1;
         rhs;
 		CollectRhs = 1; % for old versions compatibility
         
         f; % temporary variable used as 'rhs' in solve
         
         Extension;
-        Basis;
     end
     
     
@@ -135,7 +126,7 @@ classdef SuperHomoSolver < handle
             %Arguments.ExtensionParams.Coeffs    = obj.Coeffs;
             obj.Extension                       = Arguments.Extension(Arguments.ExtensionParams);
 
-            obj.f=zeros(obj.Grid.Nx,obj.Grid.Ny);
+            %obj.f=zeros(obj.Grid.Nx,obj.Grid.Ny);
         end        
 
 
@@ -217,13 +208,16 @@ classdef SuperHomoSolver < handle
             N=obj.Scatterer.Nm;
          end
         
-          function N = get.Np(obj)
+         function N = get.Np(obj)
             N=obj.Scatterer.Np;
-        end
+         end
         
+%         function S = get.Scatterer(obj)
+%             S=obj.Scatterer;
+%         end
     end
     
-    methods(Access = protected)
+    methods%(Access = protected)
     
         function Rhs(obj)
             obj.Expand();
@@ -247,12 +241,21 @@ classdef SuperHomoSolver < handle
                  obj.NewQ   = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW, obj.Extension.W,'UniformOutput',false);
  
              else
-                 obj.Expand();                 
+                 obj.Expand(); 
+                 
                  for indx=1:numel(obj.Extension.W)
-                     for j = 1:size(obj.Extension.W{indx},2)
-                         GLW                    = obj.Solve(obj.Extension.W{indx}(:,j));
-                         obj.NewQ{indx}(:,j)    = obj.Qcol(GLW,obj.Extension.W{indx}(:,j));
+                     %tic
+                     
+                     N = size(obj.Extension.W{indx},2);
+                     tmp = zeros( numel(obj.GridGamma),N);
+                     Wi = obj.Extension.W{indx};
+                     parfor j = 1:N
+                        GLW         = Solve(obj,Wi(:,j));
+                        tmp(:,j)    = Qcol(obj,GLW,Wi(:,j));
                      end
+                     %obj.NewQ{indx}(:,j)  
+                     obj.NewQ{indx} = tmp;
+                     %toc
                  end
                  
 			 end
@@ -260,8 +263,12 @@ classdef SuperHomoSolver < handle
 		 end
         
          function u = Solve(obj,x)
-             obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
-             u = obj.Gf(obj.f);%(:));
+             tmp = zeros(obj.Grid.Nx,obj.Grid.Ny);
+             tmp(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
+             u = obj.Gf(tmp);%(:));
+             
+             %obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
+             %u = obj.Gf(obj.f);%(:));
          end
          
          function Expand(obj)

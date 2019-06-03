@@ -1,18 +1,15 @@
 classdef ExteriorSolver < Solvers.SuperHomoSolver
-% Part of DPM toolbox, 
-% Solves Helmholtz equation in Ring, in Polar Coordinates 
-
+    % Part of DPM toolbox,
+    % Solves Helmholtz equation in Ring, in Polar Coordinates
+    
     properties(AbortSet = true)%Access = protected, AbortSet = true)
         A1; %Direct Operator (Matrix)
-        A2; %a Matrix for FFT Based Solver 
+        A2; %a Matrix for FFT Based Solver
         k; % WaveNumber
-  %      w0;
-  %      w1;
-  %      f;
     end
     
     methods
-        function obj = ExteriorSolver(Arguments)                      
+        function obj = ExteriorSolver(Arguments)
             obj = obj@Solvers.SuperHomoSolver(Arguments);
             
             obj.k=Arguments.CoeffsParams.k;%supposed to be constant obj.Coeffs.k;
@@ -26,20 +23,20 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             
             u = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.Scatterer.Nm));
             
-			w = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.GridGamma));
-			
+            w = spalloc(obj.Grid.Nx,obj.Grid.Ny,numel(obj.GridGamma));
+            
             if ~exist('Uinc','var')
                 %Uinc=zeros(obj.Grid.Nx,obj.Grid.Ny);%(size(obj.w0));
-				 Uinc=spalloc(obj.Grid.Nx,obj.Grid.Ny,0);
-				%do nothing
-			else
-				w(obj.GridGamma) = Uinc(obj.GridGamma);
+                Uinc=spalloc(obj.Grid.Nx,obj.Grid.Ny,0);
+                %do nothing
+            else
+                w(obj.GridGamma) = Uinc(obj.GridGamma);
             end
             
             %obj.w0(obj.GridGamma) = Uinc(obj.GridGamma);
             
             %GLW = obj.Solve(xi_gamma - obj.w0);
-			GLW = obj.Solve(xi_gamma - w);
+            GLW = obj.Solve(xi_gamma - w);
             
             u(obj.Scatterer.Nm)=GLW(obj.Scatterer.Nm) + Uinc(obj.Scatterer.Nm);
         end
@@ -57,7 +54,7 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
                 w=tmp;
             end
             
-            GLW = obj.Solve(w);            
+            GLW = obj.Solve(w);
             Qj = obj.Qcol(GLW,w);
         end
     end
@@ -68,15 +65,10 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             f = obj.A1*u;
             
             if exist('msk','var');
-                f = f(msk,:);            
+                f = f(msk,:);
             end
-%             if exist('msk','var');
-%                 f = obj.A1(msk,:)*u;
-%             else
-%                 f = obj.A1*u;
-%             end
         end
-                        
+        
         function u = Gf(obj,f)
             rhs = fft(full(f),[],2);
             
@@ -90,98 +82,66 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             Qj = GLW(obj.GridGamma)-w(obj.GridGamma);
         end
         
-        
-%         function u = Solve(obj,x)            
-%              obj.f(obj.Scatterer.Mp) = obj.Lu(x(:),obj.Scatterer.Mp);
-%              %obj.Truncate(f);
-%              u = obj.Gf(obj.f);                        
-%         end
-        
-%         function calc_QnW(obj)
-%             for j = 1:obj.Basis.NBss
-%                
-%                 [obj.w0(obj.GridGamma),obj.w1(obj.GridGamma)] = obj.ExpandedBasis(obj.Basis.Indices(j)) ;
-%                 
-%                 obj.myW0(obj.GridGamma,j) = obj.w0(obj.GridGamma);
-%                 obj.myW1(obj.GridGamma,j) = obj.w1(obj.GridGamma);
-%                 
-% %                 GLW0 = obj.Solve(obj.w0);
-% %                 GLW1 = obj.Solve(obj.w1);
-% %                 
-% %                 obj.myQ0(:,j) = obj.Qcol(GLW0,obj.w0);
-% %                 obj.myQ1(:,j) = obj.Qcol(GLW1,obj.w1);
-% 
-%                 obj.myQ0(:,j) = obj.Qcol2(obj.w0);
-%                 obj.myQ1(:,j) = obj.Qcol2(obj.w1);
-% 
-% 
-%             end
-%             obj.IsReadyQnW = true;
-%         end
-        
-        
-        
-        
         function CreateDirectOperatorA1(obj)
-                hr  = obj.Grid.dx;
-                hth = obj.Grid.dy;
-                r = obj.Grid.x;
-                nr=obj.Grid.Nx;
-                nth=obj.Grid.Ny;
-                
-                hr2=hr^2;
-                hth2=hth^2;
-                k2=obj.k^2;
-                
-                
-                cp = 1+hr/2./r;
-                cm = 1-hr/2./r;
-                b  = (5/3+hr2/6./r.^2) ;
-                                                
-                rip1 = r + hr;
-                rim1 = r - hr;
-                %     d  = 1/hth2./rip1 - 1./r.^2 - k2/2;
-                
-                Amn     = sparse( - 5/3/hr2 - b/hth2./r.^2 +  (2/3+hr2/12./r.^2)*k2 ) ;
-                Amp1n   = sparse( 5*cp/6/hr2 + k2/12 - 1/6/hth2./rip1.^2 - hr*(1/hth2./rip1.^2 - 1./r.^2 - k2/2)./12./r ) ;
-                Amm1n   = sparse( 5*cm/6/hr2 + k2/12 - 1/6/hth2./rim1.^2 + hr*(1/hth2./rim1.^2 - 1./r.^2 - k2/2)./12./r ) ;
-                Amnpm1  = sparse( b/2/hth2./r.^2 + k2/12 - 1/6/hr2 ) ;
-                Amp1npm1= sparse( cp.*(1/hth2./rip1.^2 + 1./hr2)/12 ) ;
-                Amm1npm1= sparse( cm.*(1/hth2./rim1.^2 + 1./hr2)/12 ) ;
-                
-                
-                
-                
-                %     Rm1 = sparse(2:nr,1:nr-1,1,nr,nr);
-                %     Rp1=Rm1';
-                %     R = Rm1+Rp1;
-                
-%                 Tm1 = sparse(2:nth,1:nth-1,1,nth,nth);
-%                 Tp1=Tm1';
-%                 T = Tm1+Tp1;
-%                 T(1,nth)=1;
-%                 T(nth,1)=1;
-                
-                %         Ir = speye(nr);
-                It = speye(nth);
-                
-                nn = nr*nth;
-                
-                
-                Amm1npm1 =repmat([0 Amm1npm1(2:end)],1,nth-1);
-                Amp1npm1 =repmat([Amp1npm1(1:end-1) 0],1,nth-1);
-                
-                obj.A1 = kron(It,diag(Amn)) + kron(It,diag(Amp1n(1:end-1),1) + diag(Amm1n(2:end),-1) ) ...
-                    + diag( repmat(Amnpm1,1,nth-1),-nr ) + diag( repmat(Amnpm1,1,nth-1),nr ) ...
-                    + diag( Amnpm1,nn-nr) + diag( Amnpm1,-(nn-nr)) ... % periodicity
-                    + diag( Amm1npm1(2:end), -nr-1) + diag( [ Amm1npm1 0], nr-1) ...
-                    + diag( Amm1npm1(2:nr), -nn+nr-1) + diag( [ Amm1npm1(1:nr) 0], nn-nr-1) ...% periodicity
-                    + diag( [0,Amp1npm1], -nr+1) + diag( Amp1npm1(1:end-1), nr+1) ...
-                    + diag( [0,Amp1npm1(1:nr)], -(nn-nr-1)) + diag( Amp1npm1(1:nr-1), nn-nr+1) ... % periodicity
-                    ;
-                
-        end
+            hr  = obj.Grid.dx;
+            hth = obj.Grid.dy;
+            r = obj.Grid.x;
+            nr=obj.Grid.Nx;
+            nth=obj.Grid.Ny;
             
+            hr2=hr^2;
+            hth2=hth^2;
+            k2=obj.k^2;
+            
+            
+            cp = 1+hr/2./r;
+            cm = 1-hr/2./r;
+            b  = (5/3+hr2/6./r.^2) ;
+            
+            rip1 = r + hr;
+            rim1 = r - hr;
+            %     d  = 1/hth2./rip1 - 1./r.^2 - k2/2;
+            
+            Amn     = sparse( - 5/3/hr2 - b/hth2./r.^2 +  (2/3+hr2/12./r.^2)*k2 ) ;
+            Amp1n   = sparse( 5*cp/6/hr2 + k2/12 - 1/6/hth2./rip1.^2 - hr*(1/hth2./rip1.^2 - 1./r.^2 - k2/2)./12./r ) ;
+            Amm1n   = sparse( 5*cm/6/hr2 + k2/12 - 1/6/hth2./rim1.^2 + hr*(1/hth2./rim1.^2 - 1./r.^2 - k2/2)./12./r ) ;
+            Amnpm1  = sparse( b/2/hth2./r.^2 + k2/12 - 1/6/hr2 ) ;
+            Amp1npm1= sparse( cp.*(1/hth2./rip1.^2 + 1./hr2)/12 ) ;
+            Amm1npm1= sparse( cm.*(1/hth2./rim1.^2 + 1./hr2)/12 ) ;
+            
+            
+            
+            
+            %     Rm1 = sparse(2:nr,1:nr-1,1,nr,nr);
+            %     Rp1=Rm1';
+            %     R = Rm1+Rp1;
+            
+            %                 Tm1 = sparse(2:nth,1:nth-1,1,nth,nth);
+            %                 Tp1=Tm1';
+            %                 T = Tm1+Tp1;
+            %                 T(1,nth)=1;
+            %                 T(nth,1)=1;
+            
+            %         Ir = speye(nr);
+            It = speye(nth);
+            
+            nn = nr*nth;
+            
+            
+            Amm1npm1 =repmat([0 Amm1npm1(2:end)],1,nth-1);
+            Amp1npm1 =repmat([Amp1npm1(1:end-1) 0],1,nth-1);
+            
+            obj.A1 = kron(It,diag(Amn)) + kron(It,diag(Amp1n(1:end-1),1) + diag(Amm1n(2:end),-1) ) ...
+                + diag( repmat(Amnpm1,1,nth-1),-nr ) + diag( repmat(Amnpm1,1,nth-1),nr ) ...
+                + diag( Amnpm1,nn-nr) + diag( Amnpm1,-(nn-nr)) ... % periodicity
+                + diag( Amm1npm1(2:end), -nr-1) + diag( [ Amm1npm1 0], nr-1) ...
+                + diag( Amm1npm1(2:nr), -nn+nr-1) + diag( [ Amm1npm1(1:nr) 0], nn-nr-1) ...% periodicity
+                + diag( [0,Amp1npm1], -nr+1) + diag( Amp1npm1(1:end-1), nr+1) ...
+                + diag( [0,Amp1npm1(1:nr)], -(nn-nr-1)) + diag( Amp1npm1(1:nr-1), nn-nr+1) ... % periodicity
+                ;
+            
+        end
+        
         function CreateSolverA2(obj)
             HankelType = 2;
             
@@ -203,7 +163,7 @@ classdef ExteriorSolver < Solvers.SuperHomoSolver
             anu2=(-eig./(1 + eig*htheta^2/12)).';
             anu=sqrt(anu2);
             han = zeros(numel(anu),3);
-%             ierr = zeros(numel(anu),3);
+            %             ierr = zeros(numel(anu),3);
             
             
             
