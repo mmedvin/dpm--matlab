@@ -4,7 +4,7 @@ function NavierStokesTime
     CollectRhs = 1;
     
     RN = 10; % Reynolds Number
-    UsingConvectionTerm=Tools.Enums.Bool.No;    
+    UsingConvectionTerm=Tools.Enums.Bool.Yes;    
     KindOfConvergance = Tools.Enums.Convergance.Exact;
     
     if 0 %ellipse
@@ -68,7 +68,7 @@ function NavierStokesTime
             UsingConvectionTerm.toString()      );
         firsttime=true;
         
-        for n=1:5 %6 %run different grids
+        for n=1:6 %6 %run different grids
             tic
             %build grid
             p=3;%4;
@@ -132,7 +132,8 @@ function NavierStokesTime
             
             Der = Tools.Common.SecondDerivative(Grid.Nx,Grid.Ny,Grid.dx,Grid.dy);
             
-            
+            IsNaN = @(a) any(isnan(full(a(:))));
+            IsFinite  = @(a) all(isfinite(full(a(:))));
             
             for tn=1:tN
                 %rhs = [-Prb.Qf{1} - Prb.TrGF{1} ; -Prb.TrGGF ];
@@ -144,6 +145,7 @@ function NavierStokesTime
                 Oxi(Prb.GridGamma) = [Prb.W{1}(Prb.GridGamma,:),Prb.W{2}(Prb.GridGamma,:)]*cn  + Prb.Wf{1}(Prb.GridGamma) + Prb.WPsif{1}(Prb.GridGamma);
                 
                 uOmega = Prb.P_Omega(Oxi);
+                assert(~IsNaN(uOmega))
                 
                 %if UsingConvectionTerm
                     
@@ -151,13 +153,20 @@ function NavierStokesTime
                     Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:);
                     
                     uPsi = Prb.P_OmegaPsi(uOmega,Pxi);
+                    assert(~IsNaN(uPsi))
+                    
                  if UsingConvectionTerm   
                     [Omega_x,Omega_y]       = Der.CartesianDerivatives(uOmega);
                     [Psi_x,Psi_y]       = Der.CartesianDerivatives(uPsi);
-                    D = Psi_y.*Omega_x - Psi_x.*Omega_y;
+                    
+                    D = zeros(Nx,Ny); 
+                    tmp = Psi_y.*Omega_x - Psi_x.*Omega_y;
+                    D(Prb.Scatterer.Mp) = tmp(Prb.Scatterer.Mp);
                 else
                     D = 0;
                 end
+                
+               assert(IsFinite(D) )
                 
                 % Record.Store(tn*ht,u);
                 
