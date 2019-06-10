@@ -217,7 +217,7 @@ classdef SuperHomoSolver < handle
 %         end
     end
     
-    methods%(Access = protected)
+    methods(Access = protected)
     
         function Rhs(obj)
             obj.Expand();

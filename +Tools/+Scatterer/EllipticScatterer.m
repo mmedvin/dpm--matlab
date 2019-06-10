@@ -1,5 +1,5 @@
 classdef EllipticScatterer < Tools.Scatterer.SingleScatterer
-    properties (Access = public)
+    properties (SetAccess = protected)
         
         Eta;
         Phi;

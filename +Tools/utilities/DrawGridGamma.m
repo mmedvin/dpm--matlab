@@ -166,23 +166,29 @@ catch
  
  X=R.*cos(Th);
  Y=R.*sin(Th);
-  mesh(X,Y,ones(size(X)));
+  %mesh(X,Y,ones(size(X)));
 end
+mesh(X,Y,ones(size(X)));
 
- % mesh(X,Y,ones(size(X)), 'EdgeAlpha',0.7);%'LineStyle',':');%,'EdgeAlpha',0.7
-%  light('FaceColor', 'interp')
+  %mesh(X,Y,ones(size(X)), 'EdgeAlpha',0.7);%'LineStyle',':');%,'EdgeAlpha',0.7
+  %light('FaceColor', 'interp')
 
 tPhi=0:0.001:2*pi;
-%hold
+hold
 plot(obj.r0.*cos(tPhi),obj.r0.*sin(tPhi),'b','LineWidth',2)
 
 
 plot(obj.r.*cos(obj.th),obj.r.*sin(obj.th),'b.','MarkerSize',10)
 
-  
+plot(obj.r0.*cos(obj.GridLinesIntersection.Y.th),obj.r0.*sin(obj.GridLinesIntersection.Y.th),'k*','MarkerSize',10)
+plot(obj.r0.*cos(obj.GridLinesIntersection.X.th),obj.r0.*sin(obj.GridLinesIntersection.X.th),'k*','MarkerSize',10)
+
+%plot(obj.GridLinesIntersection.Y.x,obj.GridLinesIntersection.Y.y,'k*','MarkerSize',10)
+%plot(obj.GridLinesIntersection.X.x,obj.GridLinesIntersection.X.y,'k*','MarkerSize',10)
+
 h=gca;
-                set(h,'Color','none');
-                set(h,'Visible','off');
+set(h,'Color','none');
+set(h,'Visible','off');
 
 
 hold off

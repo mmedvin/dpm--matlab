@@ -1,6 +1,6 @@
 classdef SuperScatterer < handle
             
-    properties(Abstract = true,Access = public)
+    properties(Abstract = true,SetAccess=protected)%,Access = public)
         Grid;
         
         Mp;
@@ -35,7 +35,7 @@ classdef SuperScatterer < handle
     end   
     
     methods
-        function sz = get.Size(obj)
+        function sz = get.Size(obj)%What is this????
             
             sz = obj.Grid.Size;
             

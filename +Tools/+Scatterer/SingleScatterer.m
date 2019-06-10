@@ -1,5 +1,6 @@
 classdef SingleScatterer < Tools.Scatterer.SuperScatterer
-      properties
+
+    properties(SetAccess=protected)
         Grid;
         
         Mp;

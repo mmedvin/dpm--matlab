@@ -1,5 +1,5 @@
 classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
-     properties(Access = public)
+     properties(SetAccess = protected)
 		Qall;
 		Wall;
         Qf;
@@ -140,7 +140,7 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
              
              calc_QnW@Solvers.SuperHomoNavierStokesSolver(obj);
              
-             obj.CreateWf();
+             %obj.CreateWf();it is called inside SuperHomoNavierStokesSolver via abstract functions???
              [~,m2]=size(obj.Extension.Wf);
              
              obj.NewQ(1,end+(1:m2)) = {[]};
