@@ -2,7 +2,7 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
-   properties%(AbortSet = true) commented because this make problem with save/load
+   properties(SetAccess = protected)%(AbortSet = true) commented because this make problem with save/load
        
        MetricsAtScatterer;
        
@@ -315,42 +315,16 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             GridPointToTest = obj.Th;
             tmp = zeros(size(obj.Th));
             
-            if  0 %gpuDeviceCount>0 
-                tic
-                Index = gpuArray( 1:numel(obj.Th));
-               % [tmp,fval,exitflag,output] = arrayfun(@FUN, Index);%,'UniformOutput',false); %not supported by maltab because it is in class...
-               
-               parfor  indx = Index % 1:numel(obj.Th) %too slow with eather for or parfor
-                   [tmp(indx),fval,exitflag,output] =   fzero(@(arg) FindMyZeros(obj,arg,InitialGuess(indx)), GridPointToTest(indx),options);
-               end
-               
-               toc
-            else
-                tic
-                parfor  indx = 1:numel(obj.Th)
-                    [tmp(indx),fval,exitflag,output] =   fzero(@(arg) FindMyZeros(obj,arg,InitialGuess(indx)), GridPointToTest(indx),options);
-                end
-                toc
+            parfor  indx = 1:numel(obj.Th)
+                [tmp(indx)...
+                    ... ,fval,exitflag,output
+                    ]...
+                    =   fzero(@(arg) FindMyZeros(obj,arg,InitialGuess(indx)), GridPointToTest(indx),options);
             end
-            obj.ScatParamToGridAng = tmp;
-           
-            %            [obj.ScatParamToGridAng,fval,exitflag,output] = ...
-            %                arrayfun(@(indx) ...
-            %                                 fzero(@(arg) obj.FindMyZeros(arg,obj.Th(indx)), obj.Th(indx),options), ... % obj.Th(indx) is an initial guess of root finding algorithm of 'fzero'
-            %                         1:numel(obj.Th));%,'UniformOutput',false);
-            
-            obj.ScatParamToGridAng = reshape(obj.ScatParamToGridAng,obj.Grid.Nx,obj.Grid.Ny);
-            obj.RAtScatParamToGridAng = sqrt(obj.XHandle.Derivatives(obj.ScatParamToGridAng).^2 + obj.YHandle.Derivatives(obj.ScatParamToGridAng).^2);
                        
-           
-%            function varargout = FUN(indx)
-%                [varargout{1:nargout}] = fzero(@FMZ , GridPointToTest(indx),options);
-%                
-%                function varargout = FMZ(arg)
-%                    [varargout{1:nargout}] = FindMyZeros(obj,arg,InitialGuess(indx));
-%                end
-%            end
-           
+            obj.ScatParamToGridAng = reshape(tmp,obj.Grid.Nx,obj.Grid.Ny);
+            obj.RAtScatParamToGridAng = sqrt(obj.XHandle.Derivatives(obj.ScatParamToGridAng).^2 + obj.YHandle.Derivatives(obj.ScatParamToGridAng).^2);
+
         end
         
         function dDist2dTheta = DerivativeOfDistance(obj,theta,x1,y1)
@@ -383,12 +357,19 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
                     if HashInfo.Loaded
                         obj.nrml_t = HashInfo.nrml_t;
                     else
-                    [obj.nrml_t,fval,exitflag,output] ...
-                        = arrayfun(@(indx) ...
-                        fzero(@(arg) obj.DerivativeOfDistance(arg,x1(indx),y1(indx)),InitialGuess(indx),options), ... 
-                        1:numel(obj.th));%,'UniformOutput',false);
-                    
-                    obj.nrml_t = obj.nrml_t.';
+                        if 0
+                            tmp = zeros(size(obj.th));
+                            parfor indx = 1:numel(obj.th)
+                            [tmp(indx),fval,exitflag,output] = fzero(@(arg) DerivativeOfDistance(obj,arg,x1(indx),y1(indx)),InitialGuess(indx),options);
+                            end
+                            obj.nrml_t = tmp;
+                        else
+                            [obj.nrml_t,fval,exitflag,output] ...
+                                = arrayfun(@(indx) ...
+                                fzero(@(arg) obj.DerivativeOfDistance(arg,x1(indx),y1(indx)),InitialGuess(indx),options), ...
+                                1:numel(obj.th));%,'UniformOutput',false);
+                            obj.nrml_t = obj.nrml_t.';
+                        end
                     end
                 case 2 %TBD
                 case 3

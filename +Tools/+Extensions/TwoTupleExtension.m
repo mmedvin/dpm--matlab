@@ -32,11 +32,24 @@ classdef TwoTupleExtension < Tools.Extensions.SuperExtension
             obj.NoXi = obj.Basis.Handle();
         end
         function Expand(obj)
-            tmp1                      = arrayfun(@(n) obj.ExpandedBasis0(n), obj.Basis.Indices0, 'UniformOutput', false);
-            tmp2                      = arrayfun(@(n) obj.ExpandedBasis1(n), obj.Basis.Indices1, 'UniformOutput', false);            
-
-            obj.W{1}(obj.GridGamma,:) = cell2mat(tmp1);
-            obj.W{2}(obj.GridGamma,:) = cell2mat(tmp2);
+            if 0
+                tmp1 = zeros(numel(obj.GridGamma),numel(obj.Basis.Indices0));
+                parfor n=1:numel(obj.Basis.Indices0)
+                    tmp1(:,n) = ExpandedBasis0(obj,obj.Basis.Indices0(n));
+                end
+                obj.W{1}(obj.GridGamma,:) = tmp1;
+                
+                tmp2 = zeros(numel(obj.GridGamma),numel(obj.Basis.Indices1));
+                parfor n=1:numel(obj.Basis.Indices1)
+                    tmp2(:,n) = ExpandedBasis1(obj,obj.Basis.Indices1(n));
+                end
+                obj.W{2}(obj.GridGamma,:) = tmp2;
+            else
+                tmp1                      = arrayfun(@(n) obj.ExpandedBasis0(n), obj.Basis.Indices0, 'UniformOutput', false);
+                tmp2                      = arrayfun(@(n) obj.ExpandedBasis1(n), obj.Basis.Indices1, 'UniformOutput', false);
+                obj.W{1}(obj.GridGamma,:) = cell2mat(tmp1);
+                obj.W{2}(obj.GridGamma,:) = cell2mat(tmp2);
+            end
         end
         
         function xi0j = ExpandedBasis0(obj,n)
