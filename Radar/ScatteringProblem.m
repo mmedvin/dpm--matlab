@@ -30,10 +30,10 @@ function u = ScatteringProblem(WaveNumber,IncidentAngle,BoundaryConditions,Scatt
     
     %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b)); %needed for test only
     %Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
-    Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/3,'c',2,'p',100));
+    %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/3,'c',2,'p',100));
     
     %shift=[1/3,1/3];        
-   %Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a,'b',b,'xcenter',0,'ycenter',0.1,'rotation',0));
+   Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a,'b',b,'xcenter',0.,'ycenter',0.0,'rotation',0));
 
     
     
@@ -159,8 +159,7 @@ function DrawField(u,Prb,Setup,ExParams,IncAng, TitleMsg,fig)
 %     subplot(2,2,2)
 %     mypcolor(X,Y,abs(uinc+U) , ['total field, abs, inc ang=' num2str(IncAng*180/pi) 'degree' ], fig, @() DrawScatterrerShape(ExParams));
 end
-
-
+    
 function [u,ExtPrb,Setup] = ConverganceTest(Nmax,BC,KindOfConvergance,Setup)
     
     k = Setup.CoeffsParams.k;

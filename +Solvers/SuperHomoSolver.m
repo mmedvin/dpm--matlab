@@ -85,14 +85,18 @@ classdef SuperHomoSolver < handle
     % constructor + the get methods for the properties
     methods 
         
-        function x = xi(obj,BC,Mask)
+        function x = xi(obj,BC,Mask,OtherBasis)
+            B = obj.Basis;
+            if nargin==4 
+                B=OtherBasis;
+            end
             switch(BC)
                 case Tools.Enums.BoundaryConditions.Dirichlet
-                    cn0 = obj.Basis.cn0;
-                    cn1 = ( obj.Q1 \ ( -obj.Q0*obj.Basis.cn0 )) ;
+                    cn0 = B.cn0;
+                    cn1 = ( obj.Q1 \ ( -obj.Q0*B.cn0 )) ;
                 case Tools.Enums.BoundaryConditions.Neumann
-                    cn0 = ( obj.Q0 \ ( -obj.Q1*obj.Basis.cn1 )) ;
-                    cn1 = obj.Basis.cn1;
+                    cn0 = ( obj.Q0 \ ( -obj.Q1*B.cn1 )) ;
+                    cn1 = B.cn1;
                 otherwise
                     error('only Dirichlet and Neumann is available atm')
                    % error('Solving only Soft(Dirichlet BC) or Hard(Neumann BC) scattering problem')

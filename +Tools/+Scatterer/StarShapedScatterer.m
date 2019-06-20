@@ -212,6 +212,21 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             g = arg - theta;                
         end
         
+        function val = ExtractAllPropertiesVals(obj,A)
+            Ameta = metaclass(A);
+            val=[];
+            
+            for i = 1:numel(Ameta.Properties)
+                nm1 = Ameta.Properties{i}.Name;
+                val1 = eval(['A.',nm1]);
+                if isobject(val1)
+                    val = [val obj.ExtractAllPropertiesVals(val1)]; %#ok<AGROW>
+                else
+                    val = [val val1]; %#ok<AGROW>
+                end
+            end
+        end
+        
         function HashInfo = hash_func(obj)
 			P=11;
 			Ppow = P;
@@ -221,12 +236,12 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             HashInfo.Xmeta = metaclass(HashInfo.X);
             HashInfo.Ymeta = metaclass(HashInfo.Y);
             
-			HashInfo.HashVal = obj.Grid.x1*obj.Grid.xn*obj.Grid.Nx*obj.Grid.dx + obj.Grid.y1*obj.Grid.yn*obj.Grid.Ny*obj.Grid.dy;
+			HashInfo.HashVal = abs(obj.Grid.x1*obj.Grid.xn*obj.Grid.Nx) + abs(obj.Grid.y1*obj.Grid.yn*obj.Grid.Ny);
 			
 			Str=strsplit(HashInfo.Xmeta.Name,'.');
 			Str=Str{end};
 			for i=1:numel(Str)
-				 HashInfo.HashVal = int64(HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow);
+				 HashInfo.HashVal = int64(HashInfo.HashVal + double(Str(i)) *Ppow);
 				 Ppow=Ppow*P;
 			end
 			
@@ -234,27 +249,19 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
 			Str=Str{end};
 			Ppow = P;
 			for i=1:numel(Str)
-				 HashInfo.HashVal = int64(HashInfo.HashVal + (double(Str(i)) - double('a')+1)*Ppow);
+				 HashInfo.HashVal = int64(HashInfo.HashVal + double(Str(i))*Ppow);
 				Ppow=Ppow*P;
-			end
-                        
-            for i = 1:numel(HashInfo.Xmeta.Properties)
-                
-                nm1 = HashInfo.Xmeta.Properties{i}.Name;
-                val1 = eval(['obj.XHandle.',nm1]);
-                if isobject(val1), continue,end
-                
-                for j = 1:numel(HashInfo.Ymeta.Properties)
-                    
-                    nm2 = HashInfo.Ymeta.Properties{j}.Name;
-                    val2 = eval(['obj.YHandle.',nm2]);
-                    
-                    if isobject(val2), continue,end
-                    
-                   HashInfo.HashVal = int64(HashInfo.HashVal + fix((val1.^(2*i) + val2.^(2*j))*100));
-
-                end
             end
+            
+           Xvals= obj.ExtractAllPropertiesVals(HashInfo.X);
+           Yvals= obj.ExtractAllPropertiesVals(HashInfo.Y);
+           vals = conv(Xvals,Yvals);
+           Ppow = P;
+           
+           for i = 1:numel(vals)
+   				 HashInfo.HashVal = int64(HashInfo.HashVal + vals(i)*Ppow);
+				Ppow=Ppow*P;
+           end
                         
             
         end
