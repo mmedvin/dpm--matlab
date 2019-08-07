@@ -1,12 +1,14 @@
 %test for Extrapolation to gamma, used in Descrete Source...
+global f
 
 errp = 0;
-R0=1;
+R0=1;%0.6;
 f = @(x,y) sin(x).*cos(y);
 
 for n=3:9
+    tic;
     N = 2^n;
-    Grid = Tools.Grid.CartesianGrid(-2,2,N,-2,2,N);
+    Grid = Tools.Grid.CartesianGrid(-1.2,1.2,N,-1.2,1.2,N);
     
     if 1
         PS=Tools.Scatterer.PolarScatterer(Grid,struct('r0',R0, 'Stencil', 5));
@@ -16,6 +18,8 @@ for n=3:9
         Params.Mp = PS.Mp;
         Params.GridGamma = PS.GridGamma;
         Params.Grid = Grid;
+        Params.GridLinesIntersection = PS.GridLinesIntersection;
+
         S = Tools.Source.NavierStokesDescreteSrc(PS.TheScatterer(),[],[],Params);
         Nu = S.Derivatives();
         
@@ -25,15 +29,18 @@ for n=3:9
                 
         U = f(Grid.X,Grid.Y);
         
-        msk = Grid.R<R0;
+        msk = Grid.R<1;
         
         Uu=U(msk);
         X = Grid.X(msk);
         Y = Grid.Y(msk);
         
-        %  Nu = interp2(X,Y,Uu,nx,ny,'makima');%'cubic');
-        
-        Nu = griddata(X,Y,Uu,nx,ny,'v4');%'cubic');
+      nx = R0*cos(th);
+      ny = R0*sin(th);
+    
+        %Nu = interp2(X,Y,Uu,nx,ny,'makima');%'cubic');
+      
+        Nu = griddata(X,Y,Uu,nx,ny,'nearest');%'cubic');
         %        F = scatteredInterpolant(X,Y,Uu,'linear');
         %        Nu=F(nx,ny);
         
@@ -49,9 +56,10 @@ for n=3:9
     nx = R0*cos(th);
     ny = R0*sin(th);
     
-    err = norm( Nu - f(nx,ny),inf);
+    F = f(nx,ny);
+    err = norm( Nu - F,inf);
     
-    fprintf('%f\n',log2(errp/err))
+    fprintf('%-10.6d\t %-8.4d\t %-6.3f \t %f\n',Grid.Nx,err,log2(errp/err),toc)
     
     errp = err;
     

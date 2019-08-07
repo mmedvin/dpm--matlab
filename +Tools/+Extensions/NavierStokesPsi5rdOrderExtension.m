@@ -12,6 +12,7 @@ classdef NavierStokesPsi5rdOrderExtension < Tools.Extensions.NavierStokesPsi4rdO
                 SourceParams.Mp = obj.Scatterer.Mp;
                 SourceParams.GridGamma = obj.Scatterer.GridGamma;
                 SourceParams.Grid = obj.Scatterer.Grid;
+                SourceParams.GridLinesIntersection = obj.Scatterer.GridLinesIntersection;
             end
             
             Source = SourceHandle(obj.Scatterer.TheScatterer,obj.CoeffsHandle,obj.CoeffsParams,SourceParams);

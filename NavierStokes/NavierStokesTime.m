@@ -1,87 +1,50 @@
 function NavierStokesTime
     
-    LinearSolverType = 3;%0;%
-    CollectRhs = 1;
+    ExactChoice = NavierStokesExact.Exact1Time;
+    Exact = ExactChoice.Helper();
     
     RN = 10; % Reynolds Number
-    UsingConvectionTerm=Tools.Enums.Bool.No;    
-    KindOfConvergance = Tools.Enums.Convergance.Exact;
-    
-    if 0 %ellipse
-        a=1;
-        b=0.5;
-        
-        FocalDistance = sqrt(a^2-b^2);
-        Eta0 = acosh(a/FocalDistance);
-        
-        x1=-1.2;xn=1.2;
-        y1=-0.7;yn=0.7;
-    else % cirle
-        R0 = 1;
-        x1=-1.3;xn=1.3;
-        y1=-1.3;yn=1.3;
-    end
+    UsingConvectionTerm     = Tools.Enums.Bool.No;
+    UsingNumericalLaplacian = Tools.Enums.Bool.No;
     
     Order=2;
-    if Order==2
-        Stencil=5;
-        Extension = @Tools.Extensions.EBPolarLaplace3OrderExtension;
-        %ExtensionPsi = @Tools.Extensions.NavierStokesPsi5rdOrderExtension;
-        ExtensionPsi = @Tools.Extensions.NavierStokesPsi4rdOrderExtension;
-        
-        DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
-        %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
-    elseif Order==4
-        error('doesn''t work')
-        Extension = @Tools.Extensions.EBPolarLaplace5OrderExtension;
-        
-        Stencil=13;
-        DiffOp = @Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs;
-        
-    end
+    [SetupBase, BasisType, ExParams,GridParams,KindOfConvergance] = Params(Order);
     
-    ExParams.r0=R0;
-    for   r_ = R0*0.9%[0.9,1,1.1]
+    Ft =  @cossin;
+    %Ft = @smoothstep;
+    
+    RecordMovie = false;
+    nToRecord = 5;
+    
+    for   r_ = ExParams.r0*0.9%[0.9,1,1.1]
         ExParams.r = r_;
+        Eparam =@(r) struct('r0',ExParams.r0,'r',r);
         
-        ExParams.p=99;
-        Eparam =@(r) struct('r0',ExParams.r0,'r',r,'p',ExParams.p);
-        
-        %         BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
-        BasisType = Tools.Enums.Basis.Fourier;
-        ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
-        
-        f   =@(phi) Omega(phi,ExParams);
-        fn  =@(phi) DrDOmega(phi,ExParams);
-        
-        Ft = @(t) cossin(t);
-        %Ft = @(t) smoothstep(t);
-
+        f   =@(phi) Exact.Omega(phi,ExParams);
+        fn  =@(phi) Exact.DrDOmega(phi,ExParams);
         Basis = BasisType.Helper(f,fn);
-
-                
-        ErrOmegaInfPre = 0; ErrOmega2Pre = 0; ErrPsiInfPre=0; ErrPsi2Pre=0; biPre=0; b2Pre=0; pbiPre=0; pb2Pre=0; 
         
-        fprintf('Navier Stokes Time:\n Basis - %s, NBss0=%d, NBss1=%d,\n LinearSolverType = %d , \n Order=%d ,Scatterer at r=%-2.2f,Reynold Number=%-2.2f, \n Ft = %s, Convergance:%s,\n UsingConvectionTerm:%s\n', ...
-            BasisType.toString(),Basis.NBss0, Basis.NBss1, LinearSolverType,Order,ExParams.r,RN,func2str(Ft),...
-            KindOfConvergance.toString(), ...
-            UsingConvectionTerm.toString()      );
-        firsttime=true;
+        ErrOmegaInfPre = 0; ErrOmega2Pre = 0; ErrPsiInfPre=0; ErrPsi2Pre=0; biPre=0; b2Pre=0; pbiPre=0; pb2Pre=0;
         
-        for n=1:5 %6 %run different grids
+        fprintf('Navier Stokes Time:\n Basis - %s, NBss0=%d, NBss1=%d, LinearSolverType = %d , \n Order=%d ,Scatterer at r=%-2.2f,Reynold Number=%-2.2f, \n', ...
+            BasisType.toString(),Basis.NBss0, Basis.NBss1,SetupBase.DiffOpParams.LinearSolverType,Order,ExParams.r,RN);
+        
+        fprintf('%s, Convergance:%s,\n UsingConvectionTerm:%s\n', ...
+            ExactChoice.toString(Ft), KindOfConvergance.toString(), UsingConvectionTerm.toString()      );
+ 
+        
+        firsttime=true;        
+        for n=1:6 %6 %run different grids
             tic
             %build grid
             p=3;%4;
-            Nx=2.^(n+p)+1;
-            Ny=2.^(n+p)+1;
-            
-            
-            Grid = Tools.Grid.CartesianGrid(x1,xn,Nx,y1,yn,Ny);
-            %ht = abs(Grid.x(1)-Grid.x(2))*0.5;
+            [Nx,Ny] = deal(2.^(n+p)+1,2.^(n+p)+1);
+             
+            UpdateParams.SourceParams.Src = zeros(Nx,Ny);
+            Grid = Tools.Grid.CartesianGrid(GridParams.x1,GridParams.xn,Nx,GridParams.y1,GridParams.yn,Ny);
             ht = Grid.dx;
-%tN=1;            
             if firsttime
-                tN =round(1.2/ht);
+                tN =2;%round(1.1/ht);
                 firsttime=false;
             else
                 tN=tN*2;
@@ -90,106 +53,137 @@ function NavierStokesTime
             
             Fn = @(n) Ft(n*ht);
             
-            gn = g0([],ExParams,Grid,k)*Fn(1);
+            %TStpSrc = @(theta,r,gn,Omega,n,D) TimeStepSource(theta,Eparam(r),gn,Omega,Ft,ht,n,RN,UsingConvectionTerm,Exact,D);
+                        
+                                                
+            Setup  = SetupBase; Setup.Basis = Basis; Setup.Grid = Grid;
+            Setup.CoeffsParams.sigma = k;
+            Setup.ScattererParams.r0 = ExParams.r;
             
+            %gn = Exact.L_np1(Grid.Theta,Eparam(Grid.R), k,Fn,1); %g1 
+            gn = g1(ExParams,k,Fn,Grid,Setup.ScattererParams,Exact);
+
             
-            SourceParams = struct('Handle',@Tools.Source.NavierStokesSourceRTh,  'SourceParams'      , ExParams,'Src',gn,'Fn',Fn,'r0',ExParams.r0,'ht',ht, 'n',0);
-            %gn=zeros(size(gn));
-            %gn = g0([],ExParams,Grid,ht)*Fn(0);
+            t1=1;
+            Setup.SourceParams = struct('Src',gn,'Fn',Fn,'r0',ExParams.r0,'ht',ht, 'tn',t1,'RN',RN);%,'TStpSrc',TStpSrc,'Exact',Exact,'k',k);
             
-            xi0Psi  =@(theta,r) Psi(theta,Eparam(r))*Fn(1);
-            xi1Psi  =@(theta,r) DrDPsi(theta,Eparam(r))*Fn(1);
-            xi0PsiTT=@(theta,r) DPsiDThetaTheta(theta,Eparam(r))*Fn(1);
-            xi1PsiTT=@(theta,r) DPsiDrThetaTheta(theta,Eparam(r))*Fn(1);
-            xi0PsiTTTT=@(theta,r) DPsiD4Theta(theta,Eparam(r))*Fn(1);
-            
-            ExtensionParamsPsi.PsiBC = struct('xi0Psi',xi0Psi,'xi1Psi',xi1Psi,'xi0PsiTT',xi0PsiTT,'xi1PsiTT',xi1PsiTT,'xi0PsiTTTT',xi0PsiTTTT);
-            
-            Setup  = struct( 'Basis', Basis, 'Grid', Grid, ...
-                'CoeffsHandle'      , @Tools.Coeffs.ConstLapCoeffs, ...
-                'CoeffsParams'      , struct('a',1,'b',1,'sigma',k), ...
-                'ScattererHandle'   , @Tools.Scatterer.PolarScatterer, ...
-                'ScattererParams'   , struct('r0',ExParams.r, 'Stencil', Stencil), ...
-                'CollectRhs'        , CollectRhs, ...
-                'DiffOp'            , DiffOp, ...
-                'DiffOpParams'      , struct(   'BC_y1',  0, 'BC_yn',  0,'BC_x1',0 , 'BC_xn',0, 'LinearSolverType', LinearSolverType, 'Order',Order), ...
-                'SourceHandle'      , @Tools.Source.NavierStokesDescreteSrc, ...
-                'SourceParams'      , SourceParams, ...
-                'Extension'         , Extension, ...
-                'ExtensionParams'   , [], ...
-                'ExtensionPsi'      , ExtensionPsi, ...
-                'ExtensionParamsPsi', ExtensionParamsPsi ...
-                );
-            
-            
+            Setup.ExtensionParamsPsi.PsiBC = PsiBC(Eparam,Exact,Fn,t1);
+                        
             Prb =  Solvers.NavierStokesSolver(Setup);
             
-            %         CP=Setup.CoeffsParams;
-            %         CP.sigma=1;
-            %         Src = Tools.Source.NavierStokesSourceRTh(Prb.Scatterer, Setup.CoeffsHandle,CP,ExParams);
+            if RecordMovie  %initialize
+                RecorderOmega = Tools.Common.SimpleRecorder(Grid,tN);
+                RecorderPsi = Tools.Common.SimpleRecorder(Grid,tN);
+            end
+            if UsingConvectionTerm || UsingNumericalLaplacian, Der = Tools.Common.SecondDerivative(Grid.Nx,Grid.Ny,Grid.dx,Grid.dy); end
             
-            % Record = Tools.Common.SimpleRecorder(Grid,tN);
+            %for use in each time step
+            Zeros =zeros(Grid.Nx,Grid.Ny);
+            gnp1 = Zeros;
+            uO = Zeros;
+            Msk = Prb.Scatterer.Mp;
+            theta = Zeros;
+            theta(Msk) = Grid.Theta(Msk);
+            rr=Zeros;
+            rr(Msk) = Grid.R(Msk);
             
-            Der = Tools.Common.SecondDerivative(Grid.Nx,Grid.Ny,Grid.dx,Grid.dy);
-            
-            
-            
-            for tn=1:tN
-                %rhs = [-Prb.Qf{1} - Prb.TrGF{1} ; -Prb.TrGGF ];
-                %cn = [ Prb.Q{1},Prb.Q{2} ; Prb.P{1},Prb.P{2}]\rhs;
+            for tn=t1:tN
                 rhs = [-Prb.Qf{1}-Prb.TrGF{1} ; -Prb.Qpsi{1} - Prb.QPsif - Prb.TrGGF - Prb.TrGpsiGExf ];
                 cn = [ Prb.Q{1},Prb.Q{2} ; Prb.QpsiOmega{1} + Prb.GPO{1}, Prb.QpsiOmega{2} + Prb.GPO{2}]\rhs;
                 
                 Oxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
                 Oxi(Prb.GridGamma) = [Prb.W{1}(Prb.GridGamma,:),Prb.W{2}(Prb.GridGamma,:)]*cn  + Prb.Wf{1}(Prb.GridGamma) + Prb.WPsif{1}(Prb.GridGamma);
                 
+                %Oxi_=Oxi;
+                %Oxi_(Prb.Scatterer.GridGamma)  = Exact.Omega(Grid.Theta(Prb.Scatterer.GridGamma),Eparam(Grid.R(Prb.Scatterer.GridGamma)))*Fn(tn);
                 uOmega = Prb.P_Omega(Oxi);
                 
-                %if UsingConvectionTerm
+                if RecordMovie && n==nToRecord, RecorderOmega.Store((tn-1)*ht,uOmega);  end
+                
+                if tn==tN || UsingConvectionTerm
                     
                     Pxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
                     Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:);
                     
                     uPsi = Prb.P_OmegaPsi(uOmega,Pxi);
-                 if UsingConvectionTerm   
-                    [Omega_x,Omega_y]       = Der.CartesianDerivatives(uOmega);
+                end
+                
+                if UsingConvectionTerm
+                    RecorderPsi.Store(tn*ht,uOmega);
+                    
+                    [Omega_x,Omega_y]   = Der.CartesianDerivatives(uOmega);
                     [Psi_x,Psi_y]       = Der.CartesianDerivatives(uPsi);
                     D = Psi_y.*Omega_x - Psi_x.*Omega_y;
                 else
                     D = 0;
                 end
                 
-                % Record.Store(tn*ht,u);
+                if UsingNumericalLaplacian
+                    LapO = Der.CartesianLaplacian(uOmega);
+                                        
+                    Src = @(n) Exact.NSTimeSource(Grid.Theta,Eparam(Grid.R),RN,Ft,tn*ht,UsingConvectionTerm);
+
+                    gn = Exact.DL_n(LapO - k*uOmega,uOmega,Grid.Theta,Eparam(Grid.R), RN,ht,Ft,tn,UsingConvectionTerm);
+
+                    %gn = 2*RN*D -(LapO + k*uOmega +  RN*(Src(tn+1) + Src(tn)) );
+                    
+                else
+                    if 0     
+                        uO(Msk) = uOmega(Msk);  
+                         
+                        gnp1 = Exact.DL_n(gn,uO,theta,Eparam(rr), RN,ht,Ft,tn,UsingConvectionTerm);
+                        gn = gnp1;
+                    else
+                        uO=zeros(size(uOmega));
+                        Msk = Prb.Scatterer.Mp;
+                        uO(Msk)  = Exact.Omega(Grid.Theta(Msk),Eparam(Grid.R(Msk)))*Fn(tn);
+                        gnpre = gn;
+                        %norm(uOmega(:)-uO(:),inf)
+                        
+                        gn=zeros(size(uOmega)); 
+                        Msk = Prb.Scatterer.Mp;
+                        gn(Msk) = Exact.DL_n(gnpre(Msk),uO(Msk)    ,Grid.Theta(Msk),Eparam(Grid.R(Msk)), RN,ht,Ft,tn,UsingConvectionTerm);
+                    end
+
+                    %gn2=gn;
+                    %gn2(Msk)= Exact.DL_n(gn(Msk),uOmega(Msk),Grid.Theta(Msk),Eparam(Grid.R(Msk)), RN,ht,Ft,tn,UsingConvectionTerm);
+                    %norm(gn(Msk)-gn2(Msk),inf)
+                    
+                    %gn = TimeStepSource(Grid.Theta,Eparam(Grid.R),pregn,uOmega,Ft,ht,n,RN,UsingConvectionTerm,Exact,D);
+                    
+                    %gn = TStpSrc(Grid.Theta,Grid.R,pregn,uOmega,tn,D);
+                    
+                   % gn = Exact.L_np1(Grid.Theta,Eparam(Grid.R), k,Fn,tn+1);
+                    %Res = Exact.Test(Grid.Theta,Eparam(Grid.R),RN,ht,Ft,tn);
+                    
+                end
+            
+                UpdateParams.SourceParams = Setup.SourceParams;
+                UpdateParams.SourceParams.Src = gn;%(Prb.Scatterer.Mp) = gn(Prb.Scatterer.Mp) ;
+                UpdateParams.SourceParams.tn   = tn+1;% n+1
+                UpdateParams.SourceParams.ht  = ht;
                 
-                % Prepare for next time step
-                
-                %ftilde = -Src.Source()*(Fn(tn)+Fn(tn+1));
-                ftilde = Ftilde(ExParams,Grid,Ft,ht*tn,RN,UsingConvectionTerm) + Ftilde(ExParams,Grid,Ft,ht*(tn+1),RN,UsingConvectionTerm);
-                
-                
-                
-                gn = 2*RN*D -(gn + 4*RN*uOmega/ht +  RN*ftilde);
-                SourceParams.Src = gn ;
-                SourceParams.n = tn;
-                SourceParams.ht = ht;
-                UpdateParams.SourceParams = SourceParams;
-                
-                UpdateParams.PsiBC.xi0Psi       = @(theta,r) Psi(theta,Eparam(r))*Fn(tn+1);
-                UpdateParams.PsiBC.xi1Psi       = @(theta,r) DrDPsi(theta,Eparam(r))*Fn(tn+1);
-                UpdateParams.PsiBC.xi0PsiTT     = @(theta,r) DPsiDThetaTheta(theta,Eparam(r))*Fn(tn+1);
-                UpdateParams.PsiBC.xi1PsiTT     = @(theta,r) DPsiDrThetaTheta(theta,Eparam(r))*Fn(tn+1);
-                UpdateParams.PsiBC.xi0PsiTTTT   = @(theta,r) DPsiD4Theta(theta,Eparam(r))*Fn(tn+1);
-                
+                UpdateParams.PsiBC = PsiBC(Eparam,Exact,Fn,tn+1);
+                                
                 Prb.Update( UpdateParams );
+                
             end
             
-            %save('Movie.mat','Record');
+            if RecordMovie
+                save('MovieOmega.mat','RecordOmega');
+                if UsingConvectionTerm
+                    save('MoviePsi.mat','RecordPsi');
+                end
+            end
+            
+            %if n==nToRecord, MakeExactMovie(Grid,tN, Prb.Np,ExParams,Ft,ht, Exact);  end
+            
             
             if 0% ~UsingConvectionTerm
-
+                
                 Pxi = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
                 Pxi(Prb.GridGamma) = [Prb.WpsiOmega{1}(Prb.GridGamma,:),Prb.WpsiOmega{2}(Prb.GridGamma,:)]*cn + Prb.Wpsi{1}(Prb.GridGamma,:);
-
+                
                 uPsi = Prb.P_OmegaPsi(uOmega,Pxi);
             end
             t1=toc;
@@ -220,7 +214,7 @@ function NavierStokesTime
                     
                     ErrOmegaInfPre = ErrOmegaInf;
                     ErrPsiInfPre = ErrPsiInf;
-                                        
+                    
                 end
                 
                 uOmega0=spalloc(Nx*2-1,Ny*2-1,nnz(uOmega));
@@ -228,17 +222,17 @@ function NavierStokesTime
                 
                 uPsi0=spalloc(Nx*2-1,Ny*2-1,nnz(uPsi));
                 uPsi0(1:2:end,1:2:end)=uPsi;
-
+                
                 
             elseif strcmpi(KindOfConvergance,'Exact')
                 ExParams2 = ExParams;
                 ExParams2.r = Prb.Scatterer.r;
                 OxiEx = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
-                OxiEx(Prb.GridGamma) = Omega(Prb.Scatterer.th,ExParams2)*Fn(tn);
+                OxiEx(Prb.GridGamma) = Exact.Omega(Prb.Scatterer.th,ExParams2)*Fn(tN);
                 [bi,b2] = cmpr(OxiEx(Prb.GridGamma), Oxi(Prb.GridGamma));
                 
                 PxiEx = spalloc(Nx,Ny   ,numel(Prb.GridGamma));
-                PxiEx(Prb.GridGamma) = Psi(Prb.Scatterer.th,ExParams2)*Fn(tn);
+                PxiEx(Prb.GridGamma) = Exact.Psi(Prb.Scatterer.th,ExParams2)*Fn(tN);
                 [pbi,pb2] = cmpr(PxiEx(Prb.GridGamma), Pxi(Prb.GridGamma));
                 
                 
@@ -247,12 +241,12 @@ function NavierStokesTime
                 %Ex(IntPrb.Scatterer.Np) = Ex(FocalDistance,Prb.Scatterer.R(Prb.Scatterer.Np),Prb.Scatterer.Th(Prb.Scatterer.Np),R0);
                 ExParams3 = ExParams;
                 ExParams3.r = Prb.Scatterer.R(Prb.Scatterer.Np);
-                Ex(Prb.Scatterer.Np) = Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3)*Fn(tn);
+                Ex(Prb.Scatterer.Np) = Exact.Omega(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3)*Fn(tN);
                 
                 %MakeExactMovie(Grid,tN,Prb.Scatterer.Np,Prb.Scatterer.Th,ExParams3,Fn,ht);
                 
                 ExP = zeros(size(Grid.R));
-                ExP(Prb.Scatterer.Np) = Psi(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3)*Fn(tn);
+                ExP(Prb.Scatterer.Np) = Exact.Psi(Prb.Scatterer.Th(Prb.Scatterer.Np),ExParams3)*Fn(tN);
                 
                 msk = Prb.Scatterer.Np;
                 [ErrOmegaInf,ErrOmega2] = cmpr(Ex(msk),uOmega(msk));
@@ -262,23 +256,92 @@ function NavierStokesTime
                     k,ht,tN,tn*ht,...
                     Nx,Ny,ErrOmegaInf, log2(ErrOmegaInfPre/ErrOmegaInf), ...
                     ErrPsiInf,  log2(ErrPsiInfPre/ErrPsiInf)  , ...
-                    bi,  log2(biPre/bi) , ... 
+                    bi,  log2(biPre/bi) , ...
                     pbi,  log2(pbiPre/pbi) , ...
                     t1         );
                 
                 ErrOmegaInfPre = ErrOmegaInf; ErrOmega2Pre = ErrOmega2;
                 biPre=bi; b2Pre=b2;
-                pbiPre=pbi; pb2Pre=pb2;                
+                pbiPre=pbi; pb2Pre=pb2;
                 ErrPsiInfPre = ErrPsiInf; ErrPsi2Pre = ErrPsi2;
                 
                 fprintf(str);
                 %fprintf(fileID,str);
-                 
-            end            
+                
+            end
         end
     end
 end
 
+function [SetupBase, BasisType, ExParams,GridParams,KindOfConvergance] = Params(Order)
+    if nargin==0, Order=2;end
+    
+    LinearSolverType = 3;%0;%
+    CollectRhs = 1;
+    
+    KindOfConvergance = Tools.Enums.Convergance.Exact;
+    BasisType = Tools.Enums.Basis.Fourier;
+    ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
+    
+    
+    if Order==2
+        Stencil=5;
+        Extension = @Tools.Extensions.EBPolarSimpleLaplace3OrderExtension;
+        %Extension = @Tools.Extensions.EBPolarLaplace3OrderExtension;
+        %Extension = @Tools.Extensions.EBPolarLaplace5OrderExtension;
+        ExtensionPsi = @Tools.Extensions.NavierStokesPsi5rdOrderExtension;
+        %ExtensionPsi = @Tools.Extensions.NavierStokesPsi4rdOrderExtension;
+        
+        DiffOp = @Tools.DifferentialOps.LaplacianOpBCinRhs;
+        %DiffOp = @Tools.DifferentialOps.LaplacianOpBCinMat;
+        
+        DiffOpParams = struct(   'BC_y1',  0, 'BC_yn',  0,'BC_x1',0 , 'BC_xn',0, 'LinearSolverType', LinearSolverType, 'Order',Order);
+    elseif Order==4
+        error('doesn''t work')
+        Extension = @Tools.Extensions.EBPolarLaplace5OrderExtension;
+        
+        Stencil=13;
+        DiffOp = @Tools.DifferentialOps.LapOp4OrdrVarCoeffBCinRhs;
+        
+    end
+    
+    if 1         % cirle
+        ExParams.r0 = 1;
+        GridParams.x1=-1.3;
+        GridParams.xn=1.3;
+        GridParams.y1=-1.3;
+        GridParams.yn=1.3;
+    else  %ellipse
+        a=R0;
+        b=a/2;
+        
+        FocalDistance = sqrt(a^2-b^2);
+        Eta0 = acosh(a/FocalDistance);
+        
+        x1=-1.2;xn=1.2;
+        y1=-0.7;yn=0.7;
+    end
+    
+    
+    
+    SetupBase  = struct( ...
+        ... % 'Basis'            , Basis, ...
+        ... % 'Grid'             , Grid, ...
+        'CollectRhs'        , CollectRhs                                  , ...
+        'CoeffsHandle'      , @Tools.Coeffs.ConstLapCoeffs                , ...
+        'CoeffsParams'      , struct('a',1,'b',1,'sigma',[])              , ...
+        'ScattererHandle'   , @Tools.Scatterer.PolarScatterer             , ...
+        'ScattererParams'   , struct('r0',[], 'Stencil', Stencil) , ...
+        'DiffOp'            , DiffOp                                      , ...
+        'DiffOpParams'      , DiffOpParams                                , ...
+        'SourceHandle'      , @Tools.Source.NavierStokesDescreteSrc       , ...
+        ... %'SourceParams'     , SourceParams                                , ...
+        'Extension'         , Extension                                   , ...
+        'ExtensionParams'   , []                                          , ...
+        'ExtensionPsi'      , ExtensionPsi                                );
+    
+    
+end
 
 function [Linf,L2] = cmpr(ex,u)%,GG)
     
@@ -293,134 +356,52 @@ function [Linf,L2] = cmpr(ex,u)%,GG)
     L2   = norm(tmp(:),2);%/norm(u(:),2);
 end
 
-function P = Psi(theta,Params)
-    %         x = r .* cos(theta);
-    %         y = r .* sin(theta);
-    assert(Params.p==99);
-    
-    P = (Params.r.^2).*cos(theta).*sin(theta).*(Params.r.^2-Params.r0.^2).^2;%Params.p;
-end
-
-function DP = DrDPsi(theta,Params)
-    %         x = r .* cos(theta);
-    %         y = r .* sin(theta);
-    
-    DP = Params.r.*(Params.r.^2-Params.r0.^2).*(3*Params.r.^2-Params.r0.^2).*sin(2*theta);
-end
-
-function DP = DPsiDThetaTheta(theta,Params)
-    %         x = r .* cos(theta);
-    %         y = r .* sin(theta);
-    
-    DP = -4*Psi(theta,Params);
-    
-end
-
-function DP = DPsiD4Theta(theta,Params)
-    %         x = r .* cos(theta);
-    %         y = r .* sin(theta);
-    
-    DP = 16*Psi(theta,Params);
-    
-end
-
-function DP = DPsiDrThetaTheta(theta,Params)
-    %         x = r .* cos(theta);
-    %         y = r .* sin(theta);
-    
-    DP = -4*DrDPsi(theta,Params);
-    
-end
-
-function O = Omega(theta,Params)
-    
-    p=Params.p;
-    r0=Params.r0;
-    if numel(Params.r)==1
-        r=ones(size(theta))*Params.r;
-    else
-        r = Params.r;
-    end
-    
-    O =  4*(r.^2).*(4*r.^2-3*r0^2).*sin(2*theta);
-end
-
-function DO = DrDOmega(theta,Params)
-    assert(Params.p>=2);
-    
-    p=Params.p;
-    r0=Params.r0;
-    
-    if numel(Params.r)==1
-        r=ones(size(theta))*Params.r;
-    else
-        r = Params.r;
-    end
-    
-    switch p
-        case 0
-            DO=0;
-            warning('with p=0 you get Omega=0, so Psi does not satisfy the BC');
-        case 1
-            DO=0;
-            
-        case 2
-            DO = 32*r.^2;
-        case 99 %special case (r, theta)
-            DO=8*r.*(8*r.^2-3*r0^2).*sin(2*theta);
-        otherwise
-            DO = 8*(p-1)*p.*r.*((r.^2 - r0^2).^(p-3)).*(p.*r.^2 - 2*r0^2);
-    end
-    
-end
 
 
-function MakeExactMovie(Grid,tN, Np,Th,Params,Fn,ht)
+function MakeExactMovie(Grid,tN, Np,Params,Ft,ht,Exact)
     
     Record = Tools.Common.SimpleRecorder(Grid,tN);
     
     Ex = zeros(size(Grid.R));
-    
-    for tn=1:tN
-        Ex(Np) = Omega(Th(Np),Params)*Fn(tn);
+    Params.r=Grid.R(Np);
+    for tn=0:tN
+        t = tn*ht;
+        Ex(Np) = Exact.Omega(Grid.Theta(Np),Params)*Ft(t);
         
-        Record.Store(tn*ht,Ex);
+        Record.Store(t,Ex);
     end
     
-    save('ExOmegaCos.mat','Record');
+    save(['ExOmega' func2str(Ft) '.mat'],'Record');
     
 end
 
-function [y,dy] = cossin(t)
-    y = cos(t);
-    dy = -sin(t);
+
+
+
+function g=g1(ExParam,k,Fn,Grid,ScattererParams, Exact)
+    g = zeros(Grid.Nx,Grid.Ny);
+    
+   
+    
+    S = Tools.Scatterer.PolarScatterer(Grid,ScattererParams);
+    Msk = S.Mp;
+
+    ExParam.r = Grid.R(Msk);
+    theta =Grid.Theta(Msk); 
+    
+    g(Msk) = Exact.L_np1(theta,ExParam, k,Fn,1);
 end
 
-function g=g0(~,Params,Grid,k)
+function gnp1 = TimeStepSource(theta,Params,gn,DescreteOmega,TimeFunc,ht,n,RN,UseConvTerm,Exact,D)
+    %here we calc g^{n+1} from g^n
     
-    Params.r = Grid.R;
-    g = 384*Grid.X.*Grid.Y ... - 8*Grid.X.*Grid.Y.*(4*(Grid.X.*Grid.X+Grid.Y.*Grid.Y) - 3*Params.r0*Params.r0)*(2/h);
-        -k*Omega(Grid.Theta,Params);
+    % 'Src Derivatives line 135' On Analytical Scatterer
+    % 'time step update line 108' Mp
+        
+    k = 2*RN/ht;
     
-    % -8*Grid.X.*Grid.Y.*(48+(4*r.^2-3*r0^2));
+    Src = @(n) Exact.NSTimeSource(theta,Params,RN,TimeFunc,n*ht,UseConvTerm);
     
-    %g=zeros(size(g));
+    gnp1 = 2*RN*D -(gn + 2*k*DescreteOmega +  RN*(Src(n+1) + Src(n)) );
 end
 
-function g=Ftilde(Params,Grid,Func,t,RN,UseConvTerm)
-    
-    x=Grid.X;
-    y=Grid.Y;
-    xy = x.*y;
-    r = Grid.R;
-    
-    Params.r = r;
-    [ft,dft] = Func(t);
-    
-    g = Omega(Grid.Theta,Params)*dft - 384*xy*ft/RN;
-    
-    if UseConvTerm
-        D= -64*xy.*(x.^2-y.^2).*((r.^2 - 3*(Params.r0^2)/4).^2 - (Params.r0^4)/16);
-        g=g+D.*ft.*ft;
-    end
-end

@@ -89,6 +89,11 @@ classdef SecondDerivative < handle
 
         end
         
+        function L = CartesianLaplacian(obj,u)
+            [~,~,uxx,uyy] = obj.CartesianDerivatives(u);
+            L = uxx + uyy;
+        end
+         
         function [ur,urr] = RadialDerivatives(obj,u)            
 
             ur  = (obj.Ax*u(:) ).*obj.dxdr    + (obj.Ay*u(:)).*obj.dydr;

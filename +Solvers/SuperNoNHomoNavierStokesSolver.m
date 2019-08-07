@@ -120,7 +120,7 @@ classdef SuperNoNHomoNavierStokesSolver < Solvers.SuperHomoNavierStokesSolver
              
              if isequal(Arguments.ExtensionPsi , @Tools.Extensions.NavierStokesPsi4rdOrderExtension)
                  obj.ExpansionPsiOrder =4;
-             elseif isequal(obj.ExtensionPsi , @Tools.Extensions.NavierStokesPsi5rdOrderExtension)
+             elseif isequal(Arguments.ExtensionPsi , @Tools.Extensions.NavierStokesPsi5rdOrderExtension)
                  obj.ExpansionPsiOrder=5;
              else
                  warning(' unknown ExtensionPsi!!!!');
