@@ -85,7 +85,7 @@ classdef SuperHomoSolver < handle
     % constructor + the get methods for the properties
     methods 
         
-        function x = xi(obj,BC,Mask,OtherBasis)
+        function [x,cn0,cn1] = xi(obj,BC,Mask,OtherBasis)
             B = obj.Basis;
             if nargin==4 
                 B=OtherBasis;
