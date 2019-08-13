@@ -9,23 +9,28 @@ if isempty(p)
 end
 
 if 1
+    ExactChoice = [NavierStokesExact.Exact1Time,NavierStokesExact.Exact2Time];
+    RN=[10,50,100,200]
     
-    RN=[10,50,100,400]
-    
-    parfor i=1:numel(RN)
+    for ECn=1:numel(ExactChoice)
         
-        FileName = ['RN' num2str(RN(i)) '.txt'];
-        fID = fopen(FileName,'w');
+        EC = ExactChoice(ECn);
         
-        
-        UsingConvectionTerm=Tools.Enums.Bool.No;
-        NavierStokesTime(8,RN(i),UsingConvectionTerm,fID);
-        
-        
-        UsingConvectionTerm=Tools.Enums.Bool.Yes;
-        NavierStokesTime(8,RN(i),UsingConvectionTerm,fID);
-        
-        fclose(fID);
+        parfor i=1:numel(RN)
+            
+            FileName = ['RN' num2str(RN(i)) 'EC' num2str(ECn) '.txt'];
+            fID = fopen(FileName,'w');
+            
+            
+            UsingConvectionTerm=Tools.Enums.Bool.No;
+            NavierStokesTime(8,RN(i),UsingConvectionTerm,fID,EC);
+            
+            
+            UsingConvectionTerm=Tools.Enums.Bool.Yes;
+            NavierStokesTime(8,RN(i),UsingConvectionTerm,fID,EC);
+            
+            fclose(fID);
+        end
     end
     
 else

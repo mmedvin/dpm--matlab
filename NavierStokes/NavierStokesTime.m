@@ -1,12 +1,11 @@
-function NavierStokesTime(Nmax,RN,UsingConvectionTerm,fileID)
+function NavierStokesTime(Nmax,RN,UsingConvectionTerm,fileID,ExactChoice)
 
-    if nargin<1, Nmax=6; end 
-    if nargin<2, RN = 15; end % Reynolds Number
-    if nargin<3, UsingConvectionTerm = Tools.Enums.Bool.No; end 
-    if nargin<4, fileID = 1; end 
-
+    if nargin<1, Nmax=6;                                     end 
+    if nargin<2, RN = 15;                                    end % Reynolds Number
+    if nargin<3, UsingConvectionTerm = Tools.Enums.Bool.No;  end 
+    if nargin<4, fileID = 1;                                 end 
+    if nargin<5, ExactChoice = NavierStokesExact.Exact2Time; end
     
-    ExactChoice = NavierStokesExact.Exact2Time;
     Exact = ExactChoice.Helper();
     
     
