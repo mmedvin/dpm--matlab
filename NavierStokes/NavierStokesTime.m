@@ -44,7 +44,7 @@ function NavierStokesTime
             Grid = Tools.Grid.CartesianGrid(GridParams.x1,GridParams.xn,Nx,GridParams.y1,GridParams.yn,Ny);
             ht = Grid.dx;
             if firsttime
-                tN =2;%round(1.1/ht);
+                tN =round(1.1/ht);
                 firsttime=false;
             else
                 tN=tN*2;
