@@ -1,10 +1,15 @@
-function NavierStokesTime
+function NavierStokesTime(Nmax,RN,UsingConvectionTerm,fileID)
+
+    if nargin<1, Nmax=6; end 
+    if nargin<2, RN = 15; end % Reynolds Number
+    if nargin<3, UsingConvectionTerm = Tools.Enums.Bool.No; end 
+    if nargin<4, fileID = 1; end 
+
     
-    ExactChoice = NavierStokesExact.Exact1Time;
+    ExactChoice = NavierStokesExact.Exact2Time;
     Exact = ExactChoice.Helper();
     
-    RN = 10; % Reynolds Number
-    UsingConvectionTerm     = Tools.Enums.Bool.No;
+    
     UsingNumericalLaplacian = Tools.Enums.Bool.No;
     
     Order=2;
@@ -26,15 +31,15 @@ function NavierStokesTime
         
         ErrOmegaInfPre = 0; ErrOmega2Pre = 0; ErrPsiInfPre=0; ErrPsi2Pre=0; biPre=0; b2Pre=0; pbiPre=0; pb2Pre=0;
         
-        fprintf('Navier Stokes Time:\n Basis - %s, NBss0=%d, NBss1=%d, LinearSolverType = %d , \n Order=%d ,Scatterer at r=%-2.2f,Reynold Number=%-2.2f, \n', ...
+        fprintf(fileID,'Navier Stokes Time:\n Basis - %s, NBss0=%d, NBss1=%d, LinearSolverType = %d , \n Order=%d ,Scatterer at r=%-2.2f,Reynold Number=%-2.2f, \n', ...
             BasisType.toString(),Basis.NBss0, Basis.NBss1,SetupBase.DiffOpParams.LinearSolverType,Order,ExParams.r,RN);
         
-        fprintf('%s, Convergance:%s,\n UsingConvectionTerm:%s\n', ...
+        fprintf(fileID,'%s, Convergance:%s,\n UsingConvectionTerm:%s\n', ...
             ExactChoice.toString(Ft), KindOfConvergance.toString(), UsingConvectionTerm.toString()      );
  
         
         firsttime=true;        
-        for n=1:6 %6 %run different grids
+        for n=1:Nmax %6 %run different grids
             tic
             %build grid
             p=3;%4;
@@ -209,7 +214,7 @@ function NavierStokesTime
                     tmp = uPsi(1:2:end,1:2:end)-uPsi1(1:2:end,1:2:end);
                     ErrPsiInf = norm(tmp(:),inf);
                     
-                    fprintf('N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t ErrTot=%d\t rate=%-5.2f\t time=%d\n', Nx,Ny, ...
+                    fprintf(fileID,'N=%-10dx%-10d\t ErrTot=%d\t rate=%-5.2f\t ErrTot=%d\t rate=%-5.2f\t time=%d\n', Nx,Ny, ...
                         ErrOmegaInf,log2(ErrOmegaInfPre/ErrOmegaInf),ErrPsiInf,log2(ErrPsiInfPre/ErrPsiInf),t1);
                     
                     ErrOmegaInfPre = ErrOmegaInf;
@@ -265,8 +270,7 @@ function NavierStokesTime
                 pbiPre=pbi; pb2Pre=pb2;
                 ErrPsiInfPre = ErrPsiInf; ErrPsi2Pre = ErrPsi2;
                 
-                fprintf(str);
-                %fprintf(fileID,str);
+                fprintf(fileID,str);
                 
             end
         end
