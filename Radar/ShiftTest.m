@@ -3,7 +3,7 @@ GridN=512;
 
 k           = 5;
 IncAng      = pi/5;
-BC          = Tools.Enums.BoundaryConditions.Neumann;%Dirichlet;%;
+BC          = Tools.Enums.BoundaryConditions.Dirichlet;%;Neumann;%
 
 Scat1Type    = Tools.Enums.Scatterer.StarShaped;
 Scat2TypeShifted    = Tools.Enums.Scatterer.StarShaped;
@@ -12,7 +12,7 @@ HankOrPlane = 'PlaneWave';% 'PlaneWave' or 'Hankel'
 HankelIndex = 3; HankelType = 2;
 
 %Ellipse Axes:
-a=1;
+a=1.1;
 b=a;
 
 %Ring radiuses:
@@ -69,9 +69,7 @@ Setup2Shited.ExtensionParams =[];
 
 [u1,ExtPrb1,u1Cn0,u1Cn1] = Solve(BC,Setup1);
 [u2Shifted,ExtPrb2,u2ShiftedCn0,u2ShiftedCn1] = Solve(BC,Setup2Shited);
-KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
-arg = KincHat(1)*Shift(1) + KincHat(2)*Shift(2); 
-u3=u1*exp(-1i*k*arg);
+
 %norm(u3(ExtPrb1.GridGamma)-u2(ExtPrb2.GridGamma),inf)
 
 % figure
@@ -82,6 +80,10 @@ u3=u1*exp(-1i*k*arg);
 % legend('u1','u3=u1_shifted','u2shifted')
 
 if 0
+    KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
+    arg = KincHat(1)*Shift(1) + KincHat(2)*Shift(2);
+    u3=u1*exp(-1i*k*arg);
+    
     warning('do the same test, but using basis instead of interpolation');
     x = cos(ExtPrb1.Scatterer.th).*ExtPrb1.Scatterer.r;
     y = sin(ExtPrb1.Scatterer.th).*ExtPrb1.Scatterer.r;
@@ -97,62 +99,100 @@ if 0
     ny = Parameterization2Shifted.YHandle.Derivatives(tt);
     m2 = griddata(x,y,full(u2(ExtPrb2.GridGamma)),nx,ny);
 end
+%%
 if 1
-    tt= linspace(0,2*pi,1000);
-    u2OnGamma = Assemble(tt, Basis2.Handle,Basis2.Indices0,u2ShiftedCn0);
+    KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
+    Ki = KincHat*k;
+    arg = KincHat(1)*Shift(1) + KincHat(2)*Shift(2);
+    
+    tt= linspace(0,2*pi,1000);     tt=tt(1:end-1);
+    
+    u2OnGamma        = Assemble(tt, Basis2.Handle,Basis2.Indices0,u2ShiftedCn0);
     Shiftedu1OnGamma = Assemble(tt, Basis1.Handle,Basis1.Indices0,u1Cn0)*exp(-1i*k*arg);
     
+    u2nOnGamma        = Assemble(tt, Basis2.Handle,Basis2.Indices1,u2ShiftedCn1);
+    Shiftedu1nOnGamma = Assemble(tt, Basis1.Handle,Basis1.Indices1,u1Cn1       )*exp(-1i*k*arg);
+    
+    [einfu,e2u]  = cmpr(Shiftedu1OnGamma , u2OnGamma);
+    [einfun,e2un]= cmpr(Shiftedu1nOnGamma, u2nOnGamma);
+    
     figure
-    sgtitle('u2|_\Gamma and shifted u1|_\Gamma, assembled from Basis');
+    sgtitle(['u2|_\Gamma and shifted u1|_\Gamma, assembled from Basis, err=' num2str(einfu)]);
     subplot(121),  plot(tt,real(Shiftedu1OnGamma),'r+',tt,real(u2OnGamma),'bo'), title('real')
     subplot(122),  plot(tt,imag(Shiftedu1OnGamma),'r+',tt,imag(u2OnGamma),'bo'), title('imag')
-    legend('u3=u1_shifted','u2shifted')
+    legend('u3=u1_{shifted}','u2shifted')
+
+    figure
+    sgtitle(['u2_n|_\Gamma and shifted u1_n|_\Gamma, assembled from Basis, err=' num2str(einfun)]);
+    subplot(121),  plot(tt,real(Shiftedu1nOnGamma),'r+',tt,real(u2nOnGamma),'bo'), title('real')
+    subplot(122),  plot(tt,imag(Shiftedu1nOnGamma),'r+',tt,imag(u2nOnGamma),'bo'), title('imag')
+    legend('u3_n=(u1_n)_{shifted}','u2_nshifted')
     
+ 
+    %FFP
+    field1.value        = Assemble(tt, Basis1.Handle,Basis1.Indices0,u1Cn0);
+    field1.normal_deriv = Assemble(tt, Basis1.Handle,Basis1.Indices1,u1Cn1);
     
-    ttt= linspace(0,2*pi,2000);
-    ttt=ttt(1:end-1);
+    field2.value        = Assemble(tt, Basis2.Handle,Basis2.Indices0,u2ShiftedCn0);
+    field2.normal_deriv = Assemble(tt, Basis2.Handle,Basis2.Indices1,u2ShiftedCn1);
     
-    field2.value        = Assemble(ttt, Basis2.Handle,Basis2.Indices0,u2ShiftedCn0);
-    field2.normal_deriv = Assemble(ttt, Basis2.Handle,Basis2.Indices1,u2ShiftedCn1);
-    
-    field3.value        = Assemble(ttt, Basis1.Handle,Basis1.Indices0,u1Cn0)*exp(-1i*k*arg);
-    field3.normal_deriv = Assemble(ttt, Basis1.Handle,Basis1.Indices1,u1Cn1)*exp(-1i*k*arg);
-    
-    [FFPOnGamma_plus2,FFPOnGamma_minus2] = getFFP(field2,setfield(Setup2Shited  ,'theta',ttt),ExParams2);
-    [FFPOnGamma_plus3,FFPOnGamma_minus3] = getFFP(field3,setfield(Setup1        ,'theta',ttt),ExParams1);
+    field3.value        = field1.value*exp(-1i*k*arg);
+    field3.normal_deriv = field1.normal_deriv*exp(-1i*k*arg);
+
+    [FFPOnGamma_plus1,FFPOnGamma_minus1] = getFFP(field1,setfield(Setup1        ,'theta',tt),ExParams1);
+    [FFPOnGamma_plus2,FFPOnGamma_minus2] = getFFP(field2,setfield(Setup2Shited  ,'theta',tt),ExParams2);
+    [FFPOnGamma_plus3,FFPOnGamma_minus3] = getFFP(field3,setfield(Setup2Shited  ,'theta',tt),ExParams2);% this is correct!!!!!
     
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
     
-    phi = FFPOnGamma_minus2.phi_refl;
+    phi = FFPOnGamma_minus1.phi_refl;
     xhat = [cos(phi),sin(phi)];
-    %IncAng = IncAng-pi;
-    KincHat = [cos(IncAng),sin(IncAng)];
-    arg = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); Title = 'FFP minus from u2|_\Gamma and shifted u1|_\Gamma, assembled from Basis';
+    KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
+    arg = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); 
     
     F2 = FFPOnGamma_minus2.ffp; % computed from the field
-    ShitftedF0 = FFPOnGamma_minus3.ffp;
+    F3 = FFPOnGamma_minus3.ffp;
+    [einfF,e2F] = cmpr(F2,F3);
+    Title = ['FFP minus of u2|_\Gamma and u3(=shifted u1|_\Gamma), assembled from Basis, err=' num2str(einfF)];
     
     sgtitle(Title);
-    subplot(221), plot(phi*180/pi,real(F2) ,'bo',phi*180/pi, real(ShitftedF0),'r+') , title('real' )
-    subplot(222), plot(phi*180/pi,imag(F2) ,'bo',phi*180/pi, imag(ShitftedF0),'r+') , title('imag' )
-    subplot(223), plot(phi*180/pi,abs(F2)  ,'bo',phi*180/pi, abs(ShitftedF0),'r+')  , title('abs'  )
-    subplot(224), plot(phi*180/pi,angle(F2),'bo',phi*180/pi, angle(ShitftedF0),'r+'), title('angle')
+    subplot(221), plot(phi*180/pi,real(F2) ,'bo',phi*180/pi, real(F3),'r+') , title('real' )
+    subplot(222), plot(phi*180/pi,imag(F2) ,'bo',phi*180/pi, imag(F3),'r+') , title('imag' )
+    subplot(223), plot(phi*180/pi,abs(F2)  ,'bo',phi*180/pi, abs(F3),'r+')  , title('abs'  )
+    subplot(224), plot(phi*180/pi,angle(F2),'bo',phi*180/pi, angle(F3),'r+'), title('angle')
     
-    diff = F2 - ShitftedF0;
-    
+%%
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
-    sgtitle(Title);
-    subplot(221), plot(phi*180/pi,real(diff)), title('real')
-    subplot(222), plot(phi*180/pi,imag(diff)), title('imag')
-    subplot(223), plot(phi*180/pi,abs(diff)), title('abs')
-    subplot(224), plot(phi*180/pi,angle(diff)), title('angle')
+    ShitftedF1 = FFPOnGamma_minus1.ffp*exp(1i*k*arg); %approx using
+    [einfFp,e2Fp] = cmpr(F2,ShitftedF1);
+
     
-    fprintf('FFP minus from u on Gamma: max-err(F2-ShiftedF0)=%f, max-err(angle(F2-ShiftedF0))=%f\n', norm(diff,inf)/norm(F2,inf), norm(angle(diff),inf))
+    Title = ['FFP minus of u2|_\Gamma and Shifted FFP minus of u1|_\Gamma, assembled from Basis, err=' num2str(einfFp)];
+ 
+    sgtitle(Title);
+    subplot(221), plot(phi*180/pi,real(F2) ,'bo',phi*180/pi, real(ShitftedF1),'r+') , title('real' )
+    subplot(222), plot(phi*180/pi,imag(F2) ,'bo',phi*180/pi, imag(ShitftedF1),'r+') , title('imag' )
+    subplot(223), plot(phi*180/pi,abs(F2)  ,'bo',phi*180/pi, abs(ShitftedF1),'r+')  , title('abs'  )
+    subplot(224), plot(phi*180/pi,angle(F2),'bo',phi*180/pi, angle(ShitftedF1),'r+'), title('angle')
+
+    
+ %%   
+    %     diff = F2 - ShitftedF1;
+%     %diff = einfF;
+%     
+%     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
+%     sgtitle(Title);
+%     subplot(221), plot(phi*180/pi,real(diff)), title('real')
+%     subplot(222), plot(phi*180/pi,imag(diff)), title('imag')
+%     subplot(223), plot(phi*180/pi,abs(diff)), title('abs')
+%     subplot(224), plot(phi*180/pi,angle(diff)), title('angle')
+%     
+%     fprintf('FFP minus from u on Gamma: max-err(F2-ShiftedF0)=%f, max-err(angle(F2-ShiftedF0))=%f\n', norm(diff,inf)/norm(F2,inf), norm(angle(diff),inf))
     
     
 end
 
-if 1
+if 0
     [UincParams1,Th1] = Scat1Type.UincOnFieldHelper(ExtPrb1,ExParams1);
     [UincParams2,Th2] = Scat2TypeShifted.UincOnFieldHelper(ExtPrb2,ExParams2);
     
@@ -171,49 +211,52 @@ if 1
     %Quiver(u1,u3,ExtPrb1,Setup1,ExParams1,IncAng,'Tot field1',fig);
 end
 
-[FFP_plus2,FFP_minus2] = getFFP(u2Shifted,Setup2Shited,ExParams2);
-[FFP_plus3,FFP_minus3] = getFFP(u3,Setup1,ExParams1);
+if 0 % FFP not on scatterer, but on circle
+    [FFP_plus2,FFP_minus2] = getFFP(u2Shifted,Setup2Shited,ExParams2);
+    [FFP_plus1,FFP_minus1] = getFFP(u1,Setup1,ExParams1);
+    %[FFP_plus3,FFP_minus3] = getFFP(u3,Setup2Shited,ExParams2);
+    
+    
+    %%
+    figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
+    
+    phi = FFP_minus1.phi_refl;
+    xhat = [cos(phi),sin(phi)];
+    KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
+    arg = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); Title = 'FFP minus from 10th last circle';
+    %     arg =- arg; title('FFP plus, -arg'), Title = 'FFP plus, -arg'; warning('wrong sign!')
+    
+    
+    ShitftedF1 = FFP_minus1.ffp*exp(1i*k*arg); %approx using
+    F2 = FFP_minus2.ffp; % computed from the field
+    
+    sgtitle(Title);
+    subplot(221)
+    plot(phi*180/pi,real(F2) ,'bo',phi*180/pi,real(ShitftedF1),'r+'), title('real')
+    subplot(222)
+    plot(phi*180/pi,imag(F2) ,'bo',phi*180/pi,imag(ShitftedF1),'r+'), title('imag')
+    subplot(223)
+    plot(phi*180/pi,abs(F2) ,'bo',phi*180/pi,abs(ShitftedF1),'r+'), title('abs')
+    subplot(224)
+    plot(phi*180/pi,angle(F2),'bo',phi*180/pi,angle(ShitftedF1),'r+'), title('angle')
+    
+    diff = F2 - ShitftedF1;
+    
+    
+    figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
+    sgtitle(Title);
+    subplot(131)
+    plot(phi*180/pi,real(diff)), title('real')
+    subplot(132)
+    plot(phi*180/pi,imag(diff)), title('imag')
+    subplot(133)
+    plot(phi*180/pi,angle(diff)), title('angle')
+    
+    
+    fprintf('FFP minus: max-err(F1-ShiftedF0)=%f, max-err(angle(F1-ShiftedF0))=%f\n', norm(diff,inf)/norm(F2,inf), norm(angle(diff),inf))
+end
 
-%%
-figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
-
-phi = FFP_minus3.phi_refl;
-xhat = [cos(phi),sin(phi)];
-% IncAng = IncAng-pi;
-KincHat = [cos(IncAng),sin(IncAng)];
-arg = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); Title = 'FFP minus from 10th last circle';
-%     arg =- arg; title('FFP plus, -arg'), Title = 'FFP plus, -arg'; warning('wrong sign!')
-
-
-ShitftedF0 = FFP_minus3.ffp; %approx using
-F2 = FFP_minus2.ffp; % computed from the field
-
-sgtitle(Title);
-subplot(221)
-plot(phi*180/pi,real(F2) ,'bo',phi*180/pi,real(ShitftedF0),'r+'), title('real')
-subplot(222)
-plot(phi*180/pi,imag(F2) ,'bo',phi*180/pi,imag(ShitftedF0),'r+'), title('imag')
-subplot(223)
-plot(phi*180/pi,abs(F2) ,'bo',phi*180/pi,abs(ShitftedF0),'r+'), title('abs')
-subplot(224)
-plot(phi*180/pi,angle(F2),'bo',phi*180/pi,angle(ShitftedF0),'r+'), title('angle')
-
-diff = F2 - ShitftedF0;
-
-
-figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
-sgtitle(Title);
-subplot(131)
-plot(phi*180/pi,real(diff)), title('real')
-subplot(132)
-plot(phi*180/pi,imag(diff)), title('imag')
-subplot(133)
-plot(phi*180/pi,angle(diff)), title('angle')
-
-
-fprintf('FFP minus: max-err(F1-ShiftedF0)=%f, max-err(angle(F1-ShiftedF0))=%f\n', norm(diff,inf)/norm(F2,inf), norm(angle(diff),inf))
-
-if 0
+if 0 %FFP_plus...
     %%
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
     
@@ -359,19 +402,29 @@ function S = ScattererShape(Params,Angle)
     switch Params.ScattererType
         case Tools.Enums.Scatterer.Circle
             S = struct('x',Params.r*cos(Angle),'y',Params.r*sin(Angle), ...
-                'dx',-Params.r*sin(Angle),'dy',-Params.r*cos(Angle));
+                'dx',cos(Angle),'dy',sin(Angle));
             
         case Tools.Enums.Scatterer.Ellipse
             S = struct('x',Params.FocalDistance*cosh(Params.eta).*cos(Angle),'y', Params.FocalDistance*sinh(Params.eta).*sin(Angle), ...
                 'dx',-Params.FocalDistance*cosh(Params.eta).*sin(Angle),'dy', Params.FocalDistance*sinh(Params.eta).*cos(Angle));
             
+            warning('normal derivative is wrong!!!');
+            
         case Tools.Enums.Scatterer.StarShaped
             [x,dx] = Params.Parameterization.XHandle.Derivatives(Angle);
             [y,dy] = Params.Parameterization.YHandle.Derivatives(Angle);
-            S = struct('x',x,'y',y,'dx',dx,'dy',dy);
+            n= sqrt(dx.^2+dy.^2);
+            S = struct('x',x,'y',y,'dx',dy./n,'dy',-dx./n);
             
     end
     
+    normal_norm = sqrt(S.dx.^2+S.dy.^2);
+    assert(all(normal_norm(:)-1 < 1e-10));
+    
+    dotproduct = norm(dx.*S.dx + dy.*S.dy,inf);
+    
+    assert(all(dotproduct(:) < 1e-10));
+
 end
 
 function DrawScatterrerShape(Params,Setup)
@@ -509,4 +562,18 @@ function u = Assemble(theta, BasisHandle,Indices,coeffs)
         uj = BasisHandle(theta,Indices(j),BasisAddParams);
         u = u + coeffs(j).*uj.xi0;
     end    
+end
+
+function [Linf,L2] = cmpr(ex,u)%,GG)
+    
+    tmp = ex - u;
+    
+    %     if exist('GG','var')
+    %         tmp(GG) = 0;
+    %         u(GG)=0;
+    %     end
+    
+    Linf = norm(tmp(:),inf)/norm(u(:),inf);
+    L2   = norm(tmp(:),2)/norm(u(:),2);
+   % i=find(abs(tmp)==Linf,1);
 end

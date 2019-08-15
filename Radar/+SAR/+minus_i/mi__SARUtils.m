@@ -148,7 +148,7 @@ classdef mi__SARUtils
     methods (Static, Access = private)
         function ret = isLoop(curve_z)
             rel_threshold = 0.1;  
-            rel_diff_threshold = 0.3;
+            rel_diff_threshold = 0.6;
             minPointsInCurve = 10; 
             
             [rows, cols] = size(curve_z); assert(rows == 2); 
