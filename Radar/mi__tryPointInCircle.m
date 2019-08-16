@@ -1,8 +1,8 @@
 % TODO: arrange it all as actual tests? 
 function mi__tryPointInCircle
-    set(0, 'defaultLineLineWidth', 2); 
-    set(0, 'defaultLineMarkerSize', 15);     
-    set(0, 'defaultAxesFontSize', 20); 
+%     set(0, 'defaultLineLineWidth', 2); 
+%     set(0, 'defaultLineMarkerSize', 15);     
+%     set(0, 'defaultAxesFontSize', 20); 
     
     %circularMesh = struct('rCenter', [1.2; 1.7], 'R', 1.3);  
     circularMesh = struct('rCenter', [1.2; 1.7], 'R', 3);  
@@ -167,7 +167,18 @@ function testTwoPoints(circularMesh, Ntheta, k, phi, twoPointSetup)
     fprintf('Relative difference in FFP: for circles: %g, circle vs. rectangle: %6.4f\n', diffCircRel, diffRectRel); 
     %%%%%%%%
     
+    
+    % Extra test...
     displayRectCurve(rectCurve, twoPointSetup); 
+    
+    figure,plot(traj.phi_refl,traj.ffp,'bo',trajXX.phi_refl,trajXX.ffp,'r+',traj_rect.phi_refl,traj_rect.ffp,'g^')
+    legend('circle','circleXX','rectangle')
+    
+    assert(all(traj.phi_refl - trajXX.phi_refl   <1e-10))
+    assert(all(traj.phi_refl - traj_rect.phi_refl<1e-10))
+    norm(traj.ffp - trajXX.ffp   ,inf)
+    norm(traj.ffp - traj_rect.ffp,inf)
+    
 end
 
 

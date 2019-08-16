@@ -3,7 +3,7 @@ GridN=512;
 
 k           = 5;
 IncAng      = pi/5;
-BC          = Tools.Enums.BoundaryConditions.Dirichlet;%;Neumann;%
+BC          = Tools.Enums.BoundaryConditions.Neumann;%Dirichlet;%;
 
 Scat1Type    = Tools.Enums.Scatterer.StarShaped;
 Scat2TypeShifted    = Tools.Enums.Scatterer.StarShaped;
@@ -70,6 +70,10 @@ Setup2Shited.ExtensionParams =[];
 [u1,ExtPrb1,u1Cn0,u1Cn1] = Solve(BC,Setup1);
 [u2Shifted,ExtPrb2,u2ShiftedCn0,u2ShiftedCn1] = Solve(BC,Setup2Shited);
 
+KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
+arg4u = KincHat(1)*Shift(1) + KincHat(2)*Shift(2);
+u3=u1*exp(-1i*k*arg4u);
+
 %norm(u3(ExtPrb1.GridGamma)-u2(ExtPrb2.GridGamma),inf)
 
 % figure
@@ -80,9 +84,7 @@ Setup2Shited.ExtensionParams =[];
 % legend('u1','u3=u1_shifted','u2shifted')
 
 if 0
-    KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
-    arg = KincHat(1)*Shift(1) + KincHat(2)*Shift(2);
-    u3=u1*exp(-1i*k*arg);
+
     
     warning('do the same test, but using basis instead of interpolation');
     x = cos(ExtPrb1.Scatterer.th).*ExtPrb1.Scatterer.r;
@@ -100,18 +102,15 @@ if 0
     m2 = griddata(x,y,full(u2(ExtPrb2.GridGamma)),nx,ny);
 end
 %%
-if 1
-    KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
-    Ki = KincHat*k;
-    arg = KincHat(1)*Shift(1) + KincHat(2)*Shift(2);
+if 1 %spectral
     
     tt= linspace(0,2*pi,1000);     tt=tt(1:end-1);
     
     u2OnGamma        = Assemble(tt, Basis2.Handle,Basis2.Indices0,u2ShiftedCn0);
-    Shiftedu1OnGamma = Assemble(tt, Basis1.Handle,Basis1.Indices0,u1Cn0)*exp(-1i*k*arg);
+    Shiftedu1OnGamma = Assemble(tt, Basis1.Handle,Basis1.Indices0,u1Cn0)*exp(-1i*k*arg4u);
     
     u2nOnGamma        = Assemble(tt, Basis2.Handle,Basis2.Indices1,u2ShiftedCn1);
-    Shiftedu1nOnGamma = Assemble(tt, Basis1.Handle,Basis1.Indices1,u1Cn1       )*exp(-1i*k*arg);
+    Shiftedu1nOnGamma = Assemble(tt, Basis1.Handle,Basis1.Indices1,u1Cn1       )*exp(-1i*k*arg4u);
     
     [einfu,e2u]  = cmpr(Shiftedu1OnGamma , u2OnGamma);
     [einfun,e2un]= cmpr(Shiftedu1nOnGamma, u2nOnGamma);
@@ -136,8 +135,8 @@ if 1
     field2.value        = Assemble(tt, Basis2.Handle,Basis2.Indices0,u2ShiftedCn0);
     field2.normal_deriv = Assemble(tt, Basis2.Handle,Basis2.Indices1,u2ShiftedCn1);
     
-    field3.value        = field1.value*exp(-1i*k*arg);
-    field3.normal_deriv = field1.normal_deriv*exp(-1i*k*arg);
+    field3.value        = field1.value*exp(-1i*k*arg4u);
+    field3.normal_deriv = field1.normal_deriv*exp(-1i*k*arg4u);
 
     [FFPOnGamma_plus1,FFPOnGamma_minus1] = getFFP(field1,setfield(Setup1        ,'theta',tt),ExParams1);
     [FFPOnGamma_plus2,FFPOnGamma_minus2] = getFFP(field2,setfield(Setup2Shited  ,'theta',tt),ExParams2);
@@ -148,7 +147,7 @@ if 1
     phi = FFPOnGamma_minus1.phi_refl;
     xhat = [cos(phi),sin(phi)];
     KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
-    arg = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); 
+    arg4FFP = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); 
     
     F2 = FFPOnGamma_minus2.ffp; % computed from the field
     F3 = FFPOnGamma_minus3.ffp;
@@ -163,7 +162,7 @@ if 1
     
 %%
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
-    ShitftedF1 = FFPOnGamma_minus1.ffp*exp(1i*k*arg); %approx using
+    ShitftedF1 = FFPOnGamma_minus1.ffp*exp(1i*k*arg4FFP); %approx using
     [einfFp,e2Fp] = cmpr(F2,ShitftedF1);
 
     
@@ -192,7 +191,8 @@ if 1
     
 end
 
-if 0
+%%
+if 0 %draw field
     [UincParams1,Th1] = Scat1Type.UincOnFieldHelper(ExtPrb1,ExParams1);
     [UincParams2,Th2] = Scat2TypeShifted.UincOnFieldHelper(ExtPrb2,ExParams2);
     
@@ -207,10 +207,17 @@ if 0
     subplot(132), DrawField(u_tot2,ExtPrb2,Setup2Shited,ExParams2,IncAng,'Tot field2(shifted)',fig);
     subplot(133), DrawField(u_tot3,ExtPrb1,Setup1,ExParams1,IncAng,'Tot field3(f1 shifted)',fig);
     
+    fig=figure;
+    subplot(131), DrawField(u1       ,ExtPrb1,Setup1      ,ExParams1,IncAng,'Scat field1'            ,fig);
+    subplot(132), DrawField(u2Shifted,ExtPrb2,Setup2Shited,ExParams2,IncAng,'Scat field2(shifted)'   ,fig);
+    subplot(133), DrawField(u3       ,ExtPrb1,Setup1      ,ExParams1,IncAng,'Scat field3(f1 shifted)',fig);
+
+    
     %figure
     %Quiver(u1,u3,ExtPrb1,Setup1,ExParams1,IncAng,'Tot field1',fig);
 end
 
+%%
 if 0 % FFP not on scatterer, but on circle
     [FFP_plus2,FFP_minus2] = getFFP(u2Shifted,Setup2Shited,ExParams2);
     [FFP_plus1,FFP_minus1] = getFFP(u1,Setup1,ExParams1);
@@ -256,6 +263,7 @@ if 0 % FFP not on scatterer, but on circle
     fprintf('FFP minus: max-err(F1-ShiftedF0)=%f, max-err(angle(F1-ShiftedF0))=%f\n', norm(diff,inf)/norm(F2,inf), norm(angle(diff),inf))
 end
 
+%%
 if 0 %FFP_plus...
     %%
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
@@ -325,7 +333,7 @@ function [FFP_plus,FFP_minus] = getFFP(u,Setup,ExParams)
     
     S = ScattererShape(ExParams,theta);
     curve.z = [S.x;S.y];
-    curve.nz = [S.dx;S.dy];
+    curve.nz = [S.nx;S.ny];
     
     FFP_plus  = SAR.plus_i.SARUtils.doFFP_curve(k,phi,curve,field);
     FFP_minus = SAR.minus_i.mi__SARUtils.doFFP_curve(k,phi,curve,field);
@@ -401,27 +409,28 @@ function S = ScattererShape(Params,Angle)
     
     switch Params.ScattererType
         case Tools.Enums.Scatterer.Circle
-            S = struct('x',Params.r*cos(Angle),'y',Params.r*sin(Angle), ...
-                'dx',cos(Angle),'dy',sin(Angle));
+            S = struct('x',Params.r*cos(Angle),'y',Params.r*sin(Angle),'nx',cos(Angle),'ny',sin(Angle));
             
         case Tools.Enums.Scatterer.Ellipse
-            S = struct('x',Params.FocalDistance*cosh(Params.eta).*cos(Angle),'y', Params.FocalDistance*sinh(Params.eta).*sin(Angle), ...
-                'dx',-Params.FocalDistance*cosh(Params.eta).*sin(Angle),'dy', Params.FocalDistance*sinh(Params.eta).*cos(Angle));
-            
-            warning('normal derivative is wrong!!!');
-            
+            x=Params.FocalDistance*cosh(Params.eta).*cos(Angle);
+            y=Params.FocalDistance*sinh(Params.eta).*sin(Angle);
+            tx = -Params.FocalDistance*cosh(Params.eta).*sin(Angle);
+            ty = Params.FocalDistance*sinh(Params.eta).*cos(Angle);
+            n= sqrt(tx.^2+ty.^2);
+            S = struct('x',x,'y',y , 'nx',ty./n,'ny', -tx./n);
+                        
         case Tools.Enums.Scatterer.StarShaped
-            [x,dx] = Params.Parameterization.XHandle.Derivatives(Angle);
-            [y,dy] = Params.Parameterization.YHandle.Derivatives(Angle);
-            n= sqrt(dx.^2+dy.^2);
-            S = struct('x',x,'y',y,'dx',dy./n,'dy',-dx./n);
+            [x,tx] = Params.Parameterization.XHandle.Derivatives(Angle);
+            [y,ty] = Params.Parameterization.YHandle.Derivatives(Angle);
+            n= sqrt(tx.^2+ty.^2);
+            S = struct('x',x,'y',y,'nx',ty./n,'ny',-tx./n);
             
     end
     
-    normal_norm = sqrt(S.dx.^2+S.dy.^2);
+    normal_norm = sqrt(S.nx.^2+S.ny.^2);
     assert(all(normal_norm(:)-1 < 1e-10));
     
-    dotproduct = norm(dx.*S.dx + dy.*S.dy,inf);
+    dotproduct = tx.*S.nx + ty.*S.ny;
     
     assert(all(dotproduct(:) < 1e-10));
 
