@@ -13,7 +13,7 @@ HankelIndex = 3; HankelType = 2;
 
 %Ellipse Axes:
 a=1.1;
-b=a;
+b=a/2;
 
 %Ring radiuses:
 r0=0.3; r1=2.2; %r0=0.8; r1=2.2;
@@ -145,9 +145,9 @@ if 1 %spectral
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
     
     phi = FFPOnGamma_minus1.phi_refl;
-    xhat = [cos(phi),sin(phi)];
+    xhat = [cos(phi);sin(phi)];
     KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
-    arg4FFP = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); 
+    arg4FFP = (xhat(1,:)-KincHat(1))*Shift(1) + (xhat(2,:)-KincHat(2))*Shift(2); 
     
     F2 = FFPOnGamma_minus2.ffp; % computed from the field
     F3 = FFPOnGamma_minus3.ffp;
@@ -162,7 +162,7 @@ if 1 %spectral
     
 %%
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
-    ShitftedF1 = FFPOnGamma_minus1.ffp*exp(1i*k*arg4FFP); %approx using
+    ShitftedF1 = FFPOnGamma_minus1.ffp.*exp(1i*k*arg4FFP); %approx using
     [einfFp,e2Fp] = cmpr(F2,ShitftedF1);
 
     
@@ -218,7 +218,7 @@ if 0 %draw field
 end
 
 %%
-if 0 % FFP not on scatterer, but on circle
+if 1 % FFP not on scatterer, but on circle
     [FFP_plus2,FFP_minus2] = getFFP(u2Shifted,Setup2Shited,ExParams2);
     [FFP_plus1,FFP_minus1] = getFFP(u1,Setup1,ExParams1);
     %[FFP_plus3,FFP_minus3] = getFFP(u3,Setup2Shited,ExParams2);
@@ -228,13 +228,13 @@ if 0 % FFP not on scatterer, but on circle
     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
     
     phi = FFP_minus1.phi_refl;
-    xhat = [cos(phi),sin(phi)];
+    xhat = [cos(phi);sin(phi)];
     KincHat = [cos(IncAng-pi),sin(IncAng-pi)];
-    arg = (xhat(1)-KincHat(1))*Shift(1) + (xhat(2)-KincHat(2))*Shift(2); Title = 'FFP minus from 10th last circle';
+    arg4FFP = (xhat(1,:)-KincHat(1))*Shift(1) + (xhat(2,:)-KincHat(2))*Shift(2);  Title = 'FFP minus from 10th last circle';
     %     arg =- arg; title('FFP plus, -arg'), Title = 'FFP plus, -arg'; warning('wrong sign!')
     
     
-    ShitftedF1 = FFP_minus1.ffp*exp(1i*k*arg); %approx using
+    ShitftedF1 = FFP_minus1.ffp.*exp(1i*k*arg4FFP); %approx using
     F2 = FFP_minus2.ffp; % computed from the field
     
     sgtitle(Title);
@@ -250,14 +250,14 @@ if 0 % FFP not on scatterer, but on circle
     diff = F2 - ShitftedF1;
     
     
-    figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
-    sgtitle(Title);
-    subplot(131)
-    plot(phi*180/pi,real(diff)), title('real')
-    subplot(132)
-    plot(phi*180/pi,imag(diff)), title('imag')
-    subplot(133)
-    plot(phi*180/pi,angle(diff)), title('angle')
+%     figure('units', 'normalized', 'position', [0.1 0.1 0.8, 0.4])
+%     sgtitle(Title);
+%     subplot(131)
+%     plot(phi*180/pi,real(diff)), title('real')
+%     subplot(132)
+%     plot(phi*180/pi,imag(diff)), title('imag')
+%     subplot(133)
+%     plot(phi*180/pi,angle(diff)), title('angle')
     
     
     fprintf('FFP minus: max-err(F1-ShiftedF0)=%f, max-err(angle(F1-ShiftedF0))=%f\n', norm(diff,inf)/norm(F2,inf), norm(angle(diff),inf))

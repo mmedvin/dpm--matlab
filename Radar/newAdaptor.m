@@ -8,7 +8,7 @@ function newAdaptor(inMatFile,outMatFilePrefix)
     %M.scattData = [M1.scattData M2.scattData M3.scattData M4.scattData];
     %also need to combine spec.k_range and meta
     
-    if nargin==0
+    if 0 %nargin==0
         inMatFile = '../SAR_Circle_r1_gp10.mat';
         outMatFilePrefix = 'circle_gp10';
         spec = getSpec();
@@ -24,107 +24,77 @@ function newAdaptor(inMatFile,outMatFilePrefix)
     end
     
     tic
-    load(inMatFile, 'M', 'a', 'b');
+    %load(inMatFile, 'M', 'a', 'b');
+    E = Extractor(inMatFile);
     fprintf('Finished readling %s.', inMatFile);
     toc
     
     ind_letters = {'a', 'b', 'c'};
     
     for ind = 1:numel(ind_letters)
-        extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, tol);
+        extractDataFor_ind(ind, ind_letters, E, outMatFilePrefix, tol);
     end
     
     
-    if (a == b);
-        r = a;
-        extractDataFor_scatterer(M, outMatFilePrefix, r, tol);
+    if (E.a == E.b) 
+        r = E.a;
+        theta = linspace(0,2*pi,200);
+        extractDataFor_scatterer(E, outMatFilePrefix, r, theta, tol);
     end
     
 end
  
-function extractDataFor_ind(ind, ind_letters, M, outMatFilePrefix, tol)
+function extractDataFor_ind(ind, ind_letters, E, outMatFilePrefix, tol)
     
-    outMatFile = sprintf('%s%s%s', outMatFilePrefix, '_ind_', ind_letters{ind});  
+    outMatFile = sprintf('%s%s%s.mat', outMatFilePrefix, '_ind_', ind_letters{ind});  
        
-    r = M.scattData{1,1}.r(ind);
-    spec = M.spec;
-    theta = spec.theta;     
-    curve.z =  r * [cos(theta); sin(theta)]; 
-    curve.nz = [cos(theta); sin(theta)]; 
+    spec = E.spec;
+    
 
+    tmp  = zeros(1,numel(E.theta));
+    scattFields(numel(spec.phi_range),numel(spec.k_range)) = struct('value',tmp,'normal_deriv',tmp);
+    
     for im = 1:numel(spec.phi_range)    
         for il = 1:numel(spec.k_range)
             
-            medvinScattData = M.scattData{im, il}; 
+         [scattFields(im,il),k,phi] =  E.FieldOnCircles(im,il,ind);
             
-            k = medvinScattData.k;
-            phi = medvinScattData.phi;    
-%             assert(abs(k   - spec.k_range(il))   < tol); 
-%             assert(abs(phi - spec.phi_range(im)) < tol);     
-            
-            u  = medvinScattData.u {ind}; 
-            un = medvinScattData.un{ind}; 
-            
-            scattFields(im,il).value = u; 
-            scattFields(im,il).normal_deriv = un;            
-            
+         assert(abs(k   - spec.k_range(il))   < tol);
+         assert(abs(phi - spec.phi_range(im)) < tol);
+                       
         end
     end
     toc 
+    
+    curve = E.Circle(ind);
+    r = E.r(ind);
 
     save(outMatFile, 'curve', 'scattFields', 'r','spec','-v7.3');
 end
 
-function extractDataFor_scatterer(M, outMatFilePrefix, r, tol)
+function extractDataFor_scatterer(E, outMatFilePrefix, r,theta, tol)
    
-    outMatFile = sprintf('%s%s', outMatFilePrefix, '_iface');  
+    outMatFile = sprintf('%s%s.mat', outMatFilePrefix, '_iface');  
    
-    spec = M.spec;
-    theta = spec.theta;%(0 : 0.0025 : 1.999);%spec.theta;     
-    curve.z =  r * [cos(theta); sin(theta)]; 
-    curve.nz = [cos(theta); sin(theta)]; 
-
-    Basis = M.Basis;    
-    if ~isfield(Basis,'AddParams')
-        Basis.AddParams=[];
-    end
+    spec = E.spec;
+    
+    tmp  = zeros(1,numel(theta));
+    scattFields(numel(spec.phi_range),numel(spec.k_range)) = struct('value',tmp,'normal_deriv',tmp);  
     
     for im = 1:numel(spec.phi_range)    
         for il = 1:numel(spec.k_range)
             
-            medvinScattData = M.scattData{im, il};
+           [scattFields(im,il),k,phi] = E.FieldOnScatterer(im,il,theta);
             
-            k = medvinScattData.k;
-            phi = medvinScattData.phi;    
-            assert(abs(k   - spec.k_range(il))   < tol); 
-            assert(abs(phi - spec.phi_range(im)) < tol);     
-            
-            cn0 = medvinScattData.cn0;
-            cn1 = medvinScattData.cn1;
-
-            u = 0;
-            un = 0;
-
-            for j=1:numel(Basis.Indices0)
-                uj = Basis.Handle(theta,Basis.Indices0(j),Basis.AddParams);
-                u = u + cn0(j).*uj.xi0;
-            end
-
-            for j=1:numel(Basis.Indices1)
-                uj = Basis.Handle(theta,Basis.Indices1(j),Basis.AddParams);
-                un = un + cn1(j).*uj.xi0;
-            end         
-            
-            assert(numel(u)  == numel(theta)); 
-            assert(numel(un) == numel(theta)); 
-            
-            scattFields(im,il).value = u; 
-            scattFields(im,il).normal_deriv = un;            
-            
+           assert(abs(k   - spec.k_range(il))   < tol);
+           assert(abs(phi - spec.phi_range(im)) < tol);
+           
         end
     end
     toc 
 
+    curve = E.Curve(theta);
+    
     save(outMatFile, 'curve', 'scattFields', 'r','-v7.3')
 end
 
