@@ -5,8 +5,8 @@ classdef AbstractRecorder < handle
     properties
     end
     
-    methods
-        Store(obj, rho, u, v);
+    methods(Abstract)
+        Store(obj);%(obj, rho, u, v);
     end
     
 end

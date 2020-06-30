@@ -18,6 +18,7 @@ classdef Grids < handle
     end
     
     methods
+        % constructor Grids(x1,xn,Nx,y1,yn,Ny)
         function obj = Grids(x1,xn,Nx,y1,yn,Ny)
             if nargin>0
                 obj.x1 = x1;
