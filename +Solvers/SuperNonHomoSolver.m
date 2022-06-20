@@ -88,7 +88,7 @@ classdef SuperNonHomoSolver < Solvers.SuperHomoSolver
 			 if obj.CollectRhs
 				 obj.Rhs();
 				 				 
-                 GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf,obj.BF],'UniformOutput',false);
+                 GLW = cellfun(@(arg) obj.Gf(arg),[obj.rhs,obj.rhsf,full(obj.BF)],'UniformOutput',false);
                  obj.NewQ = cellfun(@(arg1,arg2) obj.Qcol(arg1,arg2),GLW(:,1:end-1), [obj.Extension.W,obj.Extension.Wf],'UniformOutput',false);
                  
                  obj.myGF   = GLW(:,end);

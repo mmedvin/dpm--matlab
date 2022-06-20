@@ -1,6 +1,6 @@
 classdef NestedEllipticScatterer < Tools.Scatterer.NestedScatterer
     
-    properties
+    properties(SetAccess=protected)
         r0;
         r1;
 

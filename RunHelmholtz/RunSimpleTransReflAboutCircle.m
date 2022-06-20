@@ -101,13 +101,13 @@ function RunSimpleTransReflAboutCircle
                 %Extxi(ExtPrb.GridGamma) = [ExtPrb.W(ExtPrb.GridGamma,:),uinc]*cn;
                 
                 UincParams  = struct('ScattererType','circle','r',PlrGrid.R);
-                Uinc = Uinc(UincParams,PlrGrid.Theta,IncAng,k);
+                Uinc_ = Uinc(UincParams,PlrGrid.Theta,IncAng,k);
                 
                 
                 %tmp = Uinc(UincParams,PlrGrid.Theta,IncAng,k);
 %                 ExtuInc = spalloc(PlrGrid.Nx,PlrGrid.Ny,length(ExtPrb.Scatterer.Nm));
 %                 ExtuInc(ExtPrb.Scatterer.Outside) = tmp(ExtPrb.Scatterer.Outside);
-                Extu = ExtPrb.P_Omega(Extxi,Uinc ); 
+                Extu = ExtPrb.P_Omega(Extxi,Uinc_ ); 
                 
             else
                 

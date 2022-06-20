@@ -106,13 +106,13 @@ kex = [1];
                 %UincParams  =
                 %struct('ScattererType','ellipse','FocalDistance',FocalDistance,'eta',PlrGrid.R);???
                 UincParams  = struct('ScattererType','circle','r',PlrGrid.R, 'Vark',false);
-                Uinc = Uinc(UincParams,PlrGrid.Theta,IncAng,ExtWaveNumberParams.k);
+                Uinc_ = Uinc(UincParams,PlrGrid.Theta,IncAng,ExtWaveNumberParams.k);
                 
                 
                 %tmp = Uinc(UincParams,PlrGrid.Theta,IncAng,k);
 %                 ExtuInc = spalloc(PlrGrid.Nx,PlrGrid.Ny,length(ExtPrb.Scatterer.Nm));
 %                 ExtuInc(ExtPrb.Scatterer.Outside) = tmp(ExtPrb.Scatterer.Outside);
-                Extu = ExtPrb.P_Omega(Extxi,Uinc ); 
+                Extu = ExtPrb.P_Omega(Extxi,Uinc_ ); 
                 
             else
                 

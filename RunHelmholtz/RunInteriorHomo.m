@@ -49,7 +49,7 @@ end
 
 %fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
 fprintf('Method:RunInteriorHomo-%s,\t  \n',ScatType);
-fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
+fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.toString());
 
 for k =1%[1,5,10,15,20,25]
     

@@ -22,16 +22,16 @@ function RunTransReflAboutStarShapedBody
    
 
     % Kite
-%    x1=-1.7;xn=1.2;
-%    y1=-1.7;  yn=1.7;
-%    r0=0.8;
-%    r1=2.2;
+   x1=-1.7;xn=1.2;
+   y1=-1.7;  yn=1.7;
+   r0=0.8;
+   r1=2.2;
 
    % star
-    x1=-1.7; xn=1.7;
-    y1=-1.7; yn=1.7;
-    r0=0.3;
-    r1=2.2;
+%     x1=-1.7; xn=1.7;
+%     y1=-1.7; yn=1.7;
+%     r0=0.3;
+%     r1=2.2;
 
 
    % submarine
@@ -50,13 +50,13 @@ function RunTransReflAboutStarShapedBody
     IncAng = IncAngD*pi/180;    
     
     %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
-    %Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
-    %Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+%     Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
+    Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/2,'c',0,'p',150));
     %Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1.8,'b',1.8/5,'c',1,'p',150));
    % Parameterization  = Tools.Parameterizations.ParametricStar();
    
-     Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a,'b',b,'xcenter',.0,'ycenter',0.1,'rotation',0));
+%      Parameterization  = Tools.Parameterizations.ParametricEllipse2(struct('a',a,'b',b,'xcenter',.0,'ycenter',0.1,'rotation',0));
 
     
 %     Problem = 'Dirichlet'; % 'Dirichlet' or 'Neumann'   

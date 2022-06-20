@@ -1,5 +1,6 @@
 function RunNested
-
+% doesn't converge, not sure why, looks like never worked, probably
+% inproper handling of source 
 
 x1=-2.2;xn=2.2;
 y1=-2.2;yn=2.2;
@@ -8,9 +9,9 @@ y1=-2.2;yn=2.2;
 R0=1;
 R1=2;
 
-%kite
-%x1=-1.7;xn=1.2;
-%y1=-1.7;yn=1.7;
+% kite
+% x1=-1.7;xn=1.2;
+% y1=-1.7;yn=1.7;
 
 NHR = 1.6;%1.6;
 % k=1;
@@ -25,12 +26,12 @@ Eta1 =Eta0+1;
 
 %doesn't expected to work Parameterization  = Tools.Parameterizations.ParametricHeart(struct('a',13/16,'b',-5/16,'c',-2/16,'d',-1/16,'e',1,'p',3));
 Parameterization  = Tools.Parameterizations.ParametricEllipse(struct('a',a,'b',b));
-%Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
-%Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
-%Parameterization  = Tools.Parameterizations.ParametricStar();
+% Parameterization  = Tools.Parameterizations.ParametricKite(struct('a',1,'b',.65*2,'c',1.5));
+% Parameterization  = Tools.Parameterizations.ParametricSubmarine(struct('a',1,'b',1/5,'c',2,'p',100));
+% Parameterization  = Tools.Parameterizations.ParametricStar();
 
 
-ScatType = 'circle';%'StarShapedScatterer';%'StarShapedScatterer'; %'ellipse' or 'circle' or 'StarShapedScatterer'
+ScatType = 'ellipse';%'circle';%'StarShapedScatterer';%'ellipse' or 'circle' or 'StarShapedScatterer'
 BType = 'Fourier'; % 'Fourier' or 'Chebyshev'
 ChebyshevRange = struct('a',-pi,'b',pi);%don't change it
 
@@ -46,7 +47,7 @@ end
 
 %fprintf('Method:%s,\t Ellipse: a=%d; \t b=%d \n',ScatType,a,b);
 fprintf('Method:RunNested-%s,\t using %s Basis, r0=%d,r1=%d \n',ScatType,BType,R0,R1);
-fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.Print);
+fprintf('Grid: x1=%f, xn=%f, y1=%f, yn=%f \n %s \n',x1,xn,y1,yn, Parameterization.toString);
 
 for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
 
@@ -66,7 +67,7 @@ for k = 1%[1,5]% [1,3,5] %[1,5,10,15,20,25]
 	end
 fprintf('NBss: %d,%d,%d,%d\n',Basis.Interior.NBss0,Basis.Interior.NBss1,Basis.Exterior.NBss0,Basis.Exterior.NBss1);
 
-for n=1:4 %run different grids
+for n=1:5 %run different grids
 tic
 	%build grid
     p=4;
@@ -114,7 +115,9 @@ tic
             'SourceHandle'      , Source, ...
             'SourceParams'      , SourceParams, ...
             'Extension'         , Extension, ...
-            'ExtensionParams'   , ExtensionParams ...
+            'ExtensionParams'   , ExtensionParams , ...
+            'DiffOp'            , @Tools.DifferentialOps.HelmholtzOp, ...
+            'DiffOpParams'      , [] ...
             ));
         
      Cn	= [ NstPrb.Q{1,2}, NstPrb.Q{2,2}] \ ([ -NstPrb.Q{1,1},-NstPrb.Q{2,1}]*[Basis.Interior.cn0; Basis.Exterior.cn0]  - NstPrb.TrGF{1} - NstPrb.TrGF{2} - NstPrb.Qf{1} - NstPrb.Qf{2})  ;

@@ -216,6 +216,10 @@ classdef StarShapedScatterer < Tools.Scatterer.SingleScatterer
             Ameta = metaclass(A);
             val=[];
             
+            if numel(Ameta.Properties)==0
+                val = 1;
+            end
+            
             for i = 1:numel(Ameta.Properties)
                 nm1 = Ameta.Properties{i}.Name;
                 val1 = eval(['A.',nm1]);

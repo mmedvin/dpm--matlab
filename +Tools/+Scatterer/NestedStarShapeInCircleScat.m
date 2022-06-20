@@ -1,6 +1,6 @@
 classdef NestedStarShapeInCircleScat < Tools.Scatterer.NestedScatterer
     
-    properties(AbortSet = true)
+    properties(AbortSet = true,SetAccess=protected)
 
         r;
         th;

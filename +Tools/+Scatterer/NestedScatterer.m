@@ -1,7 +1,8 @@
 classdef NestedScatterer < Tools.Scatterer.SuperScatterer
     
-     properties(Access = public)
-        Grid;
+     properties(SetAccess=protected)
+          Grid;
+
         
         Mp;
         Mm;

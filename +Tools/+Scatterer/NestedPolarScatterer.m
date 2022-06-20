@@ -1,5 +1,9 @@
 classdef NestedPolarScatterer < Tools.Scatterer.NestedScatterer
     
+    properties(SetAccess=protected)
+        TheScatterer;
+    end
+
     properties
         r0;
         r1;
@@ -10,7 +14,7 @@ classdef NestedPolarScatterer < Tools.Scatterer.NestedScatterer
         R;
         Th;
         
-        TheScatterer;
+%         TheScatterer;
         
         dr;
     end
